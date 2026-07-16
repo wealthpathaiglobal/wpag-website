@@ -7,12 +7,12 @@ export function MissionSection() {
       <Container>
         <p className={`mb-6 ${typography.caption}`}>OUR MISSION</p>
 
-        <h2 className="max-w-5xl text-5xl font-semibold leading-tight">
+        <h2 className="max-w-5xl break-words text-4xl font-semibold leading-tight sm:text-5xl">
           We build structured financial systems that help people understand,
           measure, and preserve financial stability.
         </h2>
 
-        <p className="mt-10 max-w-3xl text-xl leading-9 text-zinc-400">
+        <p className="mt-10 max-w-3xl text-lg leading-8 text-zinc-400 sm:text-xl sm:leading-9">
           Wealth Path AI Global develops institutional frameworks, research,
           and practical systems designed to move financial decision-making
           beyond advice toward measurable stability.
