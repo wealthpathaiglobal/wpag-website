@@ -1,4 +1,5 @@
 import { MissionSection } from "@/components/sections/mission-section";
+import { AboutSection } from "@/components/sections/about-section";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Container } from "@/components/layout/container";
@@ -39,8 +40,10 @@ export default function Home() {
       </div>
     </section>
   </Container>
-</main>
+  <AboutSection />
 <MissionSection />
+</main>
+
 <SiteFooter />
     </>
   );
