@@ -3,7 +3,10 @@ import { typography } from "@/styles/typography";
 
 export function MissionSection() {
   return (
-    <section className="border-t border-zinc-900 bg-black py-32 text-white">
+    <section
+      id="hfos"
+      className="border-t border-zinc-900 bg-black py-32 text-white"
+    >
       <Container>
         <p className={`mb-6 ${typography.caption}`}>OUR MISSION</p>
 

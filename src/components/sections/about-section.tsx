@@ -3,10 +3,7 @@ import { typography } from "@/styles/typography";
 
 export function AboutSection() {
   return (
-    <section
-      id="about"
-      className="border-t border-white/10 bg-black py-32 text-white"
-    >
+    <section id="about" className="py-32 border-t border-zinc-900">
       <Container>
         <p className={`mb-8 ${typography.caption}`}>
           ABOUT WEALTH PATH AI GLOBAL
