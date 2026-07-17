@@ -1,3 +1,4 @@
+import { ContinueExploring } from "@/components/sections/continue-exploring";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 export default function ResearchPage() {
@@ -217,7 +218,12 @@ export default function ResearchPage() {
         </div>
            </section>
       </main>
-
+<ContinueExploring
+  title="Meet the Founder"
+  description="Learn about the observations, research philosophy, and long-term commitment behind Wealth Path AI Global and the Human Financial Operating System."
+  href="/founder"
+  buttonText="Meet the Founder"
+/>
       <SiteFooter />
     </>
   );
