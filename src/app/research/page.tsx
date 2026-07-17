@@ -1,6 +1,11 @@
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 export default function ResearchPage() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <>
+      <SiteHeader />
+
+      <main className="min-h-screen bg-black text-white">
       <section className="mx-auto flex min-h-[calc(100vh-86px)] max-w-7xl items-center px-6 py-24 sm:px-10 lg:px-16">
         <div className="max-w-5xl">
           <p className="mb-8 text-sm font-medium uppercase tracking-[0.32em] text-zinc-500">
@@ -210,7 +215,10 @@ export default function ResearchPage() {
             </p>
           </div>
         </div>
-      </section>
-    </main>
+           </section>
+      </main>
+
+      <SiteFooter />
+    </>
   );
 }
