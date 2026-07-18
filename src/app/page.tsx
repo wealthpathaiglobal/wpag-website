@@ -1,9 +1,9 @@
+import { MissionSection } from "@/components/sections/mission-section";
 import { Container } from "@/components/layout/container";
 import { AboutSection } from "@/components/sections/about-section";
 import { ContactSection } from "@/components/sections/contact-section";
 import { FounderSection } from "@/components/sections/founder-section";
 import { InsightsSection } from "@/components/sections/insights-section";
-import { MissionSection } from "@/components/sections/mission-section";
 import { ResearchSection } from "@/components/sections/research-section";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -50,13 +50,12 @@ export default function Home() {
             </div>
           </section>
         </Container>
-
-        <AboutSection />
-        <MissionSection />
-        <ResearchSection />
-        <InsightsSection />
-        <FounderSection />
-        <ContactSection />
+<MissionSection />
+<AboutSection />
+<ResearchSection />
+<InsightsSection />
+<FounderSection />
+<ContactSection />
       </main>
 
       <SiteFooter />

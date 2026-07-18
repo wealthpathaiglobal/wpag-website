@@ -4,7 +4,7 @@ import { typography } from "@/styles/typography";
 export function MissionSection() {
   return (
     <section
-      id="hfos"
+     id="mission"
       className="border-t border-zinc-900 bg-black py-32 text-white"
     >
       <Container>
