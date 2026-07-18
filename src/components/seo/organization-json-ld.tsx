@@ -13,7 +13,10 @@ export function OrganizationJsonLd() {
       "@type": "Person",
       name: "Srinivas Goud",
     },
-    sameAs: [],
+    sameAs: [
+      "https://www.linkedin.com/company/wealth-path-ai-global/",
+      "https://github.com/wealthpathaiglobal",
+    ],
   };
 
   return (
