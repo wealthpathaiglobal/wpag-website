@@ -112,6 +112,52 @@ export default function FounderPage() {
     </div>
   </Container>
 </section>
+<section className="border-t border-zinc-900 py-24">
+  <Container>
+    <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
+      <div>
+        <p className="text-sm font-medium uppercase tracking-[0.28em] text-zinc-500">
+          The Research Journey
+        </p>
+      </div>
+
+      <div className="max-w-3xl">
+        <h2 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+          Observation gradually became structured research.
+        </h2>
+
+        <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+          <p>
+            The search did not begin with the intention of creating a new
+            financial framework. It began with an effort to understand why
+            recurring patterns of instability continued to appear across
+            different financial situations.
+          </p>
+
+          <p>
+            Existing financial approaches were studied alongside practical
+            observations. Notes were documented, assumptions were questioned,
+            and recurring behaviours were compared over time. Each iteration
+            refined the understanding of how financial systems respond to load,
+            flow, capacity, and disruption.
+          </p>
+
+          <p>
+            Progress was not linear. Early concepts were repeatedly revised,
+            simplified, and reorganised. The objective was never complexity for
+            its own sake, but a framework that could explain financial
+            stability with clarity, consistency, and practical application.
+          </p>
+
+          <p>
+            This progression laid the foundation for what would later become
+            the Human Financial Operating System (HFOS).
+          </p>
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>
       </main>
 
       <ContinueExploring
