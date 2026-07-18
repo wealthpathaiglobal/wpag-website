@@ -285,6 +285,50 @@ export default function FounderPage() {
     </div>
   </Container>
 </section>
+<section className="border-t border-zinc-900 py-24">
+  <Container>
+    <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
+      <div>
+        <p className="text-sm font-medium uppercase tracking-[0.28em] text-zinc-500">
+          The Continuing Mission
+        </p>
+      </div>
+
+      <div className="max-w-3xl">
+        <h2 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+          The work continues through evidence, refinement, and institutional stewardship.
+        </h2>
+
+        <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+          <p>
+            HFOS is not presented as a finished destination. It remains an
+            evolving body of structured research that must be tested against
+            real financial conditions, documented carefully, and refined when
+            evidence reveals limitations.
+          </p>
+
+          <p>
+            Wealth Path AI Global exists to preserve the integrity of that
+            process. Its role is to support research, establish documentation
+            standards, collect evidence, examine misclassifications, and govern
+            the long-term development of the framework.
+          </p>
+
+          <p>
+            The objective is not rapid expansion without proof. Progress must
+            follow structure, validation, and disciplined interpretation.
+          </p>
+
+          <p>
+            Through continuing research and institutional preservation, WPAG
+            aims to build knowledge that future generations can examine,
+            challenge, extend, and apply responsibly.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>
       </main>
 
       <ContinueExploring
