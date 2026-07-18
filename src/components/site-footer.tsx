@@ -9,6 +9,11 @@ const footerNavigation = [
   { name: "Insights", href: "/insights" },
   { name: "Founder", href: "/founder" },
   { name: "Contact", href: "/contact" },
+
+  // Legal
+  { name: "Privacy Policy", href: "/privacy-policy" },
+  { name: "Terms of Use", href: "/terms-of-use" },
+  { name: "Cookie Policy", href: "/cookie-policy" },
 ];
 
 export function SiteFooter() {
@@ -32,7 +37,7 @@ export function SiteFooter() {
 
           <nav
             aria-label="Footer navigation"
-            className="grid grid-cols-2 gap-x-8 gap-y-4 md:justify-self-end"
+            className="grid grid-cols-2 gap-x-10 gap-y-4 md:grid-cols-3 md:justify-self-end"
           >
             {footerNavigation.map((item) => (
               <Link
@@ -47,14 +52,14 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-16 flex flex-col gap-4 border-t border-zinc-900 pt-6 text-sm text-zinc-600 sm:flex-row sm:items-start sm:justify-between">
-  <p>© 2026 Wealth Path AI Global. All rights reserved.</p>
+          <p>© 2026 Wealth Path AI Global. All rights reserved.</p>
 
-  <div className="space-y-2 text-sm text-zinc-600">
-    <p>Structure precedes speed.</p>
-    <p>Evidence precedes scale.</p>
-    <p>Stability precedes growth.</p>
-  </div>
-</div>
+          <div className="space-y-2 text-sm text-zinc-600">
+            <p>Structure precedes speed.</p>
+            <p>Evidence precedes scale.</p>
+            <p>Stability precedes growth.</p>
+          </div>
+        </div>
       </Container>
     </footer>
   );
