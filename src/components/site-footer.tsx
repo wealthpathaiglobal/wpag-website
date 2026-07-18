@@ -46,11 +46,15 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 border-t border-zinc-900 pt-6 text-sm text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Wealth Path AI Global. All rights reserved.</p>
+        <div className="mt-16 flex flex-col gap-4 border-t border-zinc-900 pt-6 text-sm text-zinc-600 sm:flex-row sm:items-start sm:justify-between">
+  <p>© 2026 Wealth Path AI Global. All rights reserved.</p>
 
-          <p>Structure precedes speed.</p>
-        </div>
+  <div className="space-y-2 text-sm text-zinc-600">
+    <p>Structure precedes speed.</p>
+    <p>Evidence precedes scale.</p>
+    <p>Stability precedes growth.</p>
+  </div>
+</div>
       </Container>
     </footer>
   );
