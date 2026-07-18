@@ -13,13 +13,13 @@ export function ResearchSection() {
         </p>
 
         <h2 className={`max-w-5xl ${typography.display}`}>
-          Research that advances the understanding of financial stability.
+          Advancing the understanding of financial stability through research.
         </h2>
 
         <p className={`mt-10 max-w-3xl ${typography.bodyLarge}`}>
-          Wealth Path AI Global conducts structured research focused on
-          diagnosing, measuring, and preserving long-term financial stability
-          through evidence-based frameworks and systematic analysis.
+          Wealth Path AI Global conducts structured research to improve the
+          diagnosis, measurement, and preservation of long-term financial
+          stability through evidence-based frameworks and systematic analysis.
         </p>
       </Container>
     </section>

@@ -13,13 +13,13 @@ export function InsightsSection() {
         </p>
 
         <h2 className={`max-w-5xl ${typography.display}`}>
-          Insights that transform financial thinking.
-        </h2>
+  Structured insights for long-term financial stability.
+</h2>
 
         <p className={`mt-10 max-w-3xl ${typography.bodyLarge}`}>
-          Discover structured articles, observations, and institutional insights
-          designed to improve financial decision-making and long-term stability.
-        </p>
+  Explore structured articles, observations, and institutional insights that
+  support stronger financial decision-making and long-term financial stability.
+</p>
       </Container>
     </section>
   );

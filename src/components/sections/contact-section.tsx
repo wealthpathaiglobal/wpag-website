@@ -14,11 +14,10 @@ export function ContactSection() {
           Connect with Wealth Path AI Global.
         </h2>
 
-        <p className={`mt-10 max-w-3xl ${typography.bodyLarge}`}>
-          For research discussions, professional collaboration, institutional
-          partnerships, and future enquiries.
-        </p>
-
+       <p className={`mt-10 max-w-3xl ${typography.bodyLarge}`}>
+  For research discussions, professional collaboration, institutional
+  partnerships, or general enquiries, please get in touch.
+</p>
         <a
           href="mailto:srinivasthallapalli98@gmail.com"
           className="mt-10 inline-flex border border-white/20 px-6 py-3 text-sm font-medium text-white transition hover:border-white/50"

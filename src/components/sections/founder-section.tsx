@@ -13,15 +13,14 @@ export function FounderSection() {
         </p>
 
         <h2 className={`max-w-5xl ${typography.display}`}>
-          Building a long-term framework for financial stability.
+          A research journey toward long-term financial stability.
         </h2>
 
         <p className={`mt-10 max-w-3xl ${typography.bodyLarge}`}>
-          Wealth Path AI Global was founded by Srinivas Goud with the objective
-          of developing structured financial systems that help individuals,
-          professionals, and institutions understand, measure, diagnose, and
-          preserve long-term financial stability through structured frameworks
-          and research.
+          Wealth Path AI Global was founded by Srinivas Goud to advance
+          structured financial research. Its objective is to develop frameworks
+          that help individuals, professionals, and institutions understand,
+          diagnose, measure, and preserve long-term financial stability.
         </p>
       </Container>
     </section>
