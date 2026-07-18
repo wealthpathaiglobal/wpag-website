@@ -158,6 +158,133 @@ export default function FounderPage() {
     </div>
   </Container>
 </section>
+<section className="border-t border-zinc-900 py-24">
+  <Container>
+    <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
+      <div>
+        <p className="text-sm font-medium uppercase tracking-[0.28em] text-zinc-500">
+          HFOS Evolution
+        </p>
+      </div>
+
+      <div className="max-w-3xl">
+        <h2 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+          The framework evolved through refinement rather than invention.
+        </h2>
+
+        <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+          <p>
+            The earliest versions of the Human Financial Operating System were
+            intentionally challenged rather than protected. Concepts were
+            rewritten, structures were reorganised, and assumptions were tested
+            against repeated observations.
+          </p>
+
+          <p>
+            Simplicity became a design principle. Each revision removed
+            unnecessary complexity while preserving the ability to explain how
+            financial systems remain stable, operate under pressure, or become
+            fragile.
+          </p>
+
+          <p>
+            Through successive iterations, the framework matured into a
+            structured seven-phase architecture covering Stability, Margin
+            Construction, Controlled Growth, Risk Containment, Asset
+            Architecture, Protection Systems, and Legacy Structure.
+          </p>
+
+          <p>
+            This evolution transformed HFOS from a collection of research notes
+            into an institutional framework designed for long-term development,
+            validation, and governance.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>
+<section className="border-t border-zinc-900 py-24">
+  <Container>
+    <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
+      <div>
+        <p className="text-sm font-medium uppercase tracking-[0.28em] text-zinc-500">
+          Timeline
+        </p>
+      </div>
+
+      <div className="max-w-3xl">
+        <h2 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+          Key milestones in the development of HFOS and WPAG.
+        </h2>
+
+        <div className="mt-12 space-y-10">
+          {[
+            {
+              year: "2005–2022",
+              title: "Professional Experience",
+              description:
+                "Experience across technical services, business operations, finance, transport, trading, and the gig economy provided broad practical exposure to financial life.",
+            },
+            {
+              year: "2022",
+              title: "The Question Emerged",
+              description:
+                "Financial instability raised deeper structural questions that existing explanations could not fully answer.",
+            },
+            {
+              year: "2023–2025",
+              title: "Observation & Research",
+              description:
+                "Systematic documentation, pattern analysis, and comparison of financial behaviours became the foundation of structured research.",
+            },
+            {
+              year: "2025",
+              title: "HFOS Research Begins",
+              description:
+                "The Human Financial Operating System was formally developed as a structural framework for understanding financial stability.",
+            },
+            {
+              year: "2026",
+              title: "Seven-Phase Architecture",
+              description:
+                "HFOS matured into a complete long-term architecture covering seven interconnected phases.",
+            },
+            {
+              year: "2026",
+              title: "WPAG Established",
+              description:
+                "Wealth Path AI Global was established to govern, preserve, validate, and advance HFOS as an institutional body of knowledge.",
+            },
+            {
+              year: "Present",
+              title: "Continuing the Mission",
+              description:
+                "Research, validation, documentation, and evidence collection continue to expand the Human Financial Operating System.",
+            },
+          ].map((item) => (
+            <div
+              key={item.year + item.title}
+              className="border-l border-zinc-800 pl-6"
+            >
+              <p className="text-sm font-medium uppercase tracking-[0.2em] text-zinc-500">
+                {item.year}
+              </p>
+
+              <h3 className="mt-2 text-xl font-semibold">
+                {item.title}
+              </h3>
+
+              <p className="mt-3 text-lg leading-8 text-zinc-400">
+                {item.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </Container>
+</section>
       </main>
 
       <ContinueExploring
