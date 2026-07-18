@@ -9,7 +9,13 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { typography } from "@/styles/typography";
 import { Button } from "@/ui/button";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Home",
+  description:
+    "Wealth Path AI Global develops structured financial systems and the Human Financial Operating System (HFOS) for long-term stability.",
+};
 export default function Home() {
   return (
     <>

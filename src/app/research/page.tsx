@@ -1,6 +1,13 @@
 import { ContinueExploring } from "@/components/sections/continue-exploring";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Research",
+  description:
+    "Explore WPAG research into financial stability, structural diagnosis, and long-term evidence development.",
+};
 export default function ResearchPage() {
   return (
     <>

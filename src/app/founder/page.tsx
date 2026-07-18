@@ -2,7 +2,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Container } from "@/components/layout/container";
 import { ContinueExploring } from "@/components/sections/continue-exploring";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Founder",
+  description:
+    "Learn about the founder of Wealth Path AI Global and the research journey behind the Human Financial Operating System.",
+};
 export default function FounderPage() {
   return (
     <>

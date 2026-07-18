@@ -2,7 +2,13 @@ import { Container } from "@/components/layout/container";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { typography } from "@/styles/typography";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "HFOS",
+  description:
+    "Discover the Human Financial Operating System (HFOS), a structured framework for understanding financial stability, pressure, and continuity.",
+};
 export default function HFOSPage() {
   return (
     <>

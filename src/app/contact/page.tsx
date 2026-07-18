@@ -1,7 +1,13 @@
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Container } from "@/components/layout/container";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "Contact",
+  description:
+    "Contact Wealth Path AI Global regarding research, collaboration, institutional partnerships, and publications.",
+};
 export default function ContactPage() {
   return (
     <>

@@ -2,7 +2,13 @@ import { Container } from "@/components/layout/container";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { typography } from "@/styles/typography";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Learn about Wealth Path AI Global, an independent research and development organization building structured financial systems for long-term stability.",
+};
 export default function AboutPage() {
   return (
     <>

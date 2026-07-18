@@ -2,6 +2,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Container } from "@/components/layout/container";
 import { ContinueExploring } from "@/components/sections/continue-exploring";
+import type { Metadata }from "next";
+
+export const metadata: Metadata = {
+  title: "Insights",
+  description:
+    "Read structured observations, research notes, and evolving ideas from Wealth Path AI Global.",
+};
 export default function InsightsPage() {
   return (
     <>
