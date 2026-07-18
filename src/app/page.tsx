@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { AboutSection } from "@/components/sections/about-section";
 import { ContactSection } from "@/components/sections/contact-section";
 import { FounderSection } from "@/components/sections/founder-section";
@@ -9,12 +11,32 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { typography } from "@/styles/typography";
 import { Button } from "@/ui/button";
-import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Home",
+  title: "Human Financial Operating System",
+
   description:
-    "Wealth Path AI Global develops structured financial systems and the Human Financial Operating System for long-term financial stability.",
+    "Wealth Path AI Global is an independent research organization developing the Human Financial Operating System (HFOS), a structured framework for understanding financial stability, diagnosing pressure, and building long-term financial resilience.",
+
+  alternates: {
+    canonical: "/",
+  },
+
+  openGraph: {
+    title: "Human Financial Operating System | Wealth Path AI Global",
+    description:
+      "A structured framework for understanding financial stability, diagnosing pressure, and building long-term financial resilience.",
+    url: "/",
+    siteName: "Wealth Path AI Global",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Human Financial Operating System | Wealth Path AI Global",
+    description:
+      "A structured framework for understanding financial stability, diagnosing pressure, and building long-term financial resilience.",
+  },
 };
 
 export default function Home() {
@@ -36,8 +58,7 @@ export default function Home() {
 
               <p className={`mt-8 max-w-2xl ${typography.bodyLarge}`}>
                 A structured framework for understanding financial stability,
-                diagnosing pressure, and building long-term financial
-                resilience.
+                diagnosing pressure, and building long-term financial resilience.
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">

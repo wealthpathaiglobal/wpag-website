@@ -6,8 +6,29 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "About",
+
   description:
-    "Learn about Wealth Path AI Global, an independent research and development organization advancing structured financial stability through research, evidence development, and institutional stewardship.",
+    "Learn about Wealth Path AI Global, an independent research organization developing structured financial systems, evidence standards, and the Human Financial Operating System to advance financial stability.",
+
+  alternates: {
+    canonical: "/about",
+  },
+
+  openGraph: {
+    title: "About Wealth Path AI Global",
+    description:
+      "An independent research organization developing structured financial systems, evidence standards, and the Human Financial Operating System.",
+    url: "/about",
+    siteName: "Wealth Path AI Global",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "About Wealth Path AI Global",
+    description:
+      "An independent research organization developing structured financial systems, evidence standards, and the Human Financial Operating System.",
+  },
 };
 
 export default function AboutPage() {

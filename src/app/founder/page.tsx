@@ -6,8 +6,29 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Founder",
+
   description:
-    "Learn about the founder of Wealth Path AI Global and the research journey behind the Human Financial Operating System.",
+    "Learn about the founder of Wealth Path AI Global and the research journey behind the Human Financial Operating System (HFOS).",
+
+  alternates: {
+    canonical: "/founder",
+  },
+
+  openGraph: {
+    title: "Founder | Wealth Path AI Global",
+    description:
+      "The research journey behind the Human Financial Operating System (HFOS) and the founding of Wealth Path AI Global.",
+    url: "/founder",
+    siteName: "Wealth Path AI Global",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Founder | Wealth Path AI Global",
+    description:
+      "The research journey behind the Human Financial Operating System (HFOS) and the founding of Wealth Path AI Global.",
+  },
 };
 
 export default function FounderPage() {

@@ -6,8 +6,29 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Insights",
+
   description:
-    "Read structured observations, research notes, doctrine essays, and evolving ideas from Wealth Path AI Global.",
+    "Read structured observations, research notes, doctrine essays, and framework developments from Wealth Path AI Global and the Human Financial Operating System (HFOS).",
+
+  alternates: {
+    canonical: "/insights",
+  },
+
+  openGraph: {
+    title: "Insights | Wealth Path AI Global",
+    description:
+      "Structured observations, research notes, doctrine essays, and framework developments from Wealth Path AI Global.",
+    url: "/insights",
+    siteName: "Wealth Path AI Global",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Insights | Wealth Path AI Global",
+    description:
+      "Structured observations, research notes, doctrine essays, and framework developments from Wealth Path AI Global.",
+  },
 };
 
 const insightAreas = [

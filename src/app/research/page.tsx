@@ -6,8 +6,29 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Research",
+
   description:
-    "Explore Wealth Path AI Global research into financial stability, structural diagnosis, evidence development, and the Human Financial Operating System.",
+    "Explore Wealth Path AI Global research into financial stability, structural diagnosis, evidence development, and the Human Financial Operating System (HFOS).",
+
+  alternates: {
+    canonical: "/research",
+  },
+
+  openGraph: {
+    title: "Research | Wealth Path AI Global",
+    description:
+      "Independent research into financial stability, structural diagnosis, evidence development, and the Human Financial Operating System (HFOS).",
+    url: "/research",
+    siteName: "Wealth Path AI Global",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Research | Wealth Path AI Global",
+    description:
+      "Independent research into financial stability, structural diagnosis, evidence development, and the Human Financial Operating System (HFOS).",
+  },
 };
 
 const researchPrinciples = [

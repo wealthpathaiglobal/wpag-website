@@ -5,8 +5,29 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Contact",
+
   description:
-    "Contact Wealth Path AI Global regarding research, collaboration, institutional partnerships, publications, and the Human Financial Operating System.",
+    "Contact Wealth Path AI Global regarding research, collaboration, institutional partnerships, publications, and the Human Financial Operating System (HFOS).",
+
+  alternates: {
+    canonical: "/contact",
+  },
+
+  openGraph: {
+    title: "Contact | Wealth Path AI Global",
+    description:
+      "Connect with Wealth Path AI Global regarding research, collaboration, institutional partnerships, publications, and HFOS.",
+    url: "/contact",
+    siteName: "Wealth Path AI Global",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact | Wealth Path AI Global",
+    description:
+      "Connect with Wealth Path AI Global regarding research, collaboration, institutional partnerships, publications, and HFOS.",
+  },
 };
 
 const CONTACT_EMAIL = "contact@wealthpathaiglobal.com";

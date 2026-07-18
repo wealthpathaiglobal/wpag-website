@@ -5,9 +5,30 @@ import { SiteHeader } from "@/components/site-header";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "HFOS",
+  title: "Human Financial Operating System",
+
   description:
-    "Explore the Human Financial Operating System, a structured framework for diagnosing financial stability, pressure, fragility, capacity, and continuity.",
+    "Explore the Human Financial Operating System (HFOS), a structured framework for diagnosing financial stability, pressure, fragility, capacity, and continuity before growth decisions are made.",
+
+  alternates: {
+    canonical: "/hfos",
+  },
+
+  openGraph: {
+    title: "Human Financial Operating System | Wealth Path AI Global",
+    description:
+      "A structured financial framework for diagnosing stability, pressure, fragility, capacity, and continuity before growth decisions are made.",
+    url: "/hfos",
+    siteName: "Wealth Path AI Global",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Human Financial Operating System | Wealth Path AI Global",
+    description:
+      "A structured financial framework for diagnosing stability, pressure, fragility, capacity, and continuity before growth decisions are made.",
+  },
 };
 
 const phases = [
