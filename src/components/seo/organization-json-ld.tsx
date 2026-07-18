@@ -5,7 +5,7 @@ export function OrganizationJsonLd() {
     name: "Wealth Path AI Global",
     alternateName: "WPAG",
     url: "https://wealthpathaiglobal.com",
-    logo: "https://wealthpathaiglobal.com/logo.png",
+    logo: "https://wealthpathaiglobal.com/icon.png",
     email: "contact@wealthpathaiglobal.com",
     description:
       "Wealth Path AI Global is an independent research organization developing the Human Financial Operating System (HFOS), a structured framework for financial stability, diagnosis, and long-term continuity.",
