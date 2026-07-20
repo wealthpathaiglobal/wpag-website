@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://wealthpathaiglobal.com"),
+  metadataBase: new URL("https://www.wealthpathaiglobal.com"),
 
   title: {
     default: "Wealth Path AI Global",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://wealthpathaiglobal.com",
+    url: "https://www.wealthpathaiglobal.com",
     siteName: "Wealth Path AI Global",
     title: "Wealth Path AI Global",
     description:

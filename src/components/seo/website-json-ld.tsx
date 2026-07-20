@@ -2,10 +2,9 @@ export function WebsiteJsonLd() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": "https://wealthpathaiglobal.com/#website",
+    "@id": "https://www.wealthpathaiglobal.com/#website",
 
-    url: "https://wealthpathaiglobal.com",
-
+    url: "https://www.wealthpathaiglobal.com",
     name: "Wealth Path AI Global",
     alternateName: "WPAG",
 
@@ -15,8 +14,8 @@ export function WebsiteJsonLd() {
     inLanguage: "en",
 
     publisher: {
-      "@id": "https://wealthpathaiglobal.com/#organization",
-    },
+  "@id": "https://www.wealthpathaiglobal.com/#organization",
+},
   };
 
   return (

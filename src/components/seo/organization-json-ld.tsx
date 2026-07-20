@@ -2,13 +2,13 @@ export function OrganizationJsonLd() {
   const data = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": "https://wealthpathaiglobal.com/#organization",
+    "@id": "https://www.wealthpathaiglobal.com/#organization",
 
     name: "Wealth Path AI Global",
     alternateName: "WPAG",
 
-    url: "https://wealthpathaiglobal.com",
-    logo: "https://wealthpathaiglobal.com/icon.png",
+    url: "https://www.wealthpathaiglobal.com",
+    logo: "https://www.wealthpathaiglobal.com/icon.png",
 
     email: "contact@wealthpathaiglobal.com",
 
