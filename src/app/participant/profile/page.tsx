@@ -114,11 +114,11 @@ export default function ParticipantProfilePage() {
     const nextErrors: ProfileErrors = {};
 
     if (!profile.fullName.trim()) {
-      nextErrors.fullName = "Enter the participant's full legal name.";
+      nextErrors.fullName = "Enter the participant&apos;s full legal name.";
     }
 
     if (!profile.dateOfBirth) {
-      nextErrors.dateOfBirth = "Enter the participant's date of birth.";
+      nextErrors.dateOfBirth = "Enter the participant&apos;s date of birth.";
     } else {
       const selectedDate = new Date(`${profile.dateOfBirth}T00:00:00`);
       const today = new Date();
@@ -130,7 +130,7 @@ export default function ParticipantProfilePage() {
     }
 
     if (!profile.country.trim()) {
-      nextErrors.country = "Enter the participant's country.";
+      nextErrors.country = "Enter the participant&apos;s country.";
     }
 
     if (!profile.email.trim()) {
@@ -153,11 +153,11 @@ export default function ParticipantProfilePage() {
     }
 
     if (!profile.occupation.trim()) {
-      nextErrors.occupation = "Enter the participant's occupation.";
+      nextErrors.occupation = "Enter the participant&apos;s occupation.";
     }
 
     if (!profile.city.trim()) {
-      nextErrors.city = "Enter the participant's city or region.";
+      nextErrors.city = "Enter the participant&apos;s city or region.";
     }
 
     setErrors(nextErrors);
@@ -263,7 +263,7 @@ export default function ParticipantProfilePage() {
                 </h2>
 
                 <p className="mt-5 max-w-md text-sm leading-7 text-black/60">
-                  Enter the participant's basic identity and location
+                  Enter the participant&apos;s basic identity and location
                   information.
                 </p>
               </div>
