@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import LifecycleActionPanel from "@/components/admin/LifecycleActionPanel";
 import { requireRole } from "@/lib/auth/authorization";
 import { getParticipantDetail } from "@/lib/services/admin/admin-participant-detail-service";
 
@@ -15,13 +16,19 @@ function formatDate(value: string | null) {
     return "—";
   }
 
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function formatStatus(status: string | null) {
@@ -35,7 +42,7 @@ function formatStatus(status: string | null) {
     .join(" ");
 }
 
-function getStatusClasses(status: string) {
+function getStatusClasses(status: string | null) {
   switch (status) {
     case "active":
       return "border-emerald-400/20 bg-emerald-400/10 text-emerald-300";
@@ -60,12 +67,12 @@ function getStatusClasses(status: string) {
   }
 }
 
-export default async function ParticipantDetailPage(
-  props: ParticipantDetailPageProps
-) {
+export default async function ParticipantDetailPage({
+  params,
+}: ParticipantDetailPageProps) {
   await requireRole("administrator");
 
-  const { participantId } = await props.params;
+  const { participantId } = await params;
 
   let participantDetail;
 
@@ -80,14 +87,15 @@ export default async function ParticipantDetailPage(
   return (
     <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8">
+        <nav className="mb-8" aria-label="Participant workspace navigation">
           <Link
             href="/admin/dashboard"
-            className="text-sm text-white/50 transition-colors hover:text-white"
+            className="inline-flex items-center text-sm text-white/50 transition-colors hover:text-white"
           >
-            ← Back to Admin Dashboard
+            <span aria-hidden="true">←</span>
+            <span className="ml-2">Back to Admin Dashboard</span>
           </Link>
-        </div>
+        </nav>
 
         <header className="border-b border-white/10 pb-8">
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-white/40">
@@ -101,7 +109,7 @@ export default async function ParticipantDetailPage(
               </h1>
 
               <p className="mt-3 font-mono text-sm text-white/45">
-                {participant.participant_code}
+                {participant.participant_code ?? participant.id}
               </p>
             </div>
 
@@ -115,7 +123,10 @@ export default async function ParticipantDetailPage(
           </div>
         </header>
 
-        <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section
+          className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          aria-label="Participant information"
+        >
           <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <p className="text-xs uppercase tracking-wider text-white/35">
               Email
@@ -157,6 +168,10 @@ export default async function ParticipantDetailPage(
           </article>
         </section>
 
+        <LifecycleActionPanel
+          lifecycleStatus={participant.lifecycle_status}
+        />
+
         <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
           <div className="border-b border-white/10 px-6 py-5">
             <h2 className="text-lg font-semibold">Lifecycle Timeline</h2>
@@ -180,9 +195,12 @@ export default async function ParticipantDetailPage(
                   className="grid gap-4 px-6 py-5 md:grid-cols-[180px_1fr]"
                 >
                   <div>
-                    <p className="text-sm text-white/45">
+                    <time
+                      dateTime={event.changed_at}
+                      className="text-sm text-white/45"
+                    >
                       {formatDate(event.changed_at)}
-                    </p>
+                    </time>
                   </div>
 
                   <div>
@@ -193,7 +211,9 @@ export default async function ParticipantDetailPage(
                             {formatStatus(event.from_status)}
                           </span>
 
-                          <span className="text-white/25">→</span>
+                          <span className="text-white/25" aria-hidden="true">
+                            →
+                          </span>
                         </>
                       ) : null}
 
