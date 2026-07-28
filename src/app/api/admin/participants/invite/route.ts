@@ -6,56 +6,97 @@ import {
   AuthorizationError,
 } from "@/lib/auth/errors";
 
-export async function POST(request: NextRequest) {
+import {
+  inviteParticipant,
+} from "@/lib/services/admin/invitation-service";
+
+export async function POST(
+  request: NextRequest
+) {
   try {
-    await requireRole("administrator");
+    const staff = await requireRole(
+      "administrator"
+    );
 
     const body = await request.json();
-    const { participantId } = body;
+
+    const participantId =
+      body.participantId?.trim();
 
     if (!participantId) {
       return NextResponse.json(
         {
           success: false,
-          error: "participantId is required.",
+          error:
+            "participantId is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      participantId,
-    });
+    const result =
+      await inviteParticipant(
+        participantId,
+        staff.id
+      );
+
+    if (!result.success) {
+      return NextResponse.json(
+        result,
+        {
+          status: 400,
+        }
+      );
+    }
+
+    return NextResponse.json(result);
+
   } catch (error) {
-    if (error instanceof AuthenticationError) {
+
+    if (
+      error instanceof AuthenticationError
+    ) {
       return NextResponse.json(
         {
           success: false,
           error: error.message,
         },
-        { status: 401 }
+        {
+          status: 401,
+        }
       );
     }
 
-    if (error instanceof AuthorizationError) {
+    if (
+      error instanceof AuthorizationError
+    ) {
       return NextResponse.json(
         {
           success: false,
           error: error.message,
         },
-        { status: 403 }
+        {
+          status: 403,
+        }
       );
     }
 
-    console.error("Participant invitation API error:", error);
+    console.error(
+      "Participant invitation API error:",
+      error
+    );
 
     return NextResponse.json(
       {
         success: false,
-        error: "Unable to process participant invitation.",
+        error:
+          "Unable to process participant invitation.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
