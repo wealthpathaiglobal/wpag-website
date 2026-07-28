@@ -9,8 +9,8 @@ export async function getParticipants() {
       full_name,
       email,
       lifecycle_status,
-      created_at,
-      enrollment_date
+      enrollment_date,
+      created_at
     `)
     .order("created_at", { ascending: false });
 
@@ -18,5 +18,5 @@ export async function getParticipants() {
     throw new Error(`Failed to load participants: ${error.message}`);
   }
 
-  return data;
+  return data ?? [];
 }
