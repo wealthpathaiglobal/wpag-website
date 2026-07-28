@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/auth/authorization";
 import { getParticipants } from "@/lib/services/admin/admin-participant-service";
-
+import Link from "next/link";
 function formatDate(value: string | null) {
   if (!value) {
     return "—";
@@ -199,10 +199,13 @@ export default async function AdminDashboardPage() {
                       className="border-b border-white/5 transition-colors last:border-b-0 hover:bg-white/[0.025]"
                     >
                       <td className="whitespace-nowrap px-6 py-5">
-                        <span className="font-mono text-sm text-white/80">
-                          {participant.participant_code}
-                        </span>
-                      </td>
+  <Link
+    href={`/admin/participants/${participant.id}`}
+    className="font-mono text-sm text-white/80 transition-colors hover:text-white hover:underline"
+  >
+    {participant.participant_code}
+  </Link>
+</td>
 
                       <td className="whitespace-nowrap px-6 py-5">
                         <p className="font-medium text-white">
