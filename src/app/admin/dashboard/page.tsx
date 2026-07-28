@@ -1,7 +1,18 @@
 import { requireRole } from "@/lib/auth/authorization";
+import { getParticipants } from "@/lib/services/admin/admin-participant-service";
 
 export default async function AdminDashboardPage() {
   const staff = await requireRole("administrator");
+  const participants = await getParticipants();
+
+  const totalParticipants = participants.length;
+  const pendingEnrollment = participants.filter(
+    (participant) => participant.lifecycle_status === "pending_enrollment"
+  ).length;
+
+  const activeParticipants = participants.filter(
+    (participant) => participant.lifecycle_status === "active"
+  ).length;
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white">
@@ -36,25 +47,37 @@ export default async function AdminDashboardPage() {
         <section className="mt-8 grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-sm text-white/50">Participants</p>
-            <p className="mt-3 text-3xl font-semibold">—</p>
+
+            <p className="mt-3 text-3xl font-semibold">
+              {totalParticipants}
+            </p>
+
             <p className="mt-2 text-sm text-white/40">
-              Participant registry and lifecycle status
+              Total participants registered in WPAG.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-sm text-white/50">Pending Enrollment</p>
-            <p className="mt-3 text-3xl font-semibold">—</p>
+
+            <p className="mt-3 text-3xl font-semibold">
+              {pendingEnrollment}
+            </p>
+
             <p className="mt-2 text-sm text-white/40">
-              Participants awaiting enrollment
+              Participants waiting for enrollment.
             </p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-sm text-white/50">Active Participants</p>
-            <p className="mt-3 text-3xl font-semibold">—</p>
+
+            <p className="mt-3 text-3xl font-semibold">
+              {activeParticipants}
+            </p>
+
             <p className="mt-2 text-sm text-white/40">
-              Currently active in the WPAG system
+              Participants currently active in the WPAG system.
             </p>
           </div>
         </section>
