@@ -4,6 +4,7 @@
  * Responsibilities:
  * - Read application and eligibility-review records
  * - Return normalized admin application data
+ * - Translate application-layer values to database values
  * - Convert database errors into repository errors
  *
  * This file must not:
@@ -15,10 +16,12 @@
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-import type {
-  ApplicationStatus,
-  EligibilityDecision,
-  EligibilityReviewStatus,
+import {
+  ELIGIBILITY_DECISION,
+  ELIGIBILITY_REVIEW_STATUS,
+  type ApplicationStatus,
+  type EligibilityDecision,
+  type EligibilityReviewStatus,
 } from "@/lib/services/participant/application-types";
 
 import {
@@ -68,9 +71,10 @@ interface EligibilityReviewDatabaseRow {
   criteria_results: Record<string, unknown>;
   eligibility_score: number | null;
 
-  reviewer_notes: string | null;
-  conditional_reason: string | null;
-  ineligible_reason: string | null;
+  decision_summary: string | null;
+  eligibility_conditions: string | null;
+  ineligibility_reason: string | null;
+  additional_information_required: string | null;
 
   reviewed_by: string | null;
   started_at: string | null;
@@ -84,6 +88,7 @@ interface EligibilityReviewDatabaseRow {
     | ApplicationDatabaseRow[]
     | null;
 }
+
 function getApplicationRow(
   applications:
     | ApplicationDatabaseRow
@@ -101,6 +106,65 @@ function getApplicationRow(
   return applications;
 }
 
+function mapDatabaseReviewStatus(
+  reviewStatus: string,
+): EligibilityReviewStatus {
+  switch (reviewStatus) {
+    case "pending":
+      return ELIGIBILITY_REVIEW_STATUS.PENDING;
+
+    case "in_review":
+      return ELIGIBILITY_REVIEW_STATUS.IN_PROGRESS;
+
+    case "completed":
+      return ELIGIBILITY_REVIEW_STATUS.COMPLETED;
+
+    default:
+      throw new AdminApplicationRepositoryError(
+        "mapDatabaseReviewStatus",
+        `Unsupported eligibility review status: ${reviewStatus}`,
+      );
+  }
+}
+
+function mapDatabaseDecision(
+  decision: string,
+): EligibilityDecision {
+  switch (decision) {
+    case "pending":
+      return ELIGIBILITY_DECISION.PENDING;
+
+    case "eligible":
+      return ELIGIBILITY_DECISION.APPROVED;
+
+    case "ineligible":
+      return ELIGIBILITY_DECISION.REJECTED;
+
+    default:
+      throw new AdminApplicationRepositoryError(
+        "mapDatabaseDecision",
+        `Unsupported eligibility decision: ${decision}`,
+      );
+  }
+}
+
+function mapApplicationStatusToDatabase(
+  applicationStatus: ApplicationStatus,
+): string {
+  switch (applicationStatus) {
+    case "eligibility_approved":
+      return "eligible";
+
+    case "eligibility_rejected":
+      return "ineligible";
+
+    case "more_information_required":
+      return "additional_information_required";
+
+    default:
+      return applicationStatus;
+  }
+}
 function mapToAdminApplicationListItem(
   review: EligibilityReviewDatabaseRow,
 ): AdminApplicationListItem {
@@ -125,8 +189,10 @@ function mapToAdminApplicationListItem(
     city: application.city,
 
     applicationStatus: application.status as ApplicationStatus,
-    reviewStatus: review.review_status as EligibilityReviewStatus,
-    decision: review.decision as EligibilityDecision,
+    reviewStatus: mapDatabaseReviewStatus(
+      review.review_status,
+    ),
+    decision: mapDatabaseDecision(review.decision),
 
     reviewId: review.id,
     reviewNumber: review.review_number,
@@ -135,6 +201,7 @@ function mapToAdminApplicationListItem(
     createdAt: application.created_at,
   };
 }
+
 function mapToAdminApplicationDetail(
   review: EligibilityReviewDatabaseRow,
 ): AdminApplicationDetail {
@@ -166,9 +233,9 @@ function mapToAdminApplicationDetail(
     criteriaResults: review.criteria_results,
     eligibilityScore: review.eligibility_score,
 
-    reviewerNotes: review.reviewer_notes,
-    conditionalReason: review.conditional_reason,
-    ineligibleReason: review.ineligible_reason,
+    reviewerNotes: review.decision_summary,
+    conditionalReason: review.eligibility_conditions,
+    ineligibleReason: review.ineligibility_reason,
 
     reviewedBy: review.reviewed_by,
     startedAt: review.started_at,
@@ -179,8 +246,11 @@ function mapToAdminApplicationDetail(
     reviewUpdatedAt: review.updated_at,
   };
 }
+
 export class AdminApplicationRepository {
-  async getPendingApplications(): Promise<AdminApplicationListItem[]> {
+  async getPendingApplications(): Promise<
+    AdminApplicationListItem[]
+  > {
     const { data, error } = await supabaseAdmin
       .from("eligibility_reviews")
       .select(
@@ -238,5 +308,97 @@ export class AdminApplicationRepository {
     return mapToAdminApplicationDetail(
       data as EligibilityReviewDatabaseRow,
     );
+  }
+
+  async updateApplicationReview(input: {
+    applicationId: string;
+    reviewId: string;
+    applicationStatus: ApplicationStatus;
+    decision: EligibilityDecision;
+    reviewerNotes: string | null;
+    conditionalReason: string | null;
+    ineligibleReason: string | null;
+    reviewedBy: string;
+  }): Promise<void> {
+    const completedAt = new Date().toISOString();
+
+    const isMoreInformationRequest =
+      input.decision ===
+      ELIGIBILITY_DECISION.MORE_INFORMATION_REQUIRED;
+
+    const databaseDecision =
+      input.decision === ELIGIBILITY_DECISION.APPROVED
+        ? "eligible"
+        : input.decision === ELIGIBILITY_DECISION.REJECTED
+          ? "ineligible"
+          : "pending";
+
+    const databaseReviewStatus =
+      isMoreInformationRequest
+        ? "in_review"
+        : "completed";
+
+    const { error: reviewError } = await supabaseAdmin
+      .from("eligibility_reviews")
+      .update({
+        review_status: databaseReviewStatus,
+        decision: databaseDecision,
+
+        decision_summary: input.reviewerNotes,
+
+        eligibility_conditions: null,
+
+        additional_information_required:
+          isMoreInformationRequest
+            ? input.conditionalReason
+            : null,
+
+        ineligibility_reason:
+          input.decision === ELIGIBILITY_DECISION.REJECTED
+            ? input.ineligibleReason
+            : null,
+
+        reviewed_by: input.reviewedBy,
+
+        completed_at: isMoreInformationRequest
+          ? null
+          : completedAt,
+      })
+      .eq("id", input.reviewId)
+      .eq("application_id", input.applicationId);
+
+    if (reviewError) {
+      throw new AdminApplicationRepositoryError(
+        "updateApplicationReview",
+        "Failed to update eligibility review.",
+        reviewError.message,
+      );
+    }
+
+    const databaseApplicationStatus =
+  mapApplicationStatusToDatabase(
+    input.applicationStatus,
+  );
+
+const { error: applicationError } =
+  await supabaseAdmin
+    .from("applications")
+    .update({
+      status: databaseApplicationStatus,
+      reviewed_at:
+        input.decision ===
+        ELIGIBILITY_DECISION.MORE_INFORMATION_REQUIRED
+          ? null
+          : completedAt,
+    })
+    .eq("id", input.applicationId);
+
+    if (applicationError) {
+      throw new AdminApplicationRepositoryError(
+        "updateApplicationReview",
+        "Eligibility review was updated, but application status update failed.",
+        applicationError.message,
+      );
+    }
   }
 }

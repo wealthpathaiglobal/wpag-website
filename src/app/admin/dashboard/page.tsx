@@ -249,9 +249,16 @@ export default async function AdminDashboardPage() {
                       className="border-b border-white/5 transition-colors last:border-b-0 hover:bg-white/[0.025]"
                     >
                       <td className="whitespace-nowrap px-6 py-5">
-                        <span className="font-mono text-sm text-white/80">
-                          {application.applicationCode}
-                        </span>
+                        <Link
+  href={`/admin/applications/${application.id}`}
+  className="font-mono text-sm text-white/80 transition-colors hover:text-white hover:underline"
+>
+  {application.applicationCode}
+</Link>
+
+<p className="mt-1 text-xs text-red-400">
+  {application.id}
+</p>
                       </td>
 
                       <td className="whitespace-nowrap px-6 py-5">
