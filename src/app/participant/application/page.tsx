@@ -710,12 +710,12 @@ export default function ParticipantApplicationPage() {
                         }
                       >
                         <option value="">Select an age group</option>
-                        <option value="18-24">18–24</option>
-                        <option value="25-34">25–34</option>
-                        <option value="35-44">35–44</option>
-                        <option value="45-54">45–54</option>
-                        <option value="55-64">55–64</option>
-                        <option value="65+">65 or above</option>
+                        <option value="18_24">18–24</option>
+                        <option value="25_34">25–34</option>
+                        <option value="35_44">35–44</option>
+                        <option value="45_54">45–54</option>
+                        <option value="55_64">55–64</option>
+                        <option value="65_plus">65 or above</option>
                       </select>
 
                       <FieldError message={fieldErrors.ageGroup} />
@@ -741,23 +741,23 @@ export default function ParticipantApplicationPage() {
                         }
                       >
                         <option value="">
-                          Select an employment status
-                        </option>
-                        <option value="Employed full-time">
-                          Employed full-time
-                        </option>
-                        <option value="Employed part-time">
-                          Employed part-time
-                        </option>
-                        <option value="Self-employed">Self-employed</option>
-                        <option value="Business owner">
-                          Business owner
-                        </option>
-                        <option value="Student">Student</option>
-                        <option value="Unemployed">Unemployed</option>
-                        <option value="Retired">Retired</option>
-                        <option value="Homemaker">Homemaker</option>
-                        <option value="Other">Other</option>
+  Select an employment status
+</option>
+<option value="employed">
+  Employed full-time
+</option>
+<option value="employed">
+  Employed part-time
+</option>
+<option value="self_employed">Self-employed</option>
+<option value="business_owner">
+  Business owner
+</option>
+<option value="student">Student</option>
+<option value="unemployed">Unemployed</option>
+<option value="retired">Retired</option>
+<option value="homemaker">Homemaker</option>
+<option value="other">Other</option>
                       </select>
 
                       <FieldError
