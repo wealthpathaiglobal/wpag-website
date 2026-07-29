@@ -169,8 +169,9 @@ export default async function ParticipantDetailPage({
         </section>
 
         <LifecycleActionPanel
-          lifecycleStatus={participant.lifecycle_status}
-        />
+  participantId={participant.id}
+  lifecycleStatus={participant.lifecycle_status}
+/>
 
         <section className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
           <div className="border-b border-white/10 px-6 py-5">
