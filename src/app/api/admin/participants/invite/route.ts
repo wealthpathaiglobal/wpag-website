@@ -37,10 +37,10 @@ export async function POST(
     }
 
     const result =
-      await inviteParticipant(
-        participantId,
-        staff.id
-      );
+  await inviteParticipant(
+    participantId,
+    staff.auth_user_id
+  );
 
     if (!result.success) {
       return NextResponse.json(

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import LifecycleActionPanel from "@/components/admin/LifecycleActionPanel";
+import ParticipantInvitationPanel from "@/components/admin/ParticipantInvitationPanel";
 import { requireRole } from "@/lib/auth/authorization";
 import { getParticipantDetail } from "@/lib/services/admin/admin-participant-detail-service";
 
@@ -77,12 +78,17 @@ export default async function ParticipantDetailPage({
   let participantDetail;
 
   try {
-    participantDetail = await getParticipantDetail(participantId);
-  } catch {
-    notFound();
-  }
+  participantDetail = await getParticipantDetail(participantId);
+} catch (error) {
+  console.error("Participant Detail Error:", error);
+  throw error;
+}
 
-  const { participant, lifecycleHistory } = participantDetail;
+  const {
+  participant,
+  lifecycleHistory,
+  invitation,
+} = participantDetail;
 
   return (
     <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8">
@@ -168,7 +174,13 @@ export default async function ParticipantDetailPage({
           </article>
         </section>
 
-        <LifecycleActionPanel
+       <ParticipantInvitationPanel
+  participantId={participant.id}
+  authUserId={participant.auth_user_id}
+  invitation={invitation}
+/>
+
+<LifecycleActionPanel
   participantId={participant.id}
   lifecycleStatus={participant.lifecycle_status}
 />
