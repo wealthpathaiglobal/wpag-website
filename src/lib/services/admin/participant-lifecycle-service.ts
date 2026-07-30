@@ -26,9 +26,12 @@ type TransitionParticipantInput = {
 };
 
 export class ParticipantLifecycleError extends Error {
-  constructor(message: string) {
+  readonly status: 400 | 404;
+
+  constructor(message: string, status: 400 | 404 = 400) {
     super(message);
     this.name = "ParticipantLifecycleError";
+    this.status = status;
   }
 }
 
@@ -48,6 +51,25 @@ function normalizeReason(reason?: string | null): string | null {
   return normalizedReason || null;
 }
 
+function isKnownLifecycleDomainRejection(error: {
+  code: string;
+  message: string;
+}): boolean {
+  if (error.code !== "P0001") {
+    return false;
+  }
+
+  return (
+    error.message === "Participant not found." ||
+    error.message === "Deleted participants cannot transition." ||
+    error.message === "Withdrawal reason is required." ||
+    error.message.startsWith(
+      "Participant already has lifecycle status:"
+    ) ||
+    error.message.startsWith("Invalid lifecycle transition:")
+  );
+}
+
 async function transitionParticipant({
   participantId,
   toStatus,
@@ -60,10 +82,14 @@ async function transitionParticipant({
     "Participant ID"
   );
 
-  const normalizedChangedByAuthUserId = validateRequiredId(
-    changedByAuthUserId,
-    "Staff authentication user ID"
-  );
+  const normalizedChangedByAuthUserId =
+    changedByAuthUserId?.trim();
+
+  if (!normalizedChangedByAuthUserId) {
+    throw new Error(
+      "Lifecycle actor identity is unavailable."
+    );
+  }
 
   const normalizedReason = normalizeReason(reason);
 
@@ -92,13 +118,14 @@ async function transitionParticipant({
       .maybeSingle<ParticipantLifecycleRecord>();
 
   if (participantLookupError) {
-    throw new ParticipantLifecycleError(
-      `Unable to load participant: ${participantLookupError.message}`
-    );
+    throw new Error("Unable to load participant.");
   }
 
   if (!participant) {
-    throw new ParticipantLifecycleError("Participant not found.");
+    throw new ParticipantLifecycleError(
+      "Participant not found.",
+      404
+    );
   }
 
   if (participant.deleted_at !== null) {
@@ -134,13 +161,17 @@ async function transitionParticipant({
     });
 
   if (transitionError) {
-    throw new ParticipantLifecycleError(
-      `Participant lifecycle transition failed: ${transitionError.message}`
-    );
+    if (isKnownLifecycleDomainRejection(transitionError)) {
+      throw new ParticipantLifecycleError(
+        "The lifecycle transition is not allowed from the participant's current status."
+      );
+    }
+
+    throw new Error("Participant lifecycle transition failed.");
   }
 
   if (!transitionedParticipant) {
-    throw new ParticipantLifecycleError(
+    throw new Error(
       "Lifecycle transition completed without returning a participant record."
     );
   }

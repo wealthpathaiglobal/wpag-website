@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { requireRole } from "@/lib/auth/authorization";
 import {
+  AuthenticationError,
+  AuthorizationError,
+} from "@/lib/auth/errors";
+import {
   enrollParticipant,
   ParticipantEnrollmentError,
 } from "@/lib/services/admin/enrollment-service";
@@ -14,9 +18,41 @@ export async function POST(request: NextRequest) {
   try {
     const staff = await requireRole("administrator");
 
-    const body = (await request.json()) as EnrollmentRequest;
+    let body: unknown;
 
-    const participantId = body.participantId?.trim();
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        {
+          error: "A valid JSON request body is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      body === null ||
+      typeof body !== "object" ||
+      Array.isArray(body)
+    ) {
+      return NextResponse.json(
+        {
+          error: "A valid JSON request body is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const enrollmentRequest = body as EnrollmentRequest;
+    const participantId =
+      typeof enrollmentRequest.participantId === "string"
+        ? enrollmentRequest.participantId.trim()
+        : "";
 
     if (!participantId) {
       return NextResponse.json(
@@ -37,6 +73,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
+        message: "Participant enrolled successfully.",
         participant,
       },
       {
@@ -44,18 +81,40 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (error instanceof AuthorizationError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
     if (error instanceof ParticipantEnrollmentError) {
       return NextResponse.json(
         {
           error: error.message,
         },
         {
-          status: 400,
+          status: error.status,
         }
       );
     }
 
-    console.error("Participant enrollment failed:", error);
+    console.error("Unexpected participant enrollment failure.");
 
     return NextResponse.json(
       {

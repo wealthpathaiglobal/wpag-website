@@ -10,9 +10,12 @@ type EnrollableParticipant = {
 };
 
 export class ParticipantEnrollmentError extends Error {
-  constructor(message: string) {
+  readonly status: 400 | 404;
+
+  constructor(message: string, status: 400 | 404 = 400) {
     super(message);
     this.name = "ParticipantEnrollmentError";
+    this.status = status;
   }
 }
 
@@ -20,6 +23,25 @@ function validateRequiredId(value: string, fieldName: string): void {
   if (!value || value.trim() === "") {
     throw new ParticipantEnrollmentError(`${fieldName} is required.`);
   }
+}
+
+function isKnownLifecycleDomainRejection(error: {
+  code: string;
+  message: string;
+}): boolean {
+  if (error.code !== "P0001") {
+    return false;
+  }
+
+  return (
+    error.message === "Participant not found." ||
+    error.message === "Deleted participants cannot transition." ||
+    error.message === "Withdrawal reason is required." ||
+    error.message.startsWith(
+      "Participant already has lifecycle status:"
+    ) ||
+    error.message.startsWith("Invalid lifecycle transition:")
+  );
 }
 
 /**
@@ -34,10 +56,16 @@ export async function enrollParticipant(
   changedByAuthUserId: string
 ) {
   validateRequiredId(participantId, "Participant ID");
-  validateRequiredId(changedByAuthUserId, "Staff authentication user ID");
 
   const normalizedParticipantId = participantId.trim();
-  const normalizedChangedByAuthUserId = changedByAuthUserId.trim();
+  const normalizedChangedByAuthUserId =
+    changedByAuthUserId?.trim();
+
+  if (!normalizedChangedByAuthUserId) {
+    throw new Error(
+      "Enrollment actor identity is unavailable."
+    );
+  }
 
   const { data: participant, error: participantLookupError } =
     await supabaseAdmin
@@ -56,13 +84,14 @@ export async function enrollParticipant(
       .maybeSingle<EnrollableParticipant>();
 
   if (participantLookupError) {
-    throw new ParticipantEnrollmentError(
-      `Unable to load participant: ${participantLookupError.message}`
-    );
+    throw new Error("Unable to load participant.");
   }
 
   if (!participant) {
-    throw new ParticipantEnrollmentError("Participant not found.");
+    throw new ParticipantEnrollmentError(
+      "Participant not found.",
+      404
+    );
   }
 
   if (participant.deleted_at !== null) {
@@ -97,13 +126,17 @@ export async function enrollParticipant(
     });
 
   if (enrollmentError) {
-    throw new ParticipantEnrollmentError(
-      `Participant enrollment failed: ${enrollmentError.message}`
-    );
+    if (isKnownLifecycleDomainRejection(enrollmentError)) {
+      throw new ParticipantEnrollmentError(
+        "Participant cannot be enrolled from the current lifecycle status."
+      );
+    }
+
+    throw new Error("Participant enrollment failed.");
   }
 
   if (!enrolledParticipant) {
-    throw new ParticipantEnrollmentError(
+    throw new Error(
       "Participant enrollment completed without returning a participant record."
     );
   }
