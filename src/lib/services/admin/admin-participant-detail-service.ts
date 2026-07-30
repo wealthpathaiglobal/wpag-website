@@ -14,11 +14,7 @@ export async function getParticipantDetail(participantId: string) {
       lifecycle_status,
       research_status,
       enrollment_date,
-      completion_date,
-      withdrawal_date,
-      withdrawal_reason,
-      created_at,
-      updated_at
+      created_at
     `)
     .eq("id", participantId)
     .maybeSingle();
@@ -91,8 +87,7 @@ export async function getParticipantDetail(participantId: string) {
       status,
       invited_at,
       expires_at,
-      auth_user_id,
-      last_error
+      auth_user_id
     `)
     .eq("participant_id", participantId)
     .order("created_at", { ascending: false })
