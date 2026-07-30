@@ -1005,7 +1005,7 @@ select is(
     ),
     false,
     format(
-        'table privileges: %s cannot SELECT from %s',
+        'table privileges: %s has no table-level SELECT on %s',
         role_name,
         table_name
     )
