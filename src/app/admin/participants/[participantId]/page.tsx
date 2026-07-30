@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import LifecycleActionPanel from "@/components/admin/LifecycleActionPanel";
 import ParticipantInvitationPanel from "@/components/admin/ParticipantInvitationPanel";

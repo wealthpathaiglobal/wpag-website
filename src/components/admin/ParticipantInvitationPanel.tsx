@@ -147,6 +147,20 @@ export default function ParticipantInvitationPanel({
 
       <div className="mt-6 grid gap-5 md:grid-cols-3">
         <div>
+          <p className="text-xs uppercase tracking-wider text-white/35">
+            Status
+          </p>
+
+          <span
+            className={`mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-medium ${getStatusClasses(
+              invitation?.status ?? null
+            )}`}
+          >
+            {formatStatus(invitation?.status ?? null)}
+          </span>
+        </div>
+
+        <div>
   <p className="text-xs uppercase tracking-wider text-white/35">
     Invited
   </p>
