@@ -220,6 +220,11 @@ const siteUrl = getSiteUrl();
 const redirectTo =
   `${siteUrl}/auth/callback?next=/auth/update-password`;
 
+console.log("NEXT_PUBLIC_SITE_URL =", process.env.NEXT_PUBLIC_SITE_URL);
+console.log("VERCEL_URL =", process.env.VERCEL_URL);
+console.log("SITE URL =", siteUrl);
+console.log("REDIRECT TO =", redirectTo);
+
 const { data: authInvitation, error: authInvitationError } =
   await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
     redirectTo,
