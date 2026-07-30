@@ -10,7 +10,6 @@ interface Invitation {
   status: string;
   invited_at: string | null;
   expires_at: string |null;
-  last_error: string | null;
 }
 
 interface ParticipantInvitationPanelProps {
@@ -234,7 +233,7 @@ export default function ParticipantInvitationPanel({
 </div>
       </div>
 
-      {invitation?.last_error && (
+      {invitation?.status === "failed" && (
         <div className="mt-6 rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-3">
           <p className="text-sm text-amber-200">
             Previous invitation error:
