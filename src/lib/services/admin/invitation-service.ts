@@ -214,21 +214,22 @@ export async function inviteParticipant(
     };
   }
 
-  // 7. Send the Supabase Auth invitation email.
-  const siteUrl = getSiteUrl();
-  const redirectTo =
-    `${siteUrl}/auth/callback?next=/participant/dashboard`;
+ // 7. Send the Supabase Auth invitation email.
+const siteUrl = getSiteUrl();
 
-  const { data: authInvitation, error: authInvitationError } =
-    await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-      redirectTo,
-      data: {
-        participant_id: participantId,
-        invitation_id: invitation.id,
-        invited_by: invitedBy,
-        account_type: "participant",
-      },
-    });
+const redirectTo =
+  `${siteUrl}/auth/callback?next=/auth/update-password`;
+
+const { data: authInvitation, error: authInvitationError } =
+  await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+    redirectTo,
+    data: {
+      participant_id: participantId,
+      invitation_id: invitation.id,
+      invited_by: invitedBy,
+      account_type: "participant",
+    },
+  });
 
   // 8. Record invitation delivery failure.
   if (authInvitationError || !authInvitation.user) {
