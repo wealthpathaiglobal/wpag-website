@@ -6,10 +6,11 @@ import {
   type LifecycleAction,
   useLifecycleActions,
 } from "@/hooks/admin/useLifecycleActions";
+import type { ParticipantLifecycleStatus } from "@/lib/types/participant/participant";
 
 interface LifecycleActionPanelProps {
   participantId: string;
-  lifecycleStatus: string;
+  lifecycleStatus: ParticipantLifecycleStatus;
 }
 
 type ActionConfiguration = {
@@ -99,7 +100,7 @@ function getAvailableActions(
 ): LifecycleAction[] {
   switch (lifecycleStatus) {
     case "pending_enrollment":
-      return ["enroll"];
+      return ["enroll", "withdraw"];
 
     case "active":
       return ["pause", "complete", "withdraw"];
