@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { requireRole } from "@/lib/auth/authorization";
 import {
+  AuthenticationError,
+  AuthorizationError,
+} from "@/lib/auth/errors";
+import {
   archiveParticipant,
   completeParticipant,
   ParticipantLifecycleError,
@@ -101,10 +105,10 @@ export async function executeParticipantLifecycleAction({
   try {
     const staff = await requireRole("administrator");
 
-    let body: ParticipantLifecycleRequest;
+    let body: unknown;
 
     try {
-      body = (await request.json()) as ParticipantLifecycleRequest;
+      body = await request.json();
     } catch {
       return NextResponse.json(
         {
@@ -116,8 +120,42 @@ export async function executeParticipantLifecycleAction({
       );
     }
 
-    const participantId = body.participantId?.trim();
-    const reason = body.reason?.trim() || null;
+    if (
+      body === null ||
+      typeof body !== "object" ||
+      Array.isArray(body)
+    ) {
+      return NextResponse.json(
+        {
+          error: "A valid JSON request body is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const lifecycleRequest = body as ParticipantLifecycleRequest;
+    const participantId =
+      typeof lifecycleRequest.participantId === "string"
+        ? lifecycleRequest.participantId.trim()
+        : "";
+
+    if (
+      lifecycleRequest.reason !== undefined &&
+      typeof lifecycleRequest.reason !== "string"
+    ) {
+      return NextResponse.json(
+        {
+          error: "Reason must be a string.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const reason = lifecycleRequest.reason?.trim() || null;
 
     if (!participantId) {
       return NextResponse.json(
@@ -159,20 +197,41 @@ export async function executeParticipantLifecycleAction({
       }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        {
+          status: 401,
+        }
+      );
+    }
+
+    if (error instanceof AuthorizationError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
     if (error instanceof ParticipantLifecycleError) {
       return NextResponse.json(
         {
           error: error.message,
         },
         {
-          status: 400,
+          status: error.status,
         }
       );
     }
 
     console.error(
-      `Participant lifecycle action "${action}" failed:`,
-      error
+      `Unexpected participant lifecycle action "${action}" failure.`
     );
 
     return NextResponse.json(

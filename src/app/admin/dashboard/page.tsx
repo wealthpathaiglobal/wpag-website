@@ -115,10 +115,6 @@ export default async function AdminDashboardPage() {
               <p className="mt-2 font-medium text-white">
                 {staff.full_name ?? staff.email ?? "Administrator"}
               </p>
-
-              <p className="mt-1 text-xs uppercase tracking-wider text-white/40">
-                {staff.role}
-              </p>
             </div>
           </div>
         </header>
