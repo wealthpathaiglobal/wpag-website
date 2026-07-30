@@ -1,4 +1,41 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import type { ParticipantLifecycleStatus } from "@/lib/types/participant/participant";
+
+type InvitationApplication = {
+  id: string;
+  full_name: string;
+  email: string;
+};
+
+type InvitationParticipant = {
+  id: string;
+  auth_user_id: string | null;
+  lifecycle_status: ParticipantLifecycleStatus;
+  application_id: string;
+  deleted_at: string | null;
+  application:
+    | InvitationApplication
+    | InvitationApplication[]
+    | null;
+};
+
+type InvitationFailure = {
+  success: false;
+  error: string;
+};
+
+const invitationBlockedStatuses: readonly ParticipantLifecycleStatus[] = [
+  "completed",
+  "withdrawn",
+  "archived",
+];
+
+function invitationFailure(error: string): InvitationFailure {
+  return {
+    success: false,
+    error,
+  };
+}
 
 function getSiteUrl() {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -16,31 +53,6 @@ function getSiteUrl() {
   return "http://localhost:3000";
 }
 
-function getSupabaseErrorMessage(
-  fallbackMessage: string,
-  error: {
-    message?: string;
-    details?: string;
-    hint?: string;
-    code?: string;
-  } | null
-) {
-  if (!error) {
-    return fallbackMessage;
-  }
-
-  const parts = [
-    error.message,
-    error.details,
-    error.hint,
-    error.code ? `Code: ${error.code}` : null,
-  ].filter(Boolean);
-
-  return parts.length > 0
-    ? `${fallbackMessage} ${parts.join(" | ")}`
-    : fallbackMessage;
-}
-
 export async function inviteParticipant(
   participantId: string,
   invitedBy: string
@@ -54,6 +66,7 @@ export async function inviteParticipant(
         auth_user_id,
         lifecycle_status,
         application_id,
+        deleted_at,
         application:applications (
           id,
           full_name,
@@ -61,40 +74,39 @@ export async function inviteParticipant(
         )
       `)
       .eq("id", participantId)
-      .is("deleted_at", null)
-      .single();
+      .maybeSingle<InvitationParticipant>();
 
   if (participantError) {
-    console.error("Participant invitation: participant lookup failed", {
-      participantId,
-      code: participantError.code,
-      message: participantError.message,
-      details: participantError.details,
-      hint: participantError.hint,
-    });
+    console.error("Participant invitation lookup failed.");
 
-    return {
-      success: false,
-      error: getSupabaseErrorMessage(
-        "Unable to load participant.",
-        participantError
-      ),
-    };
+    return invitationFailure("Unable to load participant.");
   }
 
   if (!participant) {
-    return {
-      success: false,
-      error: "Participant not found.",
-    };
+    return invitationFailure("Participant not found.");
+  }
+
+  if (participant.deleted_at !== null) {
+    return invitationFailure(
+      "Deleted participants cannot be invited."
+    );
   }
 
   // 2. Prevent invitations for an already connected account.
   if (participant.auth_user_id) {
-    return {
-      success: false,
-      error: "Participant already has an account.",
-    };
+    return invitationFailure(
+      "Participant already has an account."
+    );
+  }
+
+  if (
+    invitationBlockedStatuses.includes(
+      participant.lifecycle_status
+    )
+  ) {
+    return invitationFailure(
+      "Invitations are unavailable for the participant's current lifecycle status."
+    );
   }
 
   // 3. Extract and normalize participant email.
@@ -105,16 +117,9 @@ export async function inviteParticipant(
   const email = application?.email?.trim().toLowerCase();
 
   if (!email) {
-    console.error("Participant invitation: application email missing", {
-      participantId,
-      applicationId: participant.application_id,
-      application,
-    });
+    console.error("Participant invitation email is unavailable.");
 
-    return {
-      success: false,
-      error: "Participant email is required.",
-    };
+    return invitationFailure("Participant email is required.");
   }
 
   // 4. Prevent duplicate active invitations.
@@ -127,31 +132,17 @@ export async function inviteParticipant(
       .maybeSingle();
 
   if (activeInvitationError) {
-    console.error(
-      "Participant invitation: active invitation lookup failed",
-      {
-        participantId,
-        code: activeInvitationError.code,
-        message: activeInvitationError.message,
-        details: activeInvitationError.details,
-        hint: activeInvitationError.hint,
-      }
-    );
+    console.error("Active participant invitation lookup failed.");
 
-    return {
-      success: false,
-      error: getSupabaseErrorMessage(
-        "Unable to verify existing invitations.",
-        activeInvitationError
-      ),
-    };
+    return invitationFailure(
+      "Unable to verify existing invitations."
+    );
   }
 
   if (activeInvitation) {
-    return {
-      success: false,
-      error: "An active invitation already exists.",
-    };
+    return invitationFailure(
+      "An active invitation already exists."
+    );
   }
 
   // 5. Create a seven-day invitation window.
@@ -169,13 +160,6 @@ export async function inviteParticipant(
     last_error: null,
   };
 
-  console.log("Participant invitation: creating invitation", {
-    participantId,
-    email,
-    invitedBy,
-    expiresAt: invitationPayload.expires_at,
-  });
-
   const { data: invitation, error: invitationError } =
     await supabaseAdmin
       .from("participant_invitations")
@@ -184,34 +168,21 @@ export async function inviteParticipant(
       .single();
 
   if (invitationError) {
-    console.error("Participant invitation: insert failed", {
-      payload: invitationPayload,
-      code: invitationError.code,
-      message: invitationError.message,
-      details: invitationError.details,
-      hint: invitationError.hint,
-    });
+    console.error("Participant invitation creation failed.");
 
-    return {
-      success: false,
-      error: getSupabaseErrorMessage(
-        "Unable to create participant invitation.",
-        invitationError
-      ),
-    };
+    return invitationFailure(
+      "Unable to create participant invitation."
+    );
   }
 
   if (!invitation) {
     console.error(
-      "Participant invitation: insert returned no invitation row",
-      invitationPayload
+      "Participant invitation creation returned no record."
     );
 
-    return {
-      success: false,
-      error:
-        "Unable to create participant invitation. No invitation record was returned.",
-    };
+    return invitationFailure(
+      "Unable to create participant invitation."
+    );
   }
 
  // 7. Send the Supabase Auth invitation email.
@@ -233,18 +204,9 @@ const { data: authInvitation, error: authInvitationError } =
 
   // 8. Record invitation delivery failure.
   if (authInvitationError || !authInvitation.user) {
-    const failureMessage =
-      authInvitationError?.message ??
-      "Supabase Auth invitation failed.";
+    const failureMessage = "Invitation delivery failed.";
 
-    console.error("Participant invitation: auth invitation failed", {
-      participantId,
-      invitationId: invitation.id,
-      email,
-      message: authInvitationError?.message,
-      status: authInvitationError?.status,
-      code: authInvitationError?.code,
-    });
+    console.error("Participant invitation delivery failed.");
 
     await supabaseAdmin
       .from("participant_invitations")
@@ -254,10 +216,9 @@ const { data: authInvitation, error: authInvitationError } =
       })
       .eq("id", invitation.id);
 
-    return {
-      success: false,
-      error: `Unable to send participant invitation email. ${failureMessage}`,
-    };
+    return invitationFailure(
+      "Unable to send participant invitation email."
+    );
   }
 
   const authUserId = authInvitation.user.id;
@@ -279,16 +240,7 @@ const { data: authInvitation, error: authInvitationError } =
 
   if (sentInvitationError || !sentInvitation) {
     console.error(
-      "Participant invitation: final status update failed",
-      {
-        participantId,
-        invitationId: invitation.id,
-        authUserId,
-        code: sentInvitationError?.code,
-        message: sentInvitationError?.message,
-        details: sentInvitationError?.details,
-        hint: sentInvitationError?.hint,
-      }
+      "Participant invitation finalization failed."
     );
 
     // Compensating rollback.
@@ -298,27 +250,14 @@ const { data: authInvitation, error: authInvitationError } =
       .from("participant_invitations")
       .update({
         status: "failed",
-        last_error:
-          sentInvitationError?.message ??
-          "Invitation status could not be updated.",
+        last_error: "Invitation status could not be finalized.",
       })
       .eq("id", invitation.id);
 
-    return {
-      success: false,
-      error: getSupabaseErrorMessage(
-        "Invitation email was not finalized successfully.",
-        sentInvitationError
-      ),
-    };
+    return invitationFailure(
+      "Invitation email was not finalized successfully."
+    );
   }
-
-  console.log("Participant invitation: successfully sent", {
-    participantId,
-    invitationId: sentInvitation.id,
-    authUserId,
-    email,
-  });
 
   return {
     success: true,

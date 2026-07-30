@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+
+import type { ParticipantLifecycleStatus } from "@/lib/types/participant/participant";
 
 interface Invitation {
   id: string;
@@ -14,6 +16,7 @@ interface Invitation {
 interface ParticipantInvitationPanelProps {
   participantId: string;
   authUserId: string | null;
+  lifecycleStatus: ParticipantLifecycleStatus;
   invitation: Invitation | null;
 }
 
@@ -71,12 +74,44 @@ function getStatusClasses(status: string | null) {
   }
 }
 
+function getInvitationUnavailableReason(
+  authUserId: string | null,
+  lifecycleStatus: ParticipantLifecycleStatus,
+  invitationStatus: string | null
+): string | null {
+  if (authUserId) {
+    return "This participant already has an authenticated account.";
+  }
+
+  if (invitationStatus === "pending") {
+    return "An invitation is already pending for this participant.";
+  }
+
+  if (invitationStatus === "sent") {
+    return "An invitation has already been sent to this participant.";
+  }
+
+  if (
+    lifecycleStatus === "completed" ||
+    lifecycleStatus === "withdrawn" ||
+    lifecycleStatus === "archived"
+  ) {
+    return `Invitations are unavailable for participants whose lifecycle status is ${formatStatus(
+      lifecycleStatus
+    ).toLowerCase()}.`;
+  }
+
+  return null;
+}
+
 export default function ParticipantInvitationPanel({
   participantId,
   authUserId,
+  lifecycleStatus,
   invitation,
 }: ParticipantInvitationPanelProps) {
   const router = useRouter();
+  const submissionInProgress = useRef(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -86,10 +121,21 @@ export default function ParticipantInvitationPanel({
   const [error, setError] =
     useState<string | null>(null);
 
+  const invitationUnavailableReason =
+    getInvitationUnavailableReason(
+      authUserId,
+      lifecycleStatus,
+      invitation?.status ?? null
+    );
+
+  const invitationDisabled =
+    loading || invitationUnavailableReason !== null;
+
   async function sendInvitation() {
-    if (loading) return;
+    if (invitationDisabled || submissionInProgress.current) return;
 
     try {
+      submissionInProgress.current = true;
       setLoading(true);
       setMessage(null);
       setError(null);
@@ -128,6 +174,7 @@ export default function ParticipantInvitationPanel({
           : "Unexpected error occurred."
       );
     } finally {
+      submissionInProgress.current = false;
       setLoading(false);
     }
   }
@@ -194,7 +241,8 @@ export default function ParticipantInvitationPanel({
           </p>
 
           <p className="mt-2 text-sm text-amber-100">
-            {invitation.last_error}
+            The previous invitation attempt did not complete
+            successfully.
           </p>
         </div>
       )}
@@ -217,23 +265,22 @@ export default function ParticipantInvitationPanel({
         </div>
       )}
 
-      {authUserId ? (
+      {invitationUnavailableReason ? (
         <div className="mt-6 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
-          This participant already has an
-          authenticated account.
+          {invitationUnavailableReason}
         </div>
-      ) : (
-        <button
-          type="button"
-          disabled={loading}
-          onClick={sendInvitation}
-          className="mt-6 rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading
-            ? "Sending Invitation..."
-            : "Send Invitation"}
-        </button>
-      )}
+      ) : null}
+
+      <button
+        type="button"
+        disabled={invitationDisabled}
+        onClick={sendInvitation}
+        className="mt-6 rounded-xl bg-white px-5 py-3 font-medium text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {loading
+          ? "Sending Invitation..."
+          : "Send Invitation"}
+      </button>
     </section>
   );
 }

@@ -176,6 +176,7 @@ export default async function ParticipantDetailPage({
        <ParticipantInvitationPanel
   participantId={participant.id}
   authUserId={participant.auth_user_id}
+  lifecycleStatus={participant.lifecycle_status}
   invitation={invitation}
 />
 
