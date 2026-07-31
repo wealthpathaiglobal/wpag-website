@@ -17,6 +17,19 @@ export type SupabaseMockResult<T> =
       error: SupabaseMockError;
     };
 
+export type ApplicationSubmissionRpcRow = {
+  application_id: string;
+  application_code: string;
+  application_status: string;
+  submitted_at: string;
+  application_created_at: string;
+  eligibility_review_id: string;
+  review_number: number;
+  review_status: string;
+  decision: string;
+  review_created_at: string;
+};
+
 type ParticipantQueryBuilder = {
   select: Mock<(columns: string) => QueryBuilder>;
   eq: Mock<(column: string, value: unknown) => QueryBuilder>;
@@ -203,6 +216,12 @@ export function setParticipantLookupResult<T>(
 
 export function setRpcResult<T>(
   result: SupabaseMockResult<T>
+): void {
+  rpc.mockResolvedValue(result);
+}
+
+export function setApplicationSubmissionRpcResult(
+  result: SupabaseMockResult<ApplicationSubmissionRpcRow[]>
 ): void {
   rpc.mockResolvedValue(result);
 }

@@ -1,204 +1,129 @@
-/**
- * WPAG Participant Application Repository
- *
- * Responsibilities:
- * - Insert participant applications
- * - Create the initial eligibility review
- * - Return normalized database records
- *
- * This module must not:
- * - Validate participant input
- * - Apply HTTP response logic
- * - Make eligibility decisions
- * - Generate application codes manually
- */
-
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-import {
-  APPLICATION_STATUS,
-  type ApplicationRequestMetadata,
-  type CreatedApplicationRecord,
-  type CreatedEligibilityReviewRecord,
-  type NormalizedApplicationInput,
+import type {
+  ApplicationRequestMetadata,
+  ApplicationSubmissionResult,
+  CreatedApplicationRecord,
+  CreatedEligibilityReviewRecord,
+  NormalizedApplicationInput,
 } from "@/lib/services/participant/application-types";
 
-interface ApplicationDatabaseRow {
-  id: string;
+interface ApplicationSubmissionDatabaseRow {
+  application_id: string;
   application_code: string;
-  status: string;
-  submitted_at: string | null;
-  created_at: string;
+  application_status: CreatedApplicationRecord["status"];
+  submitted_at: string;
+  application_created_at: string;
+  eligibility_review_id: string;
+  review_number: number;
+  review_status: CreatedEligibilityReviewRecord["reviewStatus"];
+  decision: CreatedEligibilityReviewRecord["decision"];
+  review_created_at: string;
 }
 
-interface EligibilityReviewDatabaseRow {
-  id: string;
-  application_id: string;
-  review_number: number;
-  review_status: string;
-  decision: string;
-  created_at: string;
-}
+export type ApplicationRepositoryErrorKind =
+  | "active_application_exists"
+  | "application_data_invalid"
+  | "submission_failed";
 
 export class ApplicationRepositoryError extends Error {
-  readonly operation: string;
-  readonly databaseMessage: string | null;
+  readonly kind: ApplicationRepositoryErrorKind;
 
-  constructor(
-    operation: string,
-    message: string,
-    databaseMessage: string | null = null,
-  ) {
+  constructor(kind: ApplicationRepositoryErrorKind, message: string) {
     super(message);
-
     this.name = "ApplicationRepositoryError";
-    this.operation = operation;
-    this.databaseMessage = databaseMessage;
+    this.kind = kind;
   }
 }
 
-/**
- * Creates a new participant application.
- *
- * The application_code field is generated automatically by PostgreSQL.
- */
-export async function createApplication(
+function getKnownDomainError(error: {
+  code?: string;
+  message?: string;
+}): ApplicationRepositoryError | null {
+  if (error.code !== "P1001") {
+    return null;
+  }
+
+  if (error.message === "An active application already exists.") {
+    return new ApplicationRepositoryError(
+      "active_application_exists",
+      "An active application already exists.",
+    );
+  }
+
+  if (error.message === "Application data is invalid.") {
+    return new ApplicationRepositoryError(
+      "application_data_invalid",
+      "Application data is invalid.",
+    );
+  }
+
+  return null;
+}
+
+export async function createApplicationSubmission(
   input: NormalizedApplicationInput,
   metadata: ApplicationRequestMetadata,
-): Promise<CreatedApplicationRecord> {
-  const submittedAt = new Date().toISOString();
-
-  const { data, error } = await supabaseAdmin
-    .from("applications")
-    .insert({
-      auth_user_id: metadata.authUserId,
-
-      full_name: input.fullName,
-      email: input.email,
-
-      phone_country_code: input.phoneCountryCode,
-      phone_number: input.phoneNumber,
-
-      country_code: input.countryCode,
-      state_or_region: input.stateOrRegion,
-      city: input.city,
-
-      age_group: input.ageGroup,
-      employment_status: input.employmentStatus,
-
-      application_reason: input.applicationReason,
-      financial_challenges: input.financialChallenges,
-      expectations: input.expectations,
-      referral_source: input.referralSource,
-
-      status: APPLICATION_STATUS.SUBMITTED,
-      submitted_at: submittedAt,
-
-      source_ip: metadata.sourceIp,
-      user_agent: metadata.userAgent,
-
-      created_by: metadata.authUserId,
-      updated_by: metadata.authUserId,
-    })
-    .select(
-      `
-        id,
-        application_code,
-        status,
-        submitted_at,
-        created_at
-      `,
-    )
-    .single<ApplicationDatabaseRow>();
-
-  if (error || !data) {
-    throw new ApplicationRepositoryError(
-      "create_application",
-      "Unable to create participant application.",
-      error?.message ?? null,
-    );
-  }
-
-  return {
-    id: data.id,
-    applicationCode: data.application_code,
-    status: APPLICATION_STATUS.SUBMITTED,
-    submittedAt: data.submitted_at,
-    createdAt: data.created_at,
-  };
-}
-
-/**
- * Creates the first eligibility review for an application.
- *
- * PostgreSQL defaults provide:
- * - review_number = 1
- * - review_status = pending
- * - decision = pending
- * - criteria_results = {}
- */
-export async function createEligibilityReview(
-  applicationId: string,
-  createdBy: string | null,
-): Promise<CreatedEligibilityReviewRecord> {
-  const { data, error } = await supabaseAdmin
-    .from("eligibility_reviews")
-    .insert({
-      application_id: applicationId,
-      created_by: createdBy,
-      updated_by: createdBy,
-    })
-    .select(
-      `
-        id,
-        application_id,
-        review_number,
-        review_status,
-        decision,
-        created_at
-      `,
-    )
-    .single<EligibilityReviewDatabaseRow>();
-
-  if (error || !data) {
-    throw new ApplicationRepositoryError(
-      "create_eligibility_review",
-      "Unable to create the initial eligibility review.",
-      error?.message ?? null,
-    );
-  }
-
-  return {
-    id: data.id,
-    applicationId: data.application_id,
-    reviewNumber: data.review_number,
-    reviewStatus:
-      data.review_status as CreatedEligibilityReviewRecord["reviewStatus"],
-    decision:
-      data.decision as CreatedEligibilityReviewRecord["decision"],
-    createdAt: data.created_at,
-  };
-}
-
-/**
- * Compensating cleanup used when eligibility review creation fails
- * after the application record has already been inserted.
- *
- * This prevents incomplete application pipelines.
- */
-export async function deleteApplication(
-  applicationId: string,
-): Promise<void> {
-  const { error } = await supabaseAdmin
-    .from("applications")
-    .delete()
-    .eq("id", applicationId);
+): Promise<ApplicationSubmissionResult> {
+  const { data, error } = await supabaseAdmin.rpc(
+    "submit_participant_application",
+    {
+      p_full_name: input.fullName,
+      p_email: input.email,
+      p_phone_country_code: input.phoneCountryCode,
+      p_phone_number: input.phoneNumber,
+      p_country_code: input.countryCode,
+      p_state_or_region: input.stateOrRegion,
+      p_city: input.city,
+      p_age_group: input.ageGroup,
+      p_employment_status: input.employmentStatus,
+      p_application_reason: input.applicationReason,
+      p_financial_challenges: input.financialChallenges,
+      p_expectations: input.expectations,
+      p_referral_source: input.referralSource,
+      p_source_ip: metadata.sourceIp,
+      p_user_agent: metadata.userAgent,
+      p_auth_user_id: metadata.authUserId,
+    },
+  );
 
   if (error) {
+    const domainError = getKnownDomainError(error);
+
+    if (domainError) {
+      throw domainError;
+    }
+
     throw new ApplicationRepositoryError(
-      "delete_application",
-      "Unable to remove an incomplete participant application.",
-      error.message,
+      "submission_failed",
+      "Participant application submission could not be completed.",
     );
   }
+
+  const row = (data as ApplicationSubmissionDatabaseRow[] | null)?.[0];
+
+  if (!row) {
+    throw new ApplicationRepositoryError(
+      "submission_failed",
+      "Participant application submission could not be completed.",
+    );
+  }
+
+  return {
+    application: {
+      id: row.application_id,
+      applicationCode: row.application_code,
+      status: row.application_status,
+      submittedAt: row.submitted_at,
+      createdAt: row.application_created_at,
+    },
+    eligibilityReview: {
+      id: row.eligibility_review_id,
+      applicationId: row.application_id,
+      reviewNumber: row.review_number,
+      reviewStatus: row.review_status,
+      decision: row.decision,
+      createdAt: row.review_created_at,
+    },
+  };
 }
