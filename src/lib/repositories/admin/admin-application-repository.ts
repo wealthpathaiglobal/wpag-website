@@ -1,21 +1,9 @@
-/**
- * WPAG Admin Application Repository
- *
- * Responsibilities:
- * - Read application and eligibility-review records
- * - Return normalized admin application data
- * - Translate application-layer values to database values
- * - Convert database errors into repository errors
- *
- * This file must not:
- * - Make approval or rejection decisions
- * - Render UI
- * - Handle HTTP responses
- * - Create participants
- */
-
 import { supabaseAdmin } from "@/lib/supabase/admin";
-
+import {
+  AdminApplicationRepositoryError,
+  type AdminApplicationDetail,
+  type AdminApplicationListItem,
+} from "@/lib/types/admin/admin-application";
 import {
   ELIGIBILITY_DECISION,
   ELIGIBILITY_REVIEW_STATUS,
@@ -24,381 +12,143 @@ import {
   type EligibilityReviewStatus,
 } from "@/lib/services/participant/application-types";
 
-import {
-  AdminApplicationRepositoryError,
-  type AdminApplicationDetail,
-  type AdminApplicationListItem,
-} from "@/lib/types/admin/admin-application";
+type QueueRow = {
+  application_id: string; application_code: string; full_name: string; email: string;
+  country_code: string; state_or_region: string | null; city: string | null;
+  application_status: string; submitted_at: string | null; application_created_at: string;
+  eligibility_review_id: string; review_number: number; review_status: string; decision: string;
+};
 
-interface ApplicationDatabaseRow {
-  id: string;
-  application_code: string;
-  auth_user_id: string | null;
+type DetailRow = QueueRow & {
+  auth_user_id: string | null; phone_country_code: string; phone_number: string;
+  age_group: string | null; employment_status: string | null; application_reason: string;
+  financial_challenges: string | null; expectations: string | null; referral_source: string | null;
+  criteria_results: Record<string, unknown>; eligibility_score: number | null;
+  decision_summary: string | null; eligibility_conditions: string | null;
+  additional_information_required: string | null; ineligibility_reason: string | null;
+  reviewed_by: string | null; started_at: string | null; completed_at: string | null;
+  application_updated_at: string; review_created_at: string; review_updated_at: string;
+};
 
-  full_name: string;
-  email: string;
+export type ApplicationReviewTransitionCommand =
+  | "approve" | "reject" | "request_more_information";
 
-  phone_country_code: string;
-  phone_number: string;
+export type ApplicationReviewTransitionResult = {
+  applicationId: string; applicationCode: string; applicationStatus: string;
+  reviewId: string; reviewStatus: string; decision: string;
+  reviewedAt: string | null; completedAt: string | null;
+  participantId: string | null; participantCode: string | null;
+  participantLifecycleStatus: string | null; converted: boolean;
+};
 
-  country_code: string;
-  state_or_region: string | null;
-  city: string | null;
+type TransitionRow = {
+  application_id: string; application_code: string; application_status: string;
+  review_id: string; review_status: string; decision: string;
+  reviewed_at: string | null; completed_at: string | null;
+  participant_id: string | null; participant_code: string | null;
+  participant_lifecycle_status: string | null; converted: boolean;
+};
 
-  age_group: string | null;
-  employment_status: string | null;
-
-  application_reason: string;
-  financial_challenges: string | null;
-  expectations: string | null;
-  referral_source: string | null;
-
-  status: string;
-  submitted_at: string | null;
-
-  created_at: string;
-  updated_at: string;
+function reviewStatus(value: string): EligibilityReviewStatus {
+  if (value === "pending") return ELIGIBILITY_REVIEW_STATUS.PENDING;
+  if (value === "in_review") return ELIGIBILITY_REVIEW_STATUS.IN_PROGRESS;
+  if (value === "completed") return ELIGIBILITY_REVIEW_STATUS.COMPLETED;
+  throw new AdminApplicationRepositoryError("mapReviewStatus", "Application review data is invalid.");
 }
 
-interface EligibilityReviewDatabaseRow {
-  id: string;
-  application_id: string;
-
-  review_number: number;
-  review_status: string;
-  decision: string;
-
-  criteria_results: Record<string, unknown>;
-  eligibility_score: number | null;
-
-  decision_summary: string | null;
-  eligibility_conditions: string | null;
-  ineligibility_reason: string | null;
-  additional_information_required: string | null;
-
-  reviewed_by: string | null;
-  started_at: string | null;
-  completed_at: string | null;
-
-  created_at: string;
-  updated_at: string;
-
-  applications:
-    | ApplicationDatabaseRow
-    | ApplicationDatabaseRow[]
-    | null;
+function decision(value: string): EligibilityDecision {
+  if (value === "pending") return ELIGIBILITY_DECISION.PENDING;
+  if (value === "eligible") return ELIGIBILITY_DECISION.APPROVED;
+  if (value === "ineligible") return ELIGIBILITY_DECISION.REJECTED;
+  throw new AdminApplicationRepositoryError("mapDecision", "Application review data is invalid.");
 }
 
-function getApplicationRow(
-  applications:
-    | ApplicationDatabaseRow
-    | ApplicationDatabaseRow[]
-    | null,
-): ApplicationDatabaseRow | null {
-  if (!applications) {
-    return null;
-  }
-
-  if (Array.isArray(applications)) {
-    return applications[0] ?? null;
-  }
-
-  return applications;
+function applicationStatus(value: string): ApplicationStatus {
+  if (value === "eligible") return "eligibility_approved";
+  if (value === "ineligible") return "eligibility_rejected";
+  if (value === "additional_information_required") return "more_information_required";
+  if (value === "converted") return "participant_created";
+  return value as ApplicationStatus;
 }
 
-function mapDatabaseReviewStatus(
-  reviewStatus: string,
-): EligibilityReviewStatus {
-  switch (reviewStatus) {
-    case "pending":
-      return ELIGIBILITY_REVIEW_STATUS.PENDING;
-
-    case "in_review":
-      return ELIGIBILITY_REVIEW_STATUS.IN_PROGRESS;
-
-    case "completed":
-      return ELIGIBILITY_REVIEW_STATUS.COMPLETED;
-
-    default:
-      throw new AdminApplicationRepositoryError(
-        "mapDatabaseReviewStatus",
-        `Unsupported eligibility review status: ${reviewStatus}`,
-      );
-  }
-}
-
-function mapDatabaseDecision(
-  decision: string,
-): EligibilityDecision {
-  switch (decision) {
-    case "pending":
-      return ELIGIBILITY_DECISION.PENDING;
-
-    case "eligible":
-      return ELIGIBILITY_DECISION.APPROVED;
-
-    case "ineligible":
-      return ELIGIBILITY_DECISION.REJECTED;
-
-    default:
-      throw new AdminApplicationRepositoryError(
-        "mapDatabaseDecision",
-        `Unsupported eligibility decision: ${decision}`,
-      );
-  }
-}
-
-function mapApplicationStatusToDatabase(
-  applicationStatus: ApplicationStatus,
-): string {
-  switch (applicationStatus) {
-    case "eligibility_approved":
-      return "eligible";
-
-    case "eligibility_rejected":
-      return "ineligible";
-
-    case "more_information_required":
-      return "additional_information_required";
-
-    default:
-      return applicationStatus;
-  }
-}
-function mapToAdminApplicationListItem(
-  review: EligibilityReviewDatabaseRow,
-): AdminApplicationListItem {
-  const application = getApplicationRow(review.applications);
-
-  if (!application) {
-    throw new AdminApplicationRepositoryError(
-      "mapToAdminApplicationListItem",
-      "Eligibility review does not contain an application record.",
-    );
-  }
-
+function mapList(row: QueueRow): AdminApplicationListItem {
   return {
-    id: application.id,
-    applicationCode: application.application_code,
-
-    fullName: application.full_name,
-    email: application.email,
-
-    countryCode: application.country_code,
-    stateOrRegion: application.state_or_region,
-    city: application.city,
-
-    applicationStatus: application.status as ApplicationStatus,
-    reviewStatus: mapDatabaseReviewStatus(
-      review.review_status,
-    ),
-    decision: mapDatabaseDecision(review.decision),
-
-    reviewId: review.id,
-    reviewNumber: review.review_number,
-
-    submittedAt: application.submitted_at,
-    createdAt: application.created_at,
+    id: row.application_id, applicationCode: row.application_code,
+    fullName: row.full_name, email: row.email, countryCode: row.country_code,
+    stateOrRegion: row.state_or_region, city: row.city,
+    applicationStatus: applicationStatus(row.application_status),
+    reviewStatus: reviewStatus(row.review_status), decision: decision(row.decision),
+    reviewId: row.eligibility_review_id, reviewNumber: row.review_number,
+    submittedAt: row.submitted_at, createdAt: row.application_created_at,
   };
 }
 
-function mapToAdminApplicationDetail(
-  review: EligibilityReviewDatabaseRow,
-): AdminApplicationDetail {
-  const application = getApplicationRow(review.applications);
-
-  if (!application) {
-    throw new AdminApplicationRepositoryError(
-      "mapToAdminApplicationDetail",
-      "Eligibility review does not contain an application record.",
-    );
-  }
-
+function mapDetail(row: DetailRow): AdminApplicationDetail {
   return {
-    ...mapToAdminApplicationListItem(review),
-
-    authUserId: application.auth_user_id,
-
-    phoneCountryCode: application.phone_country_code,
-    phoneNumber: application.phone_number,
-
-    ageGroup: application.age_group,
-    employmentStatus: application.employment_status,
-
-    applicationReason: application.application_reason,
-    financialChallenges: application.financial_challenges,
-    expectations: application.expectations,
-    referralSource: application.referral_source,
-
-    criteriaResults: review.criteria_results,
-    eligibilityScore: review.eligibility_score,
-
-    reviewerNotes: review.decision_summary,
-    conditionalReason: review.eligibility_conditions,
-    ineligibleReason: review.ineligibility_reason,
-
-    reviewedBy: review.reviewed_by,
-    startedAt: review.started_at,
-    completedAt: review.completed_at,
-
-    applicationUpdatedAt: application.updated_at,
-    reviewCreatedAt: review.created_at,
-    reviewUpdatedAt: review.updated_at,
+    ...mapList(row), authUserId: row.auth_user_id,
+    phoneCountryCode: row.phone_country_code, phoneNumber: row.phone_number,
+    ageGroup: row.age_group, employmentStatus: row.employment_status,
+    applicationReason: row.application_reason, financialChallenges: row.financial_challenges,
+    expectations: row.expectations, referralSource: row.referral_source,
+    criteriaResults: row.criteria_results, eligibilityScore: row.eligibility_score,
+    reviewerNotes: row.decision_summary, conditionalReason: row.additional_information_required,
+    ineligibleReason: row.ineligibility_reason, reviewedBy: row.reviewed_by,
+    startedAt: row.started_at, completedAt: row.completed_at,
+    applicationUpdatedAt: row.application_updated_at,
+    reviewCreatedAt: row.review_created_at, reviewUpdatedAt: row.review_updated_at,
   };
+}
+
+function repositoryFailure(operation: string, message: string, error: { code?: string; message?: string }) {
+  const safeMessages = new Set([
+    "Application ID is required.", "Actor identity is required.", "Eligibility decision is invalid.",
+    "Application was not found.", "Application is unavailable.",
+    "Actor is not authorized to review applications.", "Application review was not found.",
+    "Application review has already been completed.", "Application review transition is not allowed.",
+    "A rejection reason is required.", "Additional information requirements are required.",
+    "Participant conversion could not be completed.",
+  ]);
+  throw new AdminApplicationRepositoryError(
+    operation,
+    error.code === "P1001" && error.message && safeMessages.has(error.message)
+      ? error.message : message,
+  );
 }
 
 export class AdminApplicationRepository {
-  async getPendingApplications(): Promise<
-    AdminApplicationListItem[]
-  > {
-    const { data, error } = await supabaseAdmin
-      .from("eligibility_reviews")
-      .select(
-        `
-          *,
-          applications (*)
-        `,
-      )
-      .eq("review_status", "pending")
-      .order("created_at", { ascending: true });
-
-    if (error) {
-      throw new AdminApplicationRepositoryError(
-        "getPendingApplications",
-        "Failed to load pending applications.",
-        error.message,
-      );
-    }
-
-    return (data ?? []).map((review) =>
-      mapToAdminApplicationListItem(
-        review as EligibilityReviewDatabaseRow,
-      ),
-    );
+  async getPendingApplications(): Promise<AdminApplicationListItem[]> {
+    const { data, error } = await supabaseAdmin.rpc("list_pending_application_reviews", {});
+    if (error) repositoryFailure("getPendingApplications", "Failed to load pending applications.", error);
+    return ((data ?? []) as QueueRow[]).map(mapList);
   }
 
-  async getApplicationById(
-    applicationId: string,
-  ): Promise<AdminApplicationDetail | null> {
-    const { data, error } = await supabaseAdmin
-      .from("eligibility_reviews")
-      .select(
-        `
-          *,
-          applications (*)
-        `,
-      )
-      .eq("application_id", applicationId)
-      .order("review_number", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      throw new AdminApplicationRepositoryError(
-        "getApplicationById",
-        "Failed to load application details.",
-        error.message,
-      );
-    }
-
-    if (!data) {
-      return null;
-    }
-
-    return mapToAdminApplicationDetail(
-      data as EligibilityReviewDatabaseRow,
-    );
+  async getApplicationById(applicationId: string): Promise<AdminApplicationDetail | null> {
+    const { data, error } = await supabaseAdmin.rpc("get_application_review", {
+      p_application_id: applicationId,
+    });
+    if (error) repositoryFailure("getApplicationById", "Failed to load application details.", error);
+    const row = ((data ?? []) as DetailRow[])[0];
+    return row ? mapDetail(row) : null;
   }
 
-  async updateApplicationReview(input: {
-    applicationId: string;
-    reviewId: string;
-    applicationStatus: ApplicationStatus;
-    decision: EligibilityDecision;
-    reviewerNotes: string | null;
-    conditionalReason: string | null;
-    ineligibleReason: string | null;
-    reviewedBy: string;
-  }): Promise<void> {
-    const completedAt = new Date().toISOString();
-
-    const isMoreInformationRequest =
-      input.decision ===
-      ELIGIBILITY_DECISION.MORE_INFORMATION_REQUIRED;
-
-    const databaseDecision =
-      input.decision === ELIGIBILITY_DECISION.APPROVED
-        ? "eligible"
-        : input.decision === ELIGIBILITY_DECISION.REJECTED
-          ? "ineligible"
-          : "pending";
-
-    const databaseReviewStatus =
-      isMoreInformationRequest
-        ? "in_review"
-        : "completed";
-
-    const { error: reviewError } = await supabaseAdmin
-      .from("eligibility_reviews")
-      .update({
-        review_status: databaseReviewStatus,
-        decision: databaseDecision,
-
-        decision_summary: input.reviewerNotes,
-
-        eligibility_conditions: null,
-
-        additional_information_required:
-          isMoreInformationRequest
-            ? input.conditionalReason
-            : null,
-
-        ineligibility_reason:
-          input.decision === ELIGIBILITY_DECISION.REJECTED
-            ? input.ineligibleReason
-            : null,
-
-        reviewed_by: input.reviewedBy,
-
-        completed_at: isMoreInformationRequest
-          ? null
-          : completedAt,
-      })
-      .eq("id", input.reviewId)
-      .eq("application_id", input.applicationId);
-
-    if (reviewError) {
-      throw new AdminApplicationRepositoryError(
-        "updateApplicationReview",
-        "Failed to update eligibility review.",
-        reviewError.message,
-      );
-    }
-
-    const databaseApplicationStatus =
-  mapApplicationStatusToDatabase(
-    input.applicationStatus,
-  );
-
-const { error: applicationError } =
-  await supabaseAdmin
-    .from("applications")
-    .update({
-      status: databaseApplicationStatus,
-      reviewed_at:
-        input.decision ===
-        ELIGIBILITY_DECISION.MORE_INFORMATION_REQUIRED
-          ? null
-          : completedAt,
-    })
-    .eq("id", input.applicationId);
-
-    if (applicationError) {
-      throw new AdminApplicationRepositoryError(
-        "updateApplicationReview",
-        "Eligibility review was updated, but application status update failed.",
-        applicationError.message,
-      );
-    }
+  async transitionApplicationReview(input: {
+    applicationId: string; actorUserId: string; command: ApplicationReviewTransitionCommand;
+    reviewerNotes: string | null; reason: string | null;
+  }): Promise<ApplicationReviewTransitionResult> {
+    const { data, error } = await supabaseAdmin.rpc("transition_application_eligibility_review", {
+      p_application_id: input.applicationId, p_actor_user_id: input.actorUserId,
+      p_decision: input.command, p_reviewer_notes: input.reviewerNotes, p_reason: input.reason,
+    });
+    if (error) repositoryFailure("transitionApplicationReview", "Application review operation could not be completed.", error);
+    const row = ((data ?? []) as TransitionRow[])[0];
+    if (!row) throw new AdminApplicationRepositoryError("transitionApplicationReview", "Application review operation could not be completed.");
+    return {
+      applicationId: row.application_id, applicationCode: row.application_code,
+      applicationStatus: row.application_status, reviewId: row.review_id,
+      reviewStatus: row.review_status, decision: row.decision,
+      reviewedAt: row.reviewed_at, completedAt: row.completed_at,
+      participantId: row.participant_id, participantCode: row.participant_code,
+      participantLifecycleStatus: row.participant_lifecycle_status, converted: row.converted,
+    };
   }
 }

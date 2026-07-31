@@ -30,6 +30,17 @@ export type ApplicationSubmissionRpcRow = {
   review_created_at: string;
 };
 
+export type AdminApplicationReviewRpcRow = Record<
+  string,
+  string | number | boolean | null | Record<string, unknown>
+>;
+
+export function setAdminApplicationReviewRpcResult(
+  result: SupabaseMockResult<AdminApplicationReviewRpcRow[]>
+): void {
+  rpc.mockResolvedValue(result);
+}
+
 type ParticipantQueryBuilder = {
   select: Mock<(columns: string) => QueryBuilder>;
   eq: Mock<(column: string, value: unknown) => QueryBuilder>;

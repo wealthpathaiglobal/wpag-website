@@ -44,7 +44,7 @@ const actionConfigurations: Record<
     label: "Approve",
     title: "Approve application",
     description:
-      "This action will mark the applicant as eligible. Participant creation will be handled in the next workflow stage.",
+      "This action will approve the application and create the participant immediately.",
     confirmLabel: "Confirm Approval",
     variant: "success",
   },
