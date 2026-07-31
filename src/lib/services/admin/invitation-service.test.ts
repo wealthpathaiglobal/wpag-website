@@ -1,684 +1,261 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/supabase/admin", async () => {
-  const { supabaseAdminMock } = await import(
-    "@/test/mocks/supabase-admin"
-  );
-
-  return {
-    supabaseAdmin: supabaseAdminMock,
-  };
+  const { supabaseAdminMock } = await import("@/test/mocks/supabase-admin");
+  return { supabaseAdmin: supabaseAdminMock };
 });
 
 import { inviteParticipant } from "@/lib/services/admin/invitation-service";
 import {
-  nullResult,
-  queueActiveInvitationLookup,
-  queueInvitationFailureUpdate,
-  queueInvitationFinalization,
-  queueInvitationInsert,
+  errorResult,
+  queueRpcResult,
   resetSupabaseAdminMock,
   setAuthInviteResult,
   setDeleteUserResult,
-  setParticipantLookupResult,
   successfulResult,
   supabaseAdminSpies,
-  type SupabaseMockResult,
 } from "@/test/mocks/supabase-admin";
 
-type ParticipantFixture = {
-  id: string;
-  auth_user_id: string | null;
-  lifecycle_status:
-    | "pending_enrollment"
-    | "active"
-    | "paused"
-    | "completed"
-    | "withdrawn"
-    | "archived";
-  application_id: string;
-  deleted_at: string | null;
-  application:
-    | {
-        id: string;
-        full_name: string;
-        email: string | null;
-      }
-    | null;
-};
-
-const now = new Date("2026-07-31T00:00:00.000Z");
-
-const participant: ParticipantFixture = {
-  id: "participant-id",
-  auth_user_id: null,
-  lifecycle_status: "pending_enrollment",
-  application_id: "application-id",
-  deleted_at: null,
-  application: {
-    id: "application-id",
-    full_name: "Participant Name",
-    email: " Participant@Example.com ",
-  },
-};
-
-const pendingInvitation = {
+const attempt = {
   id: "invitation-id",
   participant_id: "participant-id",
   email: "participant@example.com",
   status: "pending",
+  expires_at: "2026-08-07T00:00:00.000Z",
+  invitation_attempts: 1,
 };
 
-const sentInvitation = {
-  ...pendingInvitation,
-  auth_user_id: "new-auth-user-id",
+const sent = {
+  id: attempt.id,
+  participant_id: attempt.participant_id,
   status: "sent",
-  invited_at: now.toISOString(),
+  invited_at: "2026-07-31T00:00:00.000Z",
+  expires_at: attempt.expires_at,
+  auth_user_id: "auth-user-id",
+  created_at: "2026-07-31T00:00:00.000Z",
 };
 
-function providerErrorResult(
-  message: string,
-  code: string
-): SupabaseMockResult<never> {
-  return {
-    data: null,
-    error: {
-      code,
-      message,
-      details: "raw provider details",
-      hint: "raw provider hint",
-    },
-  };
+function arrangeAttempt(): void {
+  queueRpcResult(successfulResult([attempt]));
 }
 
-function arrangeParticipant(
-  participantFixture: ParticipantFixture = participant
-): void {
-  setParticipantLookupResult(
-    successfulResult(participantFixture)
-  );
-}
-
-function arrangeInitialInvitation(): void {
-  arrangeParticipant();
-  queueActiveInvitationLookup(nullResult());
-  queueInvitationInsert(successfulResult(pendingInvitation));
-}
-
-function arrangeSuccessfulAuthInvite(): void {
+function arrangeProvider(userId: string | null = "auth-user-id"): void {
   setAuthInviteResult({
-    data: {
-      user: {
-        id: "new-auth-user-id",
-      },
-    },
+    data: { user: userId ? { id: userId } : null },
     error: null,
   });
 }
 
+function arrangeSuccess(): void {
+  arrangeAttempt();
+  arrangeProvider();
+  queueRpcResult(successfulResult([sent]));
+}
+
 beforeEach(() => {
   resetSupabaseAdminMock();
-  vi.useFakeTimers();
-  vi.setSystemTime(now);
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://wpag.example/");
-  vi.stubEnv("VERCEL_URL", "");
 });
 
 afterEach(() => {
-  vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
 
-describe("invitation service", () => {
-  it("returns a safe participant lookup failure", async () => {
-    setParticipantLookupResult(
-      providerErrorResult(
-        "raw participant lookup diagnostic",
-        "LOOKUP_ERROR"
-      )
-    );
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
+describe("inviteParticipant", () => {
+  it("calls the governed create RPC with normalized identifiers", async () => {
+    arrangeSuccess();
+    await inviteParticipant(" participant-id ", " actor-id ");
 
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error: "Unable to load participant.",
-    });
-    expect(JSON.stringify(result)).not.toContain(
-      "raw participant lookup diagnostic"
-    );
-    expect(
-      supabaseAdminSpies.inviteUserByEmail
-    ).not.toHaveBeenCalled();
-    expect(consoleError).toHaveBeenCalledWith(
-      "Participant invitation lookup failed."
+    expect(supabaseAdminSpies.rpc).toHaveBeenNthCalledWith(1,
+      "create_participant_invitation_attempt",
+      { p_participant_id: "participant-id", p_actor_user_id: "actor-id" },
     );
   });
 
-  it("returns the safe participant-not-found failure", async () => {
-    setParticipantLookupResult(nullResult());
+  it("does not call the provider after a create failure", async () => {
+    queueRpcResult(errorResult("An active invitation already exists.", "P1001"));
+    const result = await inviteParticipant("participant-id", "actor-id");
 
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error: "Participant not found.",
-    });
-    expect(supabaseAdminSpies.from).toHaveBeenCalledTimes(1);
-    expect(
-      supabaseAdminSpies.inviteUserByEmail
-    ).not.toHaveBeenCalled();
+    expect(result).toEqual({ success: false, error: "An active invitation already exists." });
+    expect(supabaseAdminSpies.inviteUserByEmail).not.toHaveBeenCalled();
   });
 
-  it("blocks a deleted participant before invitation operations", async () => {
-    arrangeParticipant({
-      ...participant,
-      deleted_at: now.toISOString(),
-    });
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
+  it("preserves a safe unauthorized-actor domain failure", async () => {
+    queueRpcResult(errorResult(
+      "Actor is not authorized to issue participant invitations.",
+      "P1001",
+    ));
+    await expect(inviteParticipant("participant-id", "actor-id")).resolves.toEqual({
       success: false,
-      error: "Deleted participants cannot be invited.",
+      error: "Actor is not authorized to issue participant invitations.",
     });
-    expect(supabaseAdminSpies.from).toHaveBeenCalledTimes(1);
-    expect(
-      supabaseAdminSpies.inviteUserByEmail
-    ).not.toHaveBeenCalled();
   });
 
-  it("blocks a participant with a linked auth account", async () => {
-    arrangeParticipant({
-      ...participant,
-      auth_user_id: "existing-auth-user-id",
-    });
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
+  it("suppresses an unknown create diagnostic", async () => {
+    queueRpcResult(errorResult("raw constraint and identifier", "23505"));
+    const result = await inviteParticipant("participant-id", "actor-id");
     expect(result).toEqual({
       success: false,
-      error: "Participant already has an account.",
+      error: "Participant invitation operation could not be completed.",
     });
-    expect(supabaseAdminSpies.from).toHaveBeenCalledTimes(1);
-    expect(
-      supabaseAdminSpies.inviteUserByEmail
-    ).not.toHaveBeenCalled();
+    expect(JSON.stringify(result)).not.toContain("raw constraint");
   });
 
-  it.each(["completed", "withdrawn", "archived"] as const)(
-    "blocks invitation for terminal lifecycle status: %s",
-    async (lifecycleStatus) => {
-      arrangeParticipant({
-        ...participant,
-        lifecycle_status: lifecycleStatus,
-      });
+  it("sends normalized email with the exact callback metadata", async () => {
+    arrangeSuccess();
+    await inviteParticipant("participant-id", "actor-id");
 
-      const result = await inviteParticipant(
-        "participant-id",
-        "actor-id"
-      );
-
-      expect(result).toEqual({
-        success: false,
-        error:
-          "Invitations are unavailable for the participant's current lifecycle status.",
-      });
-      expect(supabaseAdminSpies.from).toHaveBeenCalledTimes(1);
-      expect(
-        supabaseAdminSpies.inviteUserByEmail
-      ).not.toHaveBeenCalled();
-    }
-  );
-
-  it.each([
-    ["null", null],
-    ["empty", ""],
-    ["whitespace", "   "],
-  ])(
-    "rejects a missing participant email: %s",
-    async (_label, email) => {
-      arrangeParticipant({
-        ...participant,
-        application: {
-          ...participant.application!,
-          email,
+    expect(supabaseAdminSpies.inviteUserByEmail).toHaveBeenCalledWith(
+      "participant@example.com",
+      {
+        redirectTo: "https://wpag.example/auth/callback?next=/auth/update-password",
+        data: {
+          participant_id: "participant-id",
+          invitation_id: "invitation-id",
+          invited_by: "actor-id",
+          account_type: "participant",
         },
-      });
-      const consoleError = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => undefined);
-
-      const result = await inviteParticipant(
-        "participant-id",
-        "actor-id"
-      );
-
-      expect(result).toEqual({
-        success: false,
-        error: "Participant email is required.",
-      });
-      expect(supabaseAdminSpies.from).toHaveBeenCalledTimes(1);
-      expect(
-        supabaseAdminSpies.inviteUserByEmail
-      ).not.toHaveBeenCalled();
-      expect(consoleError).toHaveBeenCalledWith(
-        "Participant invitation email is unavailable."
-      );
-    }
-  );
-
-  it.each(["pending", "sent"] as const)(
-    "blocks an existing %s invitation",
-    async (status) => {
-      arrangeParticipant();
-      queueActiveInvitationLookup(
-        successfulResult({
-          id: "existing-invitation-id",
-          status,
-        })
-      );
-
-      const result = await inviteParticipant(
-        "participant-id",
-        "actor-id"
-      );
-
-      expect(result).toEqual({
-        success: false,
-        error: "An active invitation already exists.",
-      });
-      expect(supabaseAdminSpies.from).toHaveBeenCalledTimes(2);
-      expect(
-        supabaseAdminSpies.inviteUserByEmail
-      ).not.toHaveBeenCalled();
-    }
-  );
-
-  it("returns a safe active-invitation lookup failure", async () => {
-    arrangeParticipant();
-    queueActiveInvitationLookup(
-      providerErrorResult(
-        "raw active invitation lookup diagnostic",
-        "INVITATION_LOOKUP_ERROR"
-      )
-    );
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error: "Unable to verify existing invitations.",
-    });
-    expect(JSON.stringify(result)).not.toContain(
-      "raw active invitation lookup diagnostic"
-    );
-    expect(
-      supabaseAdminSpies.inviteUserByEmail
-    ).not.toHaveBeenCalled();
-    expect(consoleError).toHaveBeenCalledWith(
-      "Active participant invitation lookup failed."
+      },
     );
   });
 
-  it("returns a safe initial invitation persistence failure", async () => {
-    arrangeParticipant();
-    queueActiveInvitationLookup(nullResult());
-    queueInvitationInsert(
-      providerErrorResult(
-        "raw invitation insert diagnostic",
-        "INSERT_ERROR"
-      )
-    );
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error: "Unable to create participant invitation.",
-    });
-    expect(JSON.stringify(result)).not.toContain(
-      "raw invitation insert diagnostic"
-    );
-    expect(
-      supabaseAdminSpies.inviteUserByEmail
-    ).not.toHaveBeenCalled();
-    expect(consoleError).toHaveBeenCalledWith(
-      "Participant invitation creation failed."
+  it("finalizes provider success through the governed RPC", async () => {
+    arrangeSuccess();
+    await inviteParticipant("participant-id", "actor-id");
+    expect(supabaseAdminSpies.rpc).toHaveBeenNthCalledWith(2,
+      "finalize_participant_invitation_sent",
+      {
+        p_invitation_id: "invitation-id",
+        p_actor_user_id: "actor-id",
+        p_auth_user_id: "auth-user-id",
+      },
     );
   });
 
-  it("rejects an initial invitation insert with no row", async () => {
-    arrangeParticipant();
-    queueActiveInvitationLookup(nullResult());
-    queueInvitationInsert(nullResult());
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error: "Unable to create participant invitation.",
+  it("marks a provider error with the safe category", async () => {
+    arrangeAttempt();
+    setAuthInviteResult({
+      data: { user: null },
+      error: { code: "provider", message: "raw provider diagnostic" },
     });
-    expect(
-      supabaseAdminSpies.inviteUserByEmail
-    ).not.toHaveBeenCalled();
-    expect(consoleError).toHaveBeenCalledWith(
-      "Participant invitation creation returned no record."
+    queueRpcResult(successfulResult([{ ...attempt, status: "failed" }]));
+    const result = await inviteParticipant("participant-id", "actor-id");
+
+    expect(supabaseAdminSpies.rpc).toHaveBeenNthCalledWith(2,
+      "mark_participant_invitation_failed",
+      {
+        p_invitation_id: "invitation-id",
+        p_actor_user_id: "actor-id",
+        p_failure_category: "provider_delivery_failed",
+      },
+    );
+    expect(JSON.stringify(result)).not.toContain("raw provider diagnostic");
+  });
+
+  it("marks a missing provider user with its safe category", async () => {
+    arrangeAttempt();
+    arrangeProvider(null);
+    queueRpcResult(successfulResult([{ ...attempt, status: "failed" }]));
+    await inviteParticipant("participant-id", "actor-id");
+    expect(supabaseAdminSpies.rpc).toHaveBeenNthCalledWith(2,
+      "mark_participant_invitation_failed",
+      expect.objectContaining({ p_failure_category: "provider_user_missing" }),
     );
   });
 
-  it("creates the initial invitation with normalized deterministic data", async () => {
-    arrangeParticipant();
-    queueActiveInvitationLookup(nullResult());
-    const insert = queueInvitationInsert(
-      successfulResult(pendingInvitation)
-    );
-    arrangeSuccessfulAuthInvite();
-    queueInvitationFinalization(
-      successfulResult(sentInvitation)
-    );
-
+  it("compensates and marks failure after sent finalization fails", async () => {
+    arrangeAttempt();
+    arrangeProvider();
+    queueRpcResult(errorResult("raw finalization failure"));
+    queueRpcResult(successfulResult([{ ...attempt, status: "failed" }]));
     await inviteParticipant("participant-id", "actor-id");
 
-    expect(insert.insert).toHaveBeenCalledWith({
-      participant_id: "participant-id",
-      email: "participant@example.com",
-      invited_by: "actor-id",
-      status: "pending",
-      expires_at: "2026-08-07T00:00:00.000Z",
-      invitation_attempts: 1,
-      last_error: null,
-    });
+    expect(supabaseAdminSpies.deleteUser).toHaveBeenCalledWith("auth-user-id");
+    expect(supabaseAdminSpies.rpc).toHaveBeenNthCalledWith(3,
+      "mark_participant_invitation_failed",
+      expect.objectContaining({ p_failure_category: "sent_finalization_failed" }),
+    );
   });
 
-  it("stores a generic failure after an Auth provider error", async () => {
-    arrangeInitialInvitation();
-    setAuthInviteResult({
-      data: {
-        user: null,
-      },
-      error: {
-        code: "AUTH_PROVIDER_ERROR",
-        message: "raw auth provider diagnostic",
-        details: "raw auth details",
-        hint: "raw auth hint",
-      },
-    });
-    const failureUpdate = queueInvitationFailureUpdate();
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
+  it("keeps compensation failure sanitized", async () => {
+    arrangeAttempt();
+    arrangeProvider();
+    queueRpcResult(errorResult("raw finalization failure"));
+    queueRpcResult(errorResult("raw failure persistence"));
+    setDeleteUserResult({ data: null, error: { code: "raw", message: "raw deletion" } });
+    const result = await inviteParticipant("participant-id", "actor-id");
     expect(result).toEqual({
       success: false,
-      error: "Unable to send participant invitation email.",
-    });
-    expect(JSON.stringify(result)).not.toContain("raw auth");
-    expect(failureUpdate.update).toHaveBeenCalledWith({
-      status: "failed",
-      last_error: "Invitation delivery failed.",
-    });
-    expect(failureUpdate.eq).toHaveBeenCalledWith(
-      "id",
-      "invitation-id"
-    );
-    expect(consoleError).toHaveBeenCalledWith(
-      "Participant invitation delivery failed."
-    );
-  });
-
-  it("stores the same generic failure when Auth returns no user", async () => {
-    arrangeInitialInvitation();
-    setAuthInviteResult({
-      data: {
-        user: null,
-      },
-      error: null,
-    });
-    const failureUpdate = queueInvitationFailureUpdate();
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error: "Unable to send participant invitation email.",
-    });
-    expect(failureUpdate.update).toHaveBeenCalledWith({
-      status: "failed",
-      last_error: "Invitation delivery failed.",
-    });
-  });
-
-  it("sends the expected normalized Auth invitation payload", async () => {
-    arrangeInitialInvitation();
-    arrangeSuccessfulAuthInvite();
-    queueInvitationFinalization(
-      successfulResult(sentInvitation)
-    );
-
-    await inviteParticipant("participant-id", "actor-id");
-
-    expect(
-      supabaseAdminSpies.inviteUserByEmail
-    ).toHaveBeenCalledWith("participant@example.com", {
-      redirectTo:
-        "https://wpag.example/auth/callback?next=/auth/update-password",
-      data: {
-        participant_id: "participant-id",
-        invitation_id: "invitation-id",
-        invited_by: "actor-id",
-        account_type: "participant",
-      },
-    });
-  });
-
-  it("compensates after a finalization persistence failure", async () => {
-    arrangeInitialInvitation();
-    arrangeSuccessfulAuthInvite();
-    queueInvitationFinalization(
-      providerErrorResult(
-        "raw finalization diagnostic",
-        "FINALIZATION_ERROR"
-      )
-    );
-    const failureUpdate = queueInvitationFailureUpdate();
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error:
-        "Invitation email was not finalized successfully.",
-    });
-    expect(JSON.stringify(result)).not.toContain(
-      "raw finalization diagnostic"
-    );
-    expect(supabaseAdminSpies.deleteUser).toHaveBeenCalledWith(
-      "new-auth-user-id"
-    );
-    expect(failureUpdate.update).toHaveBeenCalledWith({
-      status: "failed",
-      last_error:
-        "Invitation status could not be finalized.",
-    });
-    expect(consoleError).toHaveBeenCalledWith(
-      "Participant invitation finalization failed."
-    );
-  });
-
-  it("compensates when finalization returns no invitation row", async () => {
-    arrangeInitialInvitation();
-    arrangeSuccessfulAuthInvite();
-    queueInvitationFinalization(nullResult());
-    queueInvitationFailureUpdate();
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error:
-        "Invitation email was not finalized successfully.",
-    });
-    expect(supabaseAdminSpies.deleteUser).toHaveBeenCalledWith(
-      "new-auth-user-id"
-    );
-  });
-
-  it("preserves the safe failure when compensating deletion fails", async () => {
-    arrangeInitialInvitation();
-    arrangeSuccessfulAuthInvite();
-    queueInvitationFinalization(
-      providerErrorResult(
-        "raw finalization diagnostic",
-        "FINALIZATION_ERROR"
-      )
-    );
-    queueInvitationFailureUpdate();
-    setDeleteUserResult({
-      data: null,
-      error: {
-        code: "DELETE_USER_ERROR",
-        message: "raw auth deletion diagnostic",
-        details: "raw deletion details",
-        hint: "raw deletion hint",
-      },
-    });
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
-
-    expect(result).toEqual({
-      success: false,
-      error:
-        "Invitation email was not finalized successfully.",
+      error: "Invitation email was not finalized successfully.",
     });
     expect(JSON.stringify(result)).not.toContain("raw");
-    expect(JSON.stringify(consoleError.mock.calls)).not.toContain(
-      "raw auth deletion diagnostic"
-    );
-    // The service currently cannot confirm compensation success.
-    // Operational reconciliation remains necessary after this path.
   });
 
-  it("returns the successful finalized invitation contract", async () => {
-    arrangeInitialInvitation();
-    arrangeSuccessfulAuthInvite();
-    const finalization = queueInvitationFinalization(
-      successfulResult(sentInvitation)
-    );
+  it("treats an empty create result as an internal failure", async () => {
+    queueRpcResult(successfulResult([]));
+    expect(await inviteParticipant("participant-id", "actor-id")).toEqual({
+      success: false,
+      error: "Participant invitation operation could not be completed.",
+    });
+  });
 
-    const result = await inviteParticipant(
-      "participant-id",
-      "actor-id"
-    );
+  it("treats an empty finalization result as a safe failure", async () => {
+    arrangeAttempt();
+    arrangeProvider();
+    queueRpcResult(successfulResult([]));
+    queueRpcResult(successfulResult([{ ...attempt, status: "failed" }]));
+    expect(await inviteParticipant("participant-id", "actor-id")).toEqual({
+      success: false,
+      error: "Invitation email was not finalized successfully.",
+    });
+  });
 
-    expect(result).toEqual({
+  it("returns the compatible successful contract", async () => {
+    arrangeSuccess();
+    expect(await inviteParticipant("participant-id", "actor-id")).toEqual({
       success: true,
-      participant,
-      invitation: sentInvitation,
-      authUserId: "new-auth-user-id",
+      participant: { id: "participant-id" },
+      invitation: sent,
+      authUserId: "auth-user-id",
     });
-    expect(finalization.update).toHaveBeenCalledWith({
-      auth_user_id: "new-auth-user-id",
-      status: "sent",
-      invited_at: now.toISOString(),
-      last_error: null,
-    });
-    expect(finalization.eq).toHaveBeenCalledWith(
-      "id",
-      "invitation-id"
-    );
-    expect(supabaseAdminSpies.deleteUser).not.toHaveBeenCalled();
   });
 
-  it("keeps representative failure logging free of sensitive data", async () => {
-    arrangeInitialInvitation();
-    arrangeSuccessfulAuthInvite();
-    queueInvitationFinalization(
-      providerErrorResult(
-        "raw database diagnostic",
-        "FINALIZATION_ERROR"
-      )
-    );
-    queueInvitationFailureUpdate();
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-
+  it("supports a later governed retry attempt returned by the RPC", async () => {
+    queueRpcResult(successfulResult([{ ...attempt, id: "retry-id", invitation_attempts: 2 }]));
+    arrangeProvider();
+    queueRpcResult(successfulResult([{ ...sent, id: "retry-id" }]));
     await inviteParticipant("participant-id", "actor-id");
-
-    const diagnostics = JSON.stringify(consoleError.mock.calls);
-
-    expect(diagnostics).not.toContain("participant-id");
-    expect(diagnostics).not.toContain(
-      "participant@example.com"
+    expect(supabaseAdminSpies.inviteUserByEmail).toHaveBeenCalledWith(
+      "participant@example.com",
+      expect.objectContaining({ data: expect.objectContaining({ invitation_id: "retry-id" }) }),
     );
-    expect(diagnostics).not.toContain("invitation-id");
-    expect(diagnostics).not.toContain("new-auth-user-id");
-    expect(diagnostics).not.toContain(
-      "raw database diagnostic"
-    );
+  });
+
+  it("accepts an idempotent sent finalization response", async () => {
+    arrangeSuccess();
+    const result = await inviteParticipant("participant-id", "actor-id");
+    expect(result.success).toBe(true);
+  });
+
+  it("does not access participant invitation tables directly", async () => {
+    arrangeSuccess();
+    await inviteParticipant("participant-id", "actor-id");
+    expect(supabaseAdminSpies.from).not.toHaveBeenCalled();
+  });
+
+  it("logs only generic operational diagnostics", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    arrangeAttempt();
+    setAuthInviteResult({
+      data: { user: null },
+      error: { code: "raw", message: "participant-id actor-id raw provider" },
+    });
+    queueRpcResult(successfulResult([{ ...attempt, status: "failed" }]));
+    await inviteParticipant("participant-id", "actor-id");
+    const output = JSON.stringify(consoleSpy.mock.calls);
+    expect(output).not.toContain("participant-id");
+    expect(output).not.toContain("actor-id");
+    expect(output).not.toContain("raw provider");
   });
 });
