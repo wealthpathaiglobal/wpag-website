@@ -1,20 +1,43 @@
+import { isIP } from "node:net";
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { submitApplication } from "@/lib/services/participant/application-service";
 
+function normalizeSourceIp(value: string | null): string | null {
+  const candidate = value?.split(",")[0]?.trim() ?? "";
+  return isIP(candidate) ? candidate : null;
+}
+
+function normalizeUserAgent(value: string | null): string | null {
+  const candidate = value?.trim() ?? "";
+  return candidate ? candidate.slice(0, 1000) : null;
+}
+
 export async function POST(request: NextRequest) {
+  let body: unknown;
+
   try {
-    const body = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid application request.",
+      },
+      { status: 400 },
+    );
+  }
 
-    const forwardedFor = request.headers.get("x-forwarded-for");
+  try {
+    const sourceIp = normalizeSourceIp(
+      request.headers.get("x-forwarded-for") ??
+        request.headers.get("x-real-ip"),
+    );
 
-    const sourceIp =
-      forwardedFor?.split(",")[0]?.trim() ??
-      request.headers.get("x-real-ip") ??
-      null;
-
-    const userAgent =
-      request.headers.get("user-agent") ?? null;
+    const userAgent = normalizeUserAgent(
+      request.headers.get("user-agent"),
+    );
 
     const result = await submitApplication(body, {
       authUserId: null,
@@ -33,6 +56,16 @@ export async function POST(request: NextRequest) {
           {
             status: 400,
           },
+        );
+      }
+
+      if (result.type === "duplicate_error") {
+        return NextResponse.json(
+          {
+            success: false,
+            message: result.message,
+          },
+          { status: 409 },
         );
       }
 
@@ -59,11 +92,8 @@ export async function POST(request: NextRequest) {
         status: 201,
       },
     );
-  } catch (error) {
-    console.error(
-      "[WPAG Application API] Unexpected error",
-      error,
-    );
+  } catch {
+    console.error("[WPAG Application API] Unexpected failure.");
 
     return NextResponse.json(
       {
