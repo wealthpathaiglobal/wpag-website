@@ -207,6 +207,12 @@ export function setRpcResult<T>(
   rpc.mockResolvedValue(result);
 }
 
+export function queueRpcResult<T>(
+  result: SupabaseMockResult<T>
+): void {
+  rpc.mockResolvedValueOnce(result);
+}
+
 export function queueActiveInvitationLookup<T>(
   result: SupabaseMockResult<T>
 ): ActiveInvitationLookupSpies {
