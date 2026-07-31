@@ -18,12 +18,25 @@ export async function POST(
       "administrator"
     );
 
-    const body = await request.json();
+    let body: unknown;
 
-    const participantId =
-      body.participantId?.trim();
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Invalid JSON body." },
+        { status: 400 }
+      );
+    }
 
-    if (!participantId) {
+    if (
+      typeof body !== "object" ||
+      body === null ||
+      Array.isArray(body) ||
+      !("participantId" in body) ||
+      typeof body.participantId !== "string" ||
+      !body.participantId.trim()
+    ) {
       return NextResponse.json(
         {
           success: false,
@@ -36,6 +49,8 @@ export async function POST(
       );
     }
 
+    const participantId = body.participantId.trim();
+
     const result =
   await inviteParticipant(
     participantId,
@@ -43,10 +58,21 @@ export async function POST(
   );
 
     if (!result.success) {
+      const status =
+        result.error === "Participant not found."
+          ? 404
+          : result.error ===
+              "Actor is not authorized to issue participant invitations."
+            ? 403
+            : result.error ===
+                "Participant invitation operation could not be completed."
+              ? 500
+              : 400;
+
       return NextResponse.json(
         result,
         {
-          status: 400,
+          status,
         }
       );
     }
@@ -83,10 +109,7 @@ export async function POST(
       );
     }
 
-    console.error(
-      "Participant invitation API error:",
-      error
-    );
+    console.error("Participant invitation API failed.");
 
     return NextResponse.json(
       {
