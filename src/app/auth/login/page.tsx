@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/browser";
+import { getSafeInternalPath } from "@/lib/auth/safe-redirect";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,7 +46,11 @@ export default function LoginPage() {
       return;
     }
 
-    router.replace("/participant/dashboard");
+    const next = getSafeInternalPath(
+      new URLSearchParams(window.location.search).get("next"),
+      "/participant/dashboard",
+    );
+    router.replace(next);
     router.refresh();
   }
 

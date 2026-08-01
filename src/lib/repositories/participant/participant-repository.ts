@@ -1,49 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
+import type { CurrentParticipant } from "@/lib/types/participant/current-participant";
 
-import type { Participant } from "@/lib/types/participant/participant";
-
-export async function getParticipantByAuthUserId(
-  authUserId: string
-): Promise<Participant | null> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("participants")
-    .select("*")
-    .eq("auth_user_id", authUserId)
-    .is("deleted_at", null)
-    .single();
-
-  if (error) {
-    if (error.code === "PGRST116") {
-      return null;
-    }
-
-    throw new Error(`Failed to load participant: ${error.message}`);
+export class ParticipantResolutionError extends Error {
+  constructor() {
+    super("Participant access could not be resolved.");
+    this.name = "ParticipantResolutionError";
   }
-
-  return data as Participant;
 }
 
-export async function getParticipantById(
-  participantId: string
-): Promise<Participant | null> {
+export async function getCurrentParticipantRecord(): Promise<CurrentParticipant | null> {
   const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_current_participant");
 
-  const { data, error } = await supabase
-    .from("participants")
-    .select("*")
-    .eq("id", participantId)
-    .is("deleted_at", null)
-    .single();
-
-  if (error) {
-    if (error.code === "PGRST116") {
-      return null;
-    }
-
-    throw new Error(`Failed to load participant: ${error.message}`);
-  }
-
-  return data as Participant;
+  if (error) throw new ParticipantResolutionError();
+  const row = Array.isArray(data) ? data[0] : data;
+  return (row as CurrentParticipant | null) ?? null;
 }

@@ -199,14 +199,14 @@ export default async function ApplicationSubmittedPage({
                       Current review stage
                     </dt>
                     <dd className="mt-2 font-semibold text-white">
-                      Preliminary eligibility review
+                      Administrator eligibility review pending
                     </dd>
                   </div>
                 </dl>
               </div>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Button href="/participant">
+                <Button href="/participant/information">
                   Return to Participant Information
                 </Button>
 

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 
-import { AuthenticationError } from "./errors";
-import { getParticipantByUserId } from "@/lib/services/participant/participant-service";
+import { AuthenticationError, AuthorizationError } from "./errors";
+import { getCurrentParticipantRecordForUser } from "@/lib/services/participant/participant-service";
 
 export async function getCurrentUser() {
   const supabase = await createClient();
@@ -19,14 +19,11 @@ export async function getCurrentUser() {
 }
 
 export async function getCurrentParticipant() {
-  const user = await getCurrentUser();
-
-  const participant = await getParticipantByUserId(user.id);
+  await getCurrentUser();
+  const participant = await getCurrentParticipantRecordForUser();
 
   if (!participant) {
-    throw new AuthenticationError(
-      "Authenticated user is not an enrolled participant."
-    );
+    throw new AuthorizationError("Participant access is unavailable.");
   }
 
   return participant;
