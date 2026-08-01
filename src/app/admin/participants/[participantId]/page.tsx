@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import LifecycleActionPanel from "@/components/admin/LifecycleActionPanel";
 import ParticipantInvitationPanel from "@/components/admin/ParticipantInvitationPanel";
+import HfosMeasurementFoundationCard from "@/components/admin/HfosMeasurementFoundationCard";
 import { requireRole } from "@/lib/auth/authorization";
 import { getParticipantDetail } from "@/lib/services/admin/admin-participant-detail-service";
 
@@ -88,6 +89,7 @@ export default async function ParticipantDetailPage({
   lifecycleHistory,
   invitation,
   assessmentSummary,
+  measurementSummary,
 } = participantDetail;
 
   return (
@@ -183,6 +185,8 @@ export default async function ParticipantDetailPage({
             <div><p className="text-xs text-white/40">Submitted</p><p className="mt-2">{formatDate(assessmentSummary?.submitted_at ?? null)}</p></div>
           </div>
         </section>
+
+        <HfosMeasurementFoundationCard summary={measurementSummary} />
 
        <ParticipantInvitationPanel
   participantId={participant.id}
