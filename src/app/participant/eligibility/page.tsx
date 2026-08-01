@@ -70,6 +70,7 @@ export default function ParticipantEligibilityPage() {
     useState<Record<EligibilityKey, EligibilityAnswer>>(initialAnswers);
 
   const [showValidation, setShowValidation] = useState(false);
+  const [isIneligible, setIsIneligible] = useState(false);
 
   const allAnswered = useMemo(
     () => Object.values(answers).every((answer) => answer !== ""),
@@ -82,6 +83,7 @@ export default function ParticipantEligibilityPage() {
   );
 
   function updateAnswer(id: EligibilityKey, value: EligibilityAnswer) {
+    setIsIneligible(false);
     setAnswers((current) => ({
       ...current,
       [id]: value,
@@ -101,7 +103,7 @@ export default function ParticipantEligibilityPage() {
       return;
     }
 
-    router.push("/participant/not-eligible");
+    setIsIneligible(true);
   }
 
   return (
@@ -205,6 +207,13 @@ export default function ParticipantEligibilityPage() {
                   </div>
                 ) : null}
 
+                {isIneligible ? (
+                  <div className="mt-8 border border-zinc-700 p-5" role="status">
+                    <p className="font-semibold">Current programme criteria were not met.</p>
+                    <p className="mt-3 text-sm leading-6 text-zinc-400">This preliminary result does not create an application or participant record. Return to the participant information before deciding what to do next.</p>
+                  </div>
+                ) : null}
+
                 <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                   <button
                     type="submit"
@@ -213,7 +222,7 @@ export default function ParticipantEligibilityPage() {
                     Review Eligibility Result
                   </button>
 
-                  <Button href="/participant/consent" variant="secondary">
+                  <Button href="/participant/information" variant="secondary">
                     Return to Research Information
                   </Button>
                 </div>

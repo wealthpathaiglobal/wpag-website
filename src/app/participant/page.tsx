@@ -39,7 +39,7 @@ export default function ParticipantPage() {
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Button href="/participant/consent">
+                <Button href="/participant/information">
                   Begin Participation
                 </Button>
 

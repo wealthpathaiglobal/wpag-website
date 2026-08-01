@@ -54,27 +54,19 @@ const assessmentModules: AssessmentModule[] = [
   },
   {
     number: "06",
-    title: "Financial behaviour",
+    title: "Goals and planning",
     description:
-      "Examine financial routines, decision patterns, payment discipline, documentation, and planning behaviour.",
+      "Review financial goals, priorities, planning behaviour, and participant commitment.",
     status: "Locked",
-    route: "/participant/assessment/financial-behaviour",
+    route: "/participant/assessment/goals-planning",
   },
   {
     number: "07",
-    title: "Evidence review",
+    title: "Review and submit",
     description:
-      "Identify the records required to support the assessment and distinguish reported information from verified evidence.",
+      "Review the six completed prototype modules and required acknowledgements before submission.",
     status: "Locked",
-    route: "/participant/assessment/evidence-review",
-  },
-  {
-    number: "08",
-    title: "Assessment summary",
-    description:
-      "Review the completed assessment, unresolved information, evidence gaps, and prototype system-state summary.",
-    status: "Locked",
-    route: "/participant/assessment/summary",
+    route: "/participant/assessment/review-submit",
   },
 ];
 

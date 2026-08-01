@@ -1,22 +1,9 @@
-import { redirect } from "next/navigation";
-
 import ParticipantDashboardClient from "./ParticipantDashboardClient";
 
-import { getCurrentParticipant } from "@/lib/auth/current-participant";
-import { AuthenticationError } from "@/lib/auth/errors";
+import { requireParticipantAccess } from "@/lib/auth/participant-access";
 
 export default async function ParticipantDashboardPage() {
-  let participant;
-
-  try {
-    participant = await getCurrentParticipant();
-  } catch (error) {
-    if (error instanceof AuthenticationError) {
-      redirect("/auth/login?next=/participant/dashboard");
-    }
-
-    throw error;
-  }
+  const participant = await requireParticipantAccess("/participant/dashboard");
 
   return (
     <ParticipantDashboardClient

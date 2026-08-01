@@ -1,5 +1,5 @@
 "use client";
-import type { Participant } from "@/lib/types/participant/participant";
+import type { CurrentParticipant } from "@/lib/types/participant/current-participant";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -87,7 +87,7 @@ function formatEnrollmentDate(value: string | null) {
 }
 
 type ParticipantProfileClientProps = {
-  participant: Participant;
+  participant: CurrentParticipant;
 };
 
 export default function ParticipantProfileClient({

@@ -1,22 +1,12 @@
-import { redirect } from "next/navigation";
-
 import ParticipantProfileClient from "./ParticipantProfileClient";
 
-import { getCurrentParticipant } from "@/lib/auth/current-participant";
-import { AuthenticationError } from "@/lib/auth/errors";
+import { requireParticipantAccess } from "@/lib/auth/participant-access";
 
 export default async function ParticipantProfilePage() {
-  let participant;
-
-  try {
-    participant = await getCurrentParticipant();
-  } catch (error) {
-    if (error instanceof AuthenticationError) {
-      redirect("/auth/login?next=/participant/profile");
-    }
-
-    throw error;
-  }
+  const participant = await requireParticipantAccess("/participant/profile", [
+    "pending_enrollment",
+    "active",
+  ]);
 
   return <ParticipantProfileClient participant={participant} />;
 }
