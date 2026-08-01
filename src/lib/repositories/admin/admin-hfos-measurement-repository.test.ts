@@ -1,0 +1,15 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+const mocks = vi.hoisted(() => ({ rpc: vi.fn(), createClient: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: mocks.createClient }));
+import { createHfosMeasurementRun, getAdminHfosMeasurementSummary, HfosMeasurementRepositoryError } from "./admin-hfos-measurement-repository";
+
+const run = { run_id:"run", participant_id:"participant", assessment_id:"assessment", assessment_session_id:"session", status:"captured", assessment_version:"1.0", hfos_version:"phase-1-draft", measurement_engine_version:"0.1-infrastructure", formula_set_version:"none", input_hash:"a".repeat(64), input_count:12, warning_count:2, generated_at:"2026-08-01", supersedes_run_id:null, is_current:true };
+beforeEach(()=>{vi.resetAllMocks();mocks.createClient.mockResolvedValue({rpc:mocks.rpc});mocks.rpc.mockResolvedValue({data:[run],error:null});});
+describe("admin HFOS measurement repository",()=>{
+  it("maps the exact governed capture RPC without actor or version arguments",async()=>{await createHfosMeasurementRun({participantId:"participant",assessmentId:"assessment",executionReason:"Initial capture",idempotencyKey:"key-1"});expect(mocks.rpc).toHaveBeenCalledWith("create_hfos_measurement_run",{p_participant_id:"participant",p_assessment_id:"assessment",p_execution_reason:"Initial capture",p_idempotency_key:"key-1"});expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("generated_by");expect(mocks.rpc.mock.calls[0][1]).not.toHaveProperty("formula_set_version");});
+  it("maps captured metadata",async()=>{await expect(createHfosMeasurementRun({participantId:"participant",assessmentId:"assessment",executionReason:"Initial",idempotencyKey:"key"})).resolves.toMatchObject({runId:"run",formulaSetVersion:"none",inputCount:12,isCurrent:true});});
+  it("maps the narrow summary RPC",async()=>{mocks.rpc.mockResolvedValue({data:[{...run,current_run_id:"run",run_status:"captured",historical_run_count:1}],error:null});await getAdminHfosMeasurementSummary("participant");expect(mocks.rpc).toHaveBeenCalledWith("get_admin_participant_measurement_summary",{p_participant_id:"participant"});});
+  it("returns null when no current run exists",async()=>{mocks.rpc.mockResolvedValue({data:[],error:null});await expect(getAdminHfosMeasurementSummary("participant")).resolves.toBeNull();});
+  it("classifies allowlisted domain failures without exposing diagnostics",async()=>{mocks.rpc.mockResolvedValue({data:null,error:{code:"P1001",message:"Only submitted assessments can be captured."}});await expect(createHfosMeasurementRun({participantId:"p",assessmentId:"a",executionReason:"x",idempotencyKey:"k"})).rejects.toMatchObject({kind:"not_submitted"});});
+  it("sanitizes unknown database failures",async()=>{mocks.rpc.mockResolvedValue({data:null,error:{code:"XX000",message:"raw database secret"}});const promise=createHfosMeasurementRun({participantId:"p",assessmentId:"a",executionReason:"x",idempotencyKey:"k"});await expect(promise).rejects.toBeInstanceOf(HfosMeasurementRepositoryError);await expect(promise).rejects.not.toThrow("raw database secret");});
+});

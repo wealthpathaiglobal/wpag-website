@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAdminParticipantAssessmentSummary } from "@/lib/repositories/admin/admin-participant-assessment-repository";
+import { loadAdminHfosMeasurementSummary } from "@/lib/services/admin/admin-hfos-measurement-service";
 
 export async function getParticipantDetail(participantId: string) {
   const {
@@ -102,6 +103,8 @@ export async function getParticipantDetail(participantId: string) {
   }
 
   const assessmentSummary = await getAdminParticipantAssessmentSummary(participantId);
+  const measurementResult = await loadAdminHfosMeasurementSummary(participantId);
+  if (!measurementResult.success) throw new Error(measurementResult.error);
 
   return {
     participant: {
@@ -113,5 +116,6 @@ export async function getParticipantDetail(participantId: string) {
     lifecycleHistory: lifecycleHistory ?? [],
     invitation,
     assessmentSummary,
+    measurementSummary: measurementResult.data,
   };
 }
