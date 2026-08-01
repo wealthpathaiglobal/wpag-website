@@ -87,6 +87,7 @@ export default async function ParticipantDetailPage({
   participant,
   lifecycleHistory,
   invitation,
+  assessmentSummary,
 } = participantDetail;
 
   return (
@@ -171,6 +172,16 @@ export default async function ParticipantDetailPage({
               {participant.auth_user_id ? "Linked" : "Not linked"}
             </p>
           </article>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-6" aria-label="Assessment summary">
+          <p className="text-xs uppercase tracking-wider text-white/35">Participant assessment</p>
+          <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div><p className="text-xs text-white/40">Status</p><p className="mt-2">{formatStatus(assessmentSummary?.session_status ?? null)}</p></div>
+            <div><p className="text-xs text-white/40">Modules</p><p className="mt-2">{assessmentSummary ? `${assessmentSummary.completed_module_count} of ${assessmentSummary.total_module_count}` : "—"}</p></div>
+            <div><p className="text-xs text-white/40">Versions</p><p className="mt-2">{assessmentSummary ? `${assessmentSummary.assessment_version} · ${assessmentSummary.hfos_version}` : "—"}</p></div>
+            <div><p className="text-xs text-white/40">Submitted</p><p className="mt-2">{formatDate(assessmentSummary?.submitted_at ?? null)}</p></div>
+          </div>
         </section>
 
        <ParticipantInvitationPanel

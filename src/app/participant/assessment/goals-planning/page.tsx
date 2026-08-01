@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { buildAssessmentAnswers, hydrateAssessmentForm, structuredAssessmentValue, useAssessmentModule } from "@/lib/assessment/use-assessment-module";
 
 type GoalKey =
   | "emergencyFund"
@@ -337,6 +338,7 @@ function SectionHeader({
 
 export default function GoalsPlanningPage() {
   const router = useRouter();
+  const persistence=useAssessmentModule("goals_planning");
 
   const [form, setForm] = useState<GoalsPlanningForm>(initialForm);
   const [goals, setGoals] = useState<GoalSelections>(initialGoals);
@@ -352,6 +354,7 @@ export default function GoalsPlanningPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  useEffect(()=>{const hydration=setTimeout(()=>{setForm(current=>hydrateAssessmentForm("goals_planning",current,persistence.answers));const savedGoals=structuredAssessmentValue(persistence.answers,"goals_planning.goals");if(savedGoals)setGoals(current=>({...current,...savedGoals}));const savedBehaviours=structuredAssessmentValue(persistence.answers,"goals_planning.behaviours");if(savedBehaviours)setBehaviours(current=>({...current,...savedBehaviours}));const savedCommitments=structuredAssessmentValue(persistence.answers,"goals_planning.commitments");if(savedCommitments)setCommitments(current=>({...current,...savedCommitments}));setIsCompleted(persistence.status==="complete");},0);return()=>clearTimeout(hydration);},[persistence.answers,persistence.status]);
 
   const selectedGoalCount = Object.entries(goals).filter(
     ([key, selected]) => key !== "noDefinedGoal" && selected,
@@ -568,17 +571,8 @@ export default function GoalsPlanningPage() {
       return;
     }
 
-    setIsSubmitting(true);
-
-    await new Promise((resolve) => {
-      window.setTimeout(resolve, 700);
-    });
-
-    setIsSubmitting(false);
-    setIsCompleted(true);
-    setSuccessMessage(
-      "Prototype goals and planning module completed for this browser session. No financial recommendation, investment advice, goal feasibility assessment, HFOS treatment plan, or verified participant record has been generated or stored.",
-    );
+    setIsSubmitting(true);const saved=await persistence.save(buildAssessmentAnswers("goals_planning",form,{goals,behaviours,commitments}));setIsSubmitting(false);
+    if(saved){setIsCompleted(saved.module_status==="complete");setSuccessMessage("Goals and planning progress saved. Responses remain participant-provided and unverified.");}else setSuccessMessage(persistence.message||"The module could not be saved.");
   }
 
   return (
@@ -621,7 +615,7 @@ export default function GoalsPlanningPage() {
 
           <aside className="border border-black bg-black p-6 text-white sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">
-              Prototype notice
+              Persistence and verification notice
             </p>
 
             <p className="mt-5 text-sm leading-7 text-white/80">
@@ -637,7 +631,7 @@ export default function GoalsPlanningPage() {
           </aside>
         </section>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} noValidate><fieldset disabled={persistence.submitted}>
           <section className="border-t border-black py-12 lg:py-16">
             <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
               <SectionHeader
@@ -1271,7 +1265,7 @@ export default function GoalsPlanningPage() {
             <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
               <SectionHeader
                 number="08"
-                title="Prototype completion status"
+                title="Durable module status"
                 description="Completion reflects form coverage only. It does not validate goals or generate financial recommendations."
               />
 
@@ -1378,8 +1372,8 @@ export default function GoalsPlanningPage() {
                   />
 
                   <StatusRow
-                    label="Database record"
-                    value="Not created"
+                    label="Durable response record"
+                    value={persistence.status === "not_started" ? "Not started" : "Saved"}
                   />
                 </div>
 
@@ -1414,9 +1408,7 @@ export default function GoalsPlanningPage() {
                   disabled={isSubmitting}
                   className="inline-flex min-h-14 items-center justify-center border border-black px-7 text-sm font-semibold uppercase tracking-[0.14em] transition hover:bg-black hover:text-white disabled:opacity-50"
                 >
-                  {isSubmitting
-                    ? "Completing Module..."
-                    : "Complete Goals and Planning"}
+                  {isSubmitting ? "Saving..." : "Save Progress"}
                 </button>
 
                 <button
@@ -1440,7 +1432,7 @@ export default function GoalsPlanningPage() {
               provenance, and retain a complete institutional audit history.
             </p>
           </section>
-        </form>
+        </fieldset></form>
       </div>
     </main>
   );

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { assessmentRegistry } from "@/lib/assessment/assessment-registry";
 
 const source = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
@@ -37,9 +38,16 @@ describe("participant journey navigation", () => {
 
   it("lists exactly the implemented assessment sequence", () => {
     const dashboard = source("src/app/participant/assessment/page.tsx");
-    const routes = ["financial-profile", "cash-flow", "debt-obligations", "stability-margin", "protection-risk", "goals-planning", "review-submit"];
-    for (const route of routes) expect(dashboard).toContain(`/participant/assessment/${route}`);
+    expect(assessmentRegistry.map((module) => module.route)).toEqual([
+      "/participant/assessment/financial-profile",
+      "/participant/assessment/cash-flow",
+      "/participant/assessment/debt-obligations",
+      "/participant/assessment/stability-margin",
+      "/participant/assessment/protection-risk",
+      "/participant/assessment/goals-planning",
+    ]);
+    expect(assessmentRegistry.map((module) => module.order)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(dashboard).toContain('href="/participant/assessment/review-submit"');
     for (const route of ["financial-behaviour", "evidence-review", "summary"]) expect(dashboard).not.toContain(`/participant/assessment/${route}`);
-    expect((dashboard.match(/number: "0[1-7]"/g) ?? [])).toHaveLength(7);
   });
 });

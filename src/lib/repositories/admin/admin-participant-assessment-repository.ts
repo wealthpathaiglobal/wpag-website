@@ -1,0 +1,2 @@
+import {supabaseAdmin}from"@/lib/supabase/admin";import type{AdminParticipantAssessmentSummary}from"@/lib/types/participant/assessment";
+export async function getAdminParticipantAssessmentSummary(participantId:string){const{data,error}=await supabaseAdmin.rpc("get_admin_participant_assessment_summary",{p_participant_id:participantId});if(error)throw new Error("Participant assessment summary could not be loaded.");return((Array.isArray(data)?data[0]:data)as AdminParticipantAssessmentSummary|null)??null;}

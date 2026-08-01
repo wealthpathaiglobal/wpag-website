@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { buildAssessmentAnswers, hydrateAssessmentForm, structuredAssessmentValue, useAssessmentModule } from "@/lib/assessment/use-assessment-module";
 
 type StabilityForm = {
   currency: string;
@@ -240,6 +241,7 @@ function StatusRow({
 
 export default function StabilityAndMarginPage() {
   const router = useRouter();
+  const persistence=useAssessmentModule("stability_margin");
 
   const [form, setForm] = useState<StabilityForm>(initialForm);
   const [buffers, setBuffers] =
@@ -250,6 +252,7 @@ export default function StabilityAndMarginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  useEffect(()=>{const hydration=setTimeout(()=>{setForm(current=>hydrateAssessmentForm("stability_margin",current,persistence.answers));const saved=structuredAssessmentValue(persistence.answers,"stability_margin.buffers");if(saved)setBuffers(current=>({...current,...saved}));setIsCompleted(persistence.status==="complete");},0);return()=>clearTimeout(hydration);},[persistence.answers,persistence.status]);
 
   const selectedBufferCount = Object.entries(buffers).filter(
     ([key, selected]) => key !== "noBuffer" && selected,
@@ -432,17 +435,8 @@ export default function StabilityAndMarginPage() {
       return;
     }
 
-    setIsSubmitting(true);
-
-    await new Promise((resolve) => {
-      window.setTimeout(resolve, 700);
-    });
-
-    setIsSubmitting(false);
-    setIsCompleted(true);
-    setSuccessMessage(
-      "Prototype stability and margin module completed for this browser session. No financial capacity, resilience classification, or HFOS system-state diagnosis has been verified, stored, or generated.",
-    );
+    setIsSubmitting(true);const saved=await persistence.save(buildAssessmentAnswers("stability_margin",form,{buffers}));setIsSubmitting(false);
+    if(saved){setIsCompleted(saved.module_status==="complete");setSuccessMessage("Stability and margin progress saved. Responses remain participant-provided and unverified.");}else setSuccessMessage(persistence.message||"The module could not be saved.");
   }
 
   return (
@@ -485,7 +479,7 @@ export default function StabilityAndMarginPage() {
 
           <aside className="border border-black bg-black p-6 text-white sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">
-              Prototype notice
+              Persistence and verification notice
             </p>
 
             <p className="mt-5 text-sm leading-7 text-white/80">
@@ -502,7 +496,7 @@ export default function StabilityAndMarginPage() {
           </aside>
         </section>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} noValidate><fieldset disabled={persistence.submitted}>
           <section className="border-t border-black py-12 lg:py-16">
             <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
               <div>
@@ -1056,7 +1050,7 @@ export default function StabilityAndMarginPage() {
                 </p>
 
                 <h2 className="mt-4 font-serif text-3xl sm:text-4xl">
-                  Prototype completion status
+                  Durable module status
                 </h2>
 
                 <p className="mt-5 max-w-md text-sm leading-7 text-black/60">
@@ -1156,8 +1150,8 @@ export default function StabilityAndMarginPage() {
                   />
 
                   <StatusRow
-                    label="Database record"
-                    value="Not created"
+                    label="Durable response record"
+                    value={persistence.status === "not_started" ? "Not started" : "Saved"}
                   />
                 </div>
 
@@ -1192,9 +1186,7 @@ export default function StabilityAndMarginPage() {
                   disabled={isSubmitting}
                   className="inline-flex min-h-14 items-center justify-center border border-black px-7 text-sm font-semibold uppercase tracking-[0.14em] transition hover:bg-black hover:text-white disabled:opacity-50"
                 >
-                  {isSubmitting
-                    ? "Completing Module..."
-                    : "Complete Stability and Margin"}
+                  {isSubmitting ? "Saving..." : "Save Progress"}
                 </button>
 
                 <button
@@ -1219,7 +1211,7 @@ export default function StabilityAndMarginPage() {
               history.
             </p>
           </section>
-        </form>
+        </fieldset></form>
       </div>
     </main>
   );
