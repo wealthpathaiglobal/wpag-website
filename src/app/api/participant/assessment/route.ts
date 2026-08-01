@@ -1,0 +1,6 @@
+import {NextResponse} from "next/server";
+import {AuthenticationError,AuthorizationError} from "@/lib/auth/errors";
+import {getCurrentParticipant} from "@/lib/auth/current-participant";
+import {loadCurrentAssessment} from "@/lib/services/participant/participant-assessment-service";
+async function authorize(){const participant=await getCurrentParticipant();if(participant.lifecycle_status!=="active")return NextResponse.json({success:false,message:"Assessment access is unavailable for the current participant status."},{status:403});return null;}
+export async function GET(){try{const denied=await authorize();if(denied)return denied;const result=await loadCurrentAssessment();if(!result.success)return NextResponse.json(result,{status:500});return NextResponse.json(result,{headers:{"Cache-Control":"private, no-store"}});}catch(error){if(error instanceof AuthenticationError)return NextResponse.json({success:false,message:"Authentication is required."},{status:401});if(error instanceof AuthorizationError)return NextResponse.json({success:false,message:"Participant assessment is unavailable."},{status:404});console.error("[WPAG Participant Assessment API] Read failed.");return NextResponse.json({success:false,message:"The assessment could not be loaded."},{status:500});}}

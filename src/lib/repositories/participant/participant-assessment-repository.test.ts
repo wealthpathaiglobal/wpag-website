@@ -1,0 +1,10 @@
+import{beforeEach,describe,expect,it,vi}from"vitest";const mocks=vi.hoisted(()=>({rpc:vi.fn(),createClient:vi.fn()}));vi.mock("@/lib/supabase/server",()=>({createClient:mocks.createClient}));import{AssessmentRepositoryError,getCurrentAssessment,saveAssessmentModule,startOrResumeAssessment,submitAssessment}from"./participant-assessment-repository";
+const assessment={session_id:"s",assessment_id:"a",session_status:"draft",module_progress:{},answers:{}};
+describe("participant assessment repository",()=>{beforeEach(()=>{mocks.createClient.mockResolvedValue({rpc:mocks.rpc});mocks.rpc.mockResolvedValue({data:[assessment],error:null});});
+ it("reads through the governed RPC",async()=>{await getCurrentAssessment();expect(mocks.rpc).toHaveBeenCalledWith("get_current_participant_assessment",undefined);});
+ it("starts or resumes without identity arguments",async()=>{await startOrResumeAssessment();expect(mocks.rpc).toHaveBeenCalledWith("start_or_resume_current_assessment",undefined);});
+ it("saves only module and answers",async()=>{await saveAssessmentModule("cash_flow",{"cash_flow.currency":"INR"});expect(mocks.rpc).toHaveBeenCalledWith("save_current_assessment_module",{p_module_key:"cash_flow",p_answers:{"cash_flow.currency":"INR"}});});
+ it("submits without identity arguments",async()=>{await submitAssessment();expect(mocks.rpc).toHaveBeenCalledWith("submit_current_assessment",undefined);});
+ it("maps approved errors",async()=>{mocks.rpc.mockResolvedValue({data:null,error:{message:"ASSESSMENT_INCOMPLETE"}});await expect(submitAssessment()).rejects.toEqual(new AssessmentRepositoryError("incomplete"));});
+ it("suppresses raw diagnostics",async()=>{mocks.rpc.mockResolvedValue({data:null,error:{message:"secret table failure"}});await expect(getCurrentAssessment()).rejects.toEqual(new AssessmentRepositoryError("persistence_failed"));});
+});

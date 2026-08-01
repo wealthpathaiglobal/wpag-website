@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { buildAssessmentAnswers, hydrateAssessmentForm, structuredAssessmentValue, useAssessmentModule } from "@/lib/assessment/use-assessment-module";
 
 type FinancialProfileForm = {
   fullName: string;
@@ -203,6 +204,7 @@ function TextField({
 
 export default function FinancialProfileModulePage() {
   const router = useRouter();
+  const persistence = useAssessmentModule("financial_profile");
 
   const [form, setForm] = useState<FinancialProfileForm>(initialForm);
   const [assets, setAssets] =
@@ -214,6 +216,16 @@ export default function FinancialProfileModulePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    const hydration=setTimeout(()=>{
+      setForm(current => hydrateAssessmentForm("financial_profile", current, persistence.answers));
+      const savedAssets=structuredAssessmentValue(persistence.answers,"financial_profile.assets");if(savedAssets)setAssets(current=>({...current,...savedAssets}));
+      const savedObligations=structuredAssessmentValue(persistence.answers,"financial_profile.obligations");if(savedObligations)setObligations(current=>({...current,...savedObligations}));
+      setIsCompleted(persistence.status==="complete");
+    },0);
+    return()=>clearTimeout(hydration);
+  }, [persistence.answers, persistence.status]);
 
   const identityComplete = useMemo(
     () =>
@@ -438,16 +450,10 @@ export default function FinancialProfileModulePage() {
     }
 
     setIsSubmitting(true);
-
-    await new Promise((resolve) => {
-      window.setTimeout(resolve, 700);
-    });
-
+    const saved=await persistence.save(buildAssessmentAnswers("financial_profile",form,{assets,obligations}));
     setIsSubmitting(false);
-    setIsCompleted(true);
-    setSuccessMessage(
-      "Prototype financial profile completed for this browser session. No information has been stored or verified.",
-    );
+    if(saved){setIsCompleted(saved.module_status==="complete");setSuccessMessage("Financial profile progress saved. Responses remain participant-provided and unverified.");}
+    else setSuccessMessage(persistence.message||"The module could not be saved.");
   }
 
   function handleReturn() {
@@ -498,12 +504,12 @@ export default function FinancialProfileModulePage() {
 
           <aside className="border border-black bg-black p-6 text-white sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/55">
-              Prototype notice
+              Persistence and verification notice
             </p>
 
             <p className="mt-5 text-sm leading-7 text-white/80">
-              This prototype does not store participant information or create
-              a permanent financial profile.
+              Saved responses are durable participant-provided information.
+              They remain unverified and do not create a financial diagnosis.
             </p>
 
             <p className="mt-4 text-sm leading-7 text-white/80">
@@ -514,7 +520,7 @@ export default function FinancialProfileModulePage() {
           </aside>
         </section>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} noValidate><fieldset disabled={persistence.submitted}>
           <section className="border-t border-black py-12 lg:py-16">
             <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
               <div>
@@ -1075,7 +1081,7 @@ export default function FinancialProfileModulePage() {
                 </p>
 
                 <h2 className="mt-4 font-serif text-3xl tracking-[-0.025em] sm:text-4xl">
-                  Prototype completion status
+                  Durable module status
                 </h2>
 
                 <p className="mt-5 max-w-md text-sm leading-7 text-black/60">
@@ -1157,8 +1163,8 @@ export default function FinancialProfileModulePage() {
                   />
 
                   <StatusRow
-                    label="Database record"
-                    value="Not created"
+                    label="Durable response record"
+                    value={persistence.status === "not_started" ? "Not started" : "Saved"}
                   />
                 </div>
 
@@ -1191,9 +1197,7 @@ export default function FinancialProfileModulePage() {
                   disabled={isSubmitting}
                   className="inline-flex min-h-14 items-center justify-center border border-black px-7 text-sm font-semibold uppercase tracking-[0.14em] transition hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {isSubmitting
-                    ? "Completing Module..."
-                    : "Complete Financial Profile"}
+                  {isSubmitting ? "Saving..." : "Save Progress"}
                 </button>
 
                 <button
@@ -1214,7 +1218,7 @@ export default function FinancialProfileModulePage() {
               is treated as confirmed.
             </p>
           </section>
-        </form>
+        </fieldset></form>
       </div>
     </main>
   );

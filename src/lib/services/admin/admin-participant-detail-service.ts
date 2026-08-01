@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getAdminParticipantAssessmentSummary } from "@/lib/repositories/admin/admin-participant-assessment-repository";
 
 export async function getParticipantDetail(participantId: string) {
   const {
@@ -100,6 +101,8 @@ export async function getParticipantDetail(participantId: string) {
     );
   }
 
+  const assessmentSummary = await getAdminParticipantAssessmentSummary(participantId);
+
   return {
     participant: {
       ...participantRecord,
@@ -109,5 +112,6 @@ export async function getParticipantDetail(participantId: string) {
     },
     lifecycleHistory: lifecycleHistory ?? [],
     invitation,
+    assessmentSummary,
   };
 }
