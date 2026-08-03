@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { requireRole } from "@/lib/auth/authorization";
 import { adminApplicationService } from "@/lib/services/admin/admin-application-service";
+import { adminAssessmentReviewService } from "@/lib/services/admin/admin-assessment-review-service";
 import { getParticipants } from "@/lib/services/admin/admin-participant-service";
 
 function formatDate(value: string | null) {
@@ -70,13 +71,17 @@ function getApplicationStatusClasses(status: string) {
 export default async function AdminDashboardPage() {
   const staff = await requireRole("administrator");
 
-  const [participants, pendingApplications] = await Promise.all([
+  const [participants, pendingApplications, assessmentReviews] = await Promise.all([
     getParticipants(),
     adminApplicationService.getPendingApplications(),
+    adminAssessmentReviewService.listAssessmentReviews(staff.auth_user_id),
   ]);
 
   const totalParticipants = participants.length;
   const totalPendingApplications = pendingApplications.length;
+  const awaitingAssessmentReviews = assessmentReviews.filter(
+    (review) => !review.reviewStatus || review.reviewStatus === "pending",
+  ).length;
 
   const pendingEnrollment = participants.filter(
     (participant) =>
@@ -119,7 +124,7 @@ export default async function AdminDashboardPage() {
           </div>
         </header>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-sm text-white/50">
               Pending Applications
@@ -133,6 +138,21 @@ export default async function AdminDashboardPage() {
               Submitted applications awaiting eligibility review.
             </p>
           </article>
+
+          <Link
+            href="/admin/reviews/assessments"
+            className="rounded-2xl border border-sky-400/20 bg-sky-400/[0.06] p-6 transition-colors hover:bg-sky-400/10"
+          >
+            <p className="text-sm text-sky-200/70">
+              Assessment Reviews
+            </p>
+            <p className="mt-3 text-3xl font-semibold text-white">
+              {awaitingAssessmentReviews}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-white/40">
+              Open the human assessment review queue.
+            </p>
+          </Link>
 
           <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-sm text-white/50">
