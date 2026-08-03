@@ -16,6 +16,12 @@ set public = false,
     file_size_limit = 10485760,
     allowed_mime_types = array['application/pdf', 'image/jpeg', 'image/png'];
 
+-- Remove the legacy approved-only constraint before canonicalizing rows. The
+-- surrounding migration transaction prevents any unconstrained state from
+-- becoming externally visible if conversion or replacement fails.
+alter table public.evidence_verification_history
+    drop constraint evidence_verification_history_verification_status_check;
+
 -- Use verified as the canonical successful verification state.
 update public.evidence_verification_history
 set verification_status = 'verified'
@@ -86,7 +92,6 @@ alter table public.assessment_documents
         );
 
 alter table public.evidence_verification_history
-    drop constraint evidence_verification_history_verification_status_check,
     add constraint evidence_verification_history_verification_status_check
         check (verification_status in ('pending', 'in_progress', 'verified', 'rejected', 'expired'));
 
