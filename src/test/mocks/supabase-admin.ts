@@ -197,6 +197,19 @@ const inviteUserByEmail = vi.fn<
 const deleteUser = vi.fn<
   (authUserId: string) => Promise<DeleteUserResult>
 >();
+const storageUpload = vi.fn<
+  (path: string, body: unknown, options?: Record<string, unknown>) => Promise<SupabaseMockResult<unknown>>
+>();
+const storageDownload = vi.fn<
+  (path: string) => Promise<SupabaseMockResult<Blob>>
+>();
+const storageRemove = vi.fn<
+  (paths: string[]) => Promise<SupabaseMockResult<unknown>>
+>();
+const storageFrom = vi.fn((bucket: string) => {
+  void bucket;
+  return { upload: storageUpload, download: storageDownload, remove: storageRemove };
+});
 
 export const supabaseAdminMock = {
   from,
@@ -207,6 +220,7 @@ export const supabaseAdminMock = {
       deleteUser,
     },
   },
+  storage: { from: storageFrom },
 };
 
 export const supabaseAdminSpies = {
@@ -217,6 +231,10 @@ export const supabaseAdminSpies = {
   rpc,
   inviteUserByEmail,
   deleteUser,
+  storageFrom,
+  storageUpload,
+  storageDownload,
+  storageRemove,
 };
 
 export function setParticipantLookupResult<T>(
@@ -314,6 +332,10 @@ export function setDeleteUserResult(
   deleteUser.mockResolvedValue(result);
 }
 
+export function setStorageUploadResult(result: SupabaseMockResult<unknown>): void { storageUpload.mockResolvedValue(result); }
+export function setStorageDownloadResult(result: SupabaseMockResult<Blob>): void { storageDownload.mockResolvedValue(result); }
+export function setStorageRemoveResult(result: SupabaseMockResult<unknown>): void { storageRemove.mockResolvedValue(result); }
+
 export function resetSupabaseAdminMock(): void {
   vi.resetAllMocks();
   invitationOperationQueue.length = 0;
@@ -354,6 +376,9 @@ export function resetSupabaseAdminMock(): void {
     data: null,
     error: null,
   });
+  setStorageUploadResult(successfulResult({ path: "artifact.pdf" }));
+  setStorageDownloadResult(successfulResult(new Blob(["%PDF-test"], { type: "application/pdf" })));
+  setStorageRemoveResult(successfulResult([]));
 }
 
 resetSupabaseAdminMock();

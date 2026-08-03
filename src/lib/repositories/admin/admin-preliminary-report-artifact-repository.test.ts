@@ -1,0 +1,17 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/supabase/admin", async () => ({ supabaseAdmin: (await import("@/test/mocks/supabase-admin")).supabaseAdminMock }));
+import { AdminPreliminaryReportArtifactRepository } from "./admin-preliminary-report-artifact-repository";
+import { queueRpcResult, resetSupabaseAdminMock, setRpcResult, successfulResult, supabaseAdminSpies } from "@/test/mocks/supabase-admin";
+
+const reportId = "30000000-0000-4000-8000-000000000001"; const actorId = "10000000-0000-4000-8000-000000000001"; const artifactId = "60000000-0000-4000-8000-000000000001";
+const reservationRow = { artifact_id: artifactId, report_id: reportId, report_version: 1, storage_bucket: "preliminary-report-artifacts", storage_path: `${reportId}/${reportId}/v1/${artifactId}.pdf`, original_filename: "WPAG_Preliminary_Research_Report_WPAG-PRR-000001_v1.pdf", report_number: "WPAG-PRR-000001", participant_code: "WPAG-000001", assessment_number: 1, assessment_type: "initial", prepared_at: "2026-08-01", approved_at: "2026-08-02", generation_timestamp: "2026-08-03", content: {} };
+const artifactRow = { artifact_id: artifactId, report_id: reportId, report_version: 1, artifact_status: "finalized", storage_bucket: "preliminary-report-artifacts", storage_path: reservationRow.storage_path, original_filename: reservationRow.original_filename, mime_type: "application/pdf", byte_size: 100, sha256: "a".repeat(64), generated_at: "2026-08-03", released_at: null };
+
+describe("AdminPreliminaryReportArtifactRepository", () => {
+  beforeEach(resetSupabaseAdminMock);
+  it("maps the exact prepare RPC contract", async () => { setRpcResult(successfulResult([reservationRow])); await new AdminPreliminaryReportArtifactRepository().prepare(reportId, actorId); expect(supabaseAdminSpies.rpc).toHaveBeenCalledWith("prepare_preliminary_report_artifact", { p_report_id: reportId, p_actor_user_id: actorId }); });
+  it("uploads without overwrite", async () => { await new AdminPreliminaryReportArtifactRepository().upload("preliminary-report-artifacts", "safe.pdf", new Uint8Array([1])); expect(supabaseAdminSpies.storageFrom).toHaveBeenCalledWith("preliminary-report-artifacts"); expect(supabaseAdminSpies.storageUpload).toHaveBeenCalledWith("safe.pdf", expect.any(Uint8Array), { contentType: "application/pdf", upsert: false }); });
+  it("finalizes with verified metadata through the RPC", async () => { queueRpcResult(successfulResult([reservationRow])); queueRpcResult(successfulResult([artifactRow])); const repository = new AdminPreliminaryReportArtifactRepository(); const reservation = await repository.prepare(reportId, actorId); await expect(repository.finalize(reservation, actorId, 100, "a".repeat(64))).resolves.toMatchObject({ status: "finalized", byteSize: 100 }); expect(supabaseAdminSpies.rpc).toHaveBeenLastCalledWith("finalize_preliminary_report_artifact", expect.objectContaining({ p_artifact_id: artifactId, p_byte_size: 100, p_sha256: "a".repeat(64) })); });
+  it("uses governed cleanup and never direct table writes", async () => { setRpcResult(successfulResult(null)); await new AdminPreliminaryReportArtifactRepository().discard(artifactId, actorId); expect(supabaseAdminSpies.rpc).toHaveBeenCalledWith("discard_preliminary_report_artifact_reservation", { p_artifact_id: artifactId, p_actor_user_id: actorId }); expect(supabaseAdminSpies.from).not.toHaveBeenCalled(); });
+});

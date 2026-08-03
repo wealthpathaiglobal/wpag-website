@@ -151,6 +151,20 @@ select lives_ok($$select * from public.transition_preliminary_report((select id 
 select lives_ok($$select * from public.transition_preliminary_report((select id from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001'),null,'fa000000-0000-4000-8000-000000000001','approve',null,null,null)$$,'report approval succeeds');
 select is((select status from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001'),'approved','approved status persisted');
 select ok((select approved_at is not null and approved_by='fa000000-0000-4000-8000-000000000001' from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001'),'approval attribution persisted');
+do $$
+declare v_artifact_id uuid; v_filename text;
+begin
+  select artifact_id,original_filename into v_artifact_id,v_filename
+  from public.prepare_preliminary_report_artifact(
+    (select id from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001'),
+    'fa000000-0000-4000-8000-000000000001'
+  );
+  perform * from public.finalize_preliminary_report_artifact(
+    v_artifact_id,'fa000000-0000-4000-8000-000000000001',v_filename,
+    'application/pdf',100,repeat('a',64)
+  );
+end;
+$$;
 select lives_ok($$select * from public.transition_preliminary_report((select id from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001'),null,'fa000000-0000-4000-8000-000000000001','release',null,null,null)$$,'report release succeeds');
 select is((select status from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001'),'released','released status persisted');
 select ok((select released_at is not null and released_by='fa000000-0000-4000-8000-000000000001' from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001'),'release attribution persisted');
@@ -161,7 +175,7 @@ select throws_ok($$update public.preliminary_report_versions set change_summary=
 select throws_ok($$delete from public.preliminary_report_versions where report_id=(select id from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001')$$,'P1001','Preliminary report versions are immutable.','version delete denied');
 select throws_ok($$update public.preliminary_reports set title='Changed' where assessment_id='ff000000-0000-4000-8000-000000000001'$$,'P1001','Released preliminary reports are immutable.','released report mutation denied');
 select throws_ok($$select * from public.transition_preliminary_report((select id from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001'),null,'fa000000-0000-4000-8000-000000000001','release',null,null,null)$$,'P1001','Preliminary report transition is not allowed.','repeated release denied');
-select is((select count(*) from public.activity_timeline where entity_id=(select id from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001')),9::bigint,'complete lifecycle audit trail persisted');
+select is((select count(*) from public.activity_timeline where entity_id=(select id from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001')),11::bigint,'complete lifecycle and artifact audit trail persisted');
 select ok(not ((select content from public.preliminary_report_versions where report_id=(select id from public.preliminary_reports where assessment_id='ff000000-0000-4000-8000-000000000001') order by version_number desc limit 1)::text ~* '"(formula|score|diagnosis|treatment|recommendation)"\s*:'),'content schema exposes no prohibited output field');
 
 -- Participant release boundary and final structural checks.

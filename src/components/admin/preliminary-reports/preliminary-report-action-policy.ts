@@ -6,6 +6,7 @@ export interface PreliminaryReportActionPolicy {
   canSubmitForReview: boolean;
   canReturn: boolean;
   canApprove: boolean;
+  canGeneratePdf: boolean;
   canRelease: boolean;
 }
 
@@ -15,11 +16,13 @@ const noActions: PreliminaryReportActionPolicy = {
   canSubmitForReview: false,
   canReturn: false,
   canApprove: false,
+  canGeneratePdf: false,
   canRelease: false,
 };
 
 export function getPreliminaryReportActionPolicy(
   status: PreliminaryReportStatus,
+  hasFinalizedArtifact = false,
 ): PreliminaryReportActionPolicy {
   switch (status) {
     case "draft":
@@ -44,7 +47,8 @@ export function getPreliminaryReportActionPolicy(
     case "approved":
       return {
         ...noActions,
-        canRelease: true,
+        canGeneratePdf: !hasFinalizedArtifact,
+        canRelease: hasFinalizedArtifact,
       };
     case "released":
     case "superseded":
