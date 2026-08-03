@@ -173,6 +173,7 @@ type ParticipantDashboardClientProps = {
   lifecycleStatus: string;
   researchStatus: string;
   enrollmentDate: string | null;
+  reportAvailable: boolean;
 };
 
 export default function ParticipantDashboardClient({
@@ -180,6 +181,7 @@ export default function ParticipantDashboardClient({
   lifecycleStatus,
   researchStatus,
   enrollmentDate,
+  reportAvailable,
 }: ParticipantDashboardClientProps) {
   const router = useRouter();
 
@@ -351,7 +353,13 @@ export default function ParticipantDashboardClient({
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {dashboardCards.map((card) => {
+              {dashboardCards.map((baseCard) => {
+                const card = baseCard.number === "08" ? {
+                  ...baseCard,
+                  status: reportAvailable ? "Report available" : "No report available",
+                  buttonLabel: "View Reports",
+                  route: "/participant/reports",
+                } : baseCard;
                 const isLoading = loadingRoute === card.route;
 
                 return (
