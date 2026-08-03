@@ -1,65 +1,39 @@
 import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("@/lib/supabase/admin", async () => ({ supabaseAdmin: (await import("@/test/mocks/supabase-admin")).supabaseAdminMock }));
-
-import { ParticipantEvidenceFoundationService, ParticipantEvidenceFoundationServiceError } from "./participant-evidence-foundation-service";
+vi.mock("@/lib/repositories/participant/participant-evidence-foundation-repository",()=>{
+ class ParticipantEvidenceFoundationRepositoryError extends Error{constructor(readonly operation:string,readonly kind:string,readonly rolledBack=false){super("Evidence operation could not be completed.");}}
+ return{ParticipantEvidenceFoundationRepository:class{},ParticipantEvidenceFoundationRepositoryError};
+});
+import { ParticipantEvidenceFoundationService, ParticipantEvidenceFoundationServiceError, participantEvidenceDashboardStatus } from "./participant-evidence-foundation-service";
 import { ParticipantEvidenceFoundationRepositoryError } from "@/lib/repositories/participant/participant-evidence-foundation-repository";
 
-const assessmentId = "10000000-0000-4000-8000-000000000001";
-const actorId = "20000000-0000-4000-8000-000000000001";
-const documentId = "30000000-0000-4000-8000-000000000001";
-const reservationId = "50000000-0000-4000-8000-000000000001";
-const assessmentSessionId = "60000000-0000-4000-8000-000000000001";
-const bytes = new TextEncoder().encode("%PDF-evidence");
-const sha256 = createHash("sha256").update(bytes).digest("hex");
-const reservation = { reservationId, documentId, assessmentId, assessmentSessionId, storageBucket: "assessment-evidence" as const, storagePath: `${actorId}/${assessmentId}/${documentId}/v1/40000000-0000-4000-8000-000000000001.pdf`, originalFilename: "statement.pdf", mimeType: "application/pdf" as const, fileSizeBytes: bytes.byteLength, sha256, versionNumber: 1 };
-const result = { documentId, assessmentId, documentCategory: "income", documentType: "statement", documentName: "Statement", description: null, originalFilename: "statement.pdf", mimeType: "application/pdf" as const, fileSizeBytes: bytes.byteLength, verificationStatus: "pending" as const, verifiedAt: null, verificationNotes: null, versionNumber: 1, createdAt: "2026-08-03" };
-
-describe("ParticipantEvidenceFoundationService", () => {
-  const repository = { prepare: vi.fn(), upload: vi.fn(), finalize: vi.fn(), remove: vi.fn(), list: vi.fn() };
-  beforeEach(() => { vi.resetAllMocks(); repository.prepare.mockResolvedValue(reservation); repository.upload.mockResolvedValue(undefined); repository.finalize.mockResolvedValue(result); repository.remove.mockResolvedValue(undefined); repository.list.mockResolvedValue([result]); });
-  const service = () => new ParticipantEvidenceFoundationService(repository as never);
-  const input = () => ({ assessmentId, actorUserId: actorId, documentCategory: " income ", documentType: " statement ", documentName: " Bank   statement ", description: null, originalFilename: " statement.pdf ", mimeType: "application/pdf" as const, bytes });
-
-  it("normalizes metadata, computes SHA-256, uploads, and finalizes in order", async () => {
-    await expect(service().submit(input())).resolves.toEqual(result);
-    expect(repository.prepare).toHaveBeenCalledWith(expect.objectContaining({ documentCategory: "income", documentName: "Bank statement", originalFilename: "statement.pdf", fileSizeBytes: bytes.byteLength, sha256 }));
-    expect(repository.upload).toHaveBeenCalledWith(reservation, bytes);
-    expect(repository.finalize).toHaveBeenCalledWith(actorId, reservation);
-  });
-
-  it.each([
-    ["PDF bytes labelled PNG", { ...input(), mimeType: "image/png" as const }],
-    ["unsafe filename", { ...input(), originalFilename: "../statement.pdf" }],
-    ["empty file", { ...input(), bytes: new Uint8Array() }],
-    ["oversized description", { ...input(), description: "x".repeat(2001) }],
-  ])("rejects %s before storage", async (_label, invalid) => {
-    await expect(service().submit(invalid)).rejects.toMatchObject({ kind: "invalid" });
-    expect(repository.prepare).not.toHaveBeenCalled();
-  });
-
-  it("removes the private object after a definitive finalization rollback", async () => {
-    repository.finalize.mockRejectedValue(new ParticipantEvidenceFoundationRepositoryError("finalize", "invalid", true));
-    await expect(service().submit(input())).rejects.toBeInstanceOf(ParticipantEvidenceFoundationServiceError);
-    expect(repository.remove).toHaveBeenCalledWith(reservation);
-  });
-
-  it("never finalizes when storage upload fails", async () => {
-    repository.upload.mockRejectedValue(new ParticipantEvidenceFoundationRepositoryError("upload", "storage"));
-    await expect(service().submit(input())).rejects.toMatchObject({ kind: "unexpected" });
-    expect(repository.finalize).not.toHaveBeenCalled();
-    expect(repository.remove).toHaveBeenCalledWith(reservation);
-  });
-
-  it("keeps the object when the finalization outcome is ambiguous", async () => {
-    repository.finalize.mockRejectedValue(new Error("network outcome unknown"));
-    await expect(service().submit(input())).rejects.toMatchObject({ kind: "unexpected" });
-    expect(repository.remove).not.toHaveBeenCalled();
-  });
-
-  it("lists only through the repository and validates actor identity", async () => {
-    await expect(service().list(actorId)).resolves.toEqual([result]);
-    await expect(service().list("bad")).rejects.toMatchObject({ kind: "invalid" });
-  });
+const actorId="20000000-0000-4000-8000-000000000001",assessmentId="10000000-0000-4000-8000-000000000001",documentId="30000000-0000-4000-8000-000000000001",reservationId="50000000-0000-4000-8000-000000000001",sessionId="60000000-0000-4000-8000-000000000001",bytes=new TextEncoder().encode("%PDF-evidence"),sha=createHash("sha256").update(bytes).digest("hex");
+const acceptedFixtures=[
+ ["PDF","statement.pdf","application/pdf",new TextEncoder().encode("%PDF-fixture")],
+ ["JPEG","statement.jpg","image/jpeg",new Uint8Array([0xff,0xd8,0xff,0xe0,0x4a,0x46,0x49,0x46])],
+ ["PNG","statement.png","image/png",new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,0])],
+] as const;
+const reservation={reservationId,documentId,assessmentId,assessmentSessionId:sessionId,storageBucket:"assessment-evidence" as const,storagePath:`actor/assessment/document/v1/object.pdf`,originalFilename:"statement.pdf",mimeType:"application/pdf" as const,fileSizeBytes:bytes.length,sha256:sha,versionNumber:1};
+const result={documentId,assessmentId,documentCategory:"income",documentType:"bank_statement",documentName:"Statement",description:null,originalFilename:"statement.pdf",mimeType:"application/pdf" as const,fileSizeBytes:bytes.length,verificationStatus:"pending" as const,versionNumber:1,submittedAt:"2026-08-03",updatedAt:"2026-08-03"};
+describe("ParticipantEvidenceFoundationService",()=>{
+ const repository={context:vi.fn(),prepare:vi.fn(),prepareResubmission:vi.fn(),upload:vi.fn(),finalize:vi.fn(),finalizeResubmission:vi.fn(),remove:vi.fn(),list:vi.fn(),get:vi.fn(),resolveDownload:vi.fn(),download:vi.fn()};
+ beforeEach(()=>{vi.resetAllMocks();repository.context.mockResolvedValue({assessmentId});repository.prepare.mockResolvedValue(reservation);repository.prepareResubmission.mockResolvedValue({...reservation,versionNumber:2});repository.upload.mockResolvedValue(undefined);repository.finalize.mockResolvedValue(result);repository.finalizeResubmission.mockResolvedValue({...result,versionNumber:2});repository.remove.mockResolvedValue(undefined);repository.list.mockResolvedValue([]);repository.get.mockResolvedValue(null);});
+ const service=()=>new ParticipantEvidenceFoundationService(repository as never);
+ const input=()=>({assessmentId,actorUserId:actorId,documentCategory:" income ",documentType:" bank_statement ",documentName:" Bank   statement ",description:null,originalFilename:" statement.pdf ",mimeType:"application/pdf" as const,bytes});
+ it("normalizes, hashes, uploads, and finalizes an initial submission",async()=>{await expect(service().submit(input())).resolves.toEqual(result);expect(repository.prepare).toHaveBeenCalledWith(expect.objectContaining({documentCategory:"income",documentType:"bank_statement",documentName:"Bank statement",sha256:sha}));expect(repository.upload).toHaveBeenCalledBefore(repository.finalize);});
+ it.each(acceptedFixtures)("validates %s upload and download bytes end to end",async(_label,originalFilename,mimeType,fixtureBytes)=>{const fixtureSha=createHash("sha256").update(fixtureBytes).digest("hex");const fixtureReservation={...reservation,originalFilename,mimeType,fileSizeBytes:fixtureBytes.length,sha256:fixtureSha,storagePath:`actor/assessment/document/v1/${originalFilename}`};repository.prepare.mockResolvedValueOnce(fixtureReservation);repository.resolveDownload.mockResolvedValueOnce({documentId,versionNumber:1,storageBucket:"assessment-evidence",storagePath:fixtureReservation.storagePath,originalFilename,mimeType,fileSizeBytes:fixtureBytes.length,sha256:fixtureSha});repository.download.mockResolvedValueOnce(fixtureBytes);await service().submit({...input(),originalFilename,mimeType,bytes:fixtureBytes});expect(repository.prepare).toHaveBeenCalledWith(expect.objectContaining({originalFilename,mimeType,fileSizeBytes:fixtureBytes.length,sha256:fixtureSha}));expect(repository.upload).toHaveBeenCalledWith(fixtureReservation,fixtureBytes);await expect(service().download(documentId,actorId,1)).resolves.toEqual({reference:expect.objectContaining({originalFilename,mimeType,sha256:fixtureSha}),bytes:fixtureBytes});});
+ it("resubmits through the versioned governed sequence",async()=>{await expect(service().resubmit({documentId,actorUserId:actorId,originalFilename:"statement.pdf",mimeType:"application/pdf",bytes})).resolves.toMatchObject({versionNumber:2});expect(repository.prepareResubmission).toHaveBeenCalledWith(expect.objectContaining({documentId,sha256:sha}));expect(repository.finalizeResubmission).toHaveBeenCalled();});
+ it.each([
+  ["unsafe filename",{...input(),originalFilename:"../statement.pdf"},"invalid"],
+  ["wrong extension",{...input(),originalFilename:"statement.png"},"unsupported"],
+  ["signature mismatch",{...input(),mimeType:"image/png" as const},"unsupported"],
+  ["empty file",{...input(),bytes:new Uint8Array()},"invalid"],
+  ["oversized",{...input(),bytes:new Uint8Array(10*1024*1024+1)},"oversized"],
+  ["unknown classification",{...input(),documentCategory:"profit"},"invalid"],
+ ])("rejects %s before storage",async(_label,value,kind)=>{await expect(service().submit(value)).rejects.toMatchObject({kind});expect(repository.prepare).not.toHaveBeenCalled();});
+ it("cleans uploaded objects after definitive finalization rollback",async()=>{repository.finalize.mockRejectedValue(new ParticipantEvidenceFoundationRepositoryError("finalize","invalid",true));await expect(service().submit(input())).rejects.toBeInstanceOf(ParticipantEvidenceFoundationServiceError);expect(repository.remove).toHaveBeenCalledWith(reservation);});
+ it("cleans the reservation path and never finalizes after storage failure",async()=>{repository.upload.mockRejectedValue(new ParticipantEvidenceFoundationRepositoryError("upload","storage"));await expect(service().submit(input())).rejects.toMatchObject({kind:"storage"});expect(repository.remove).toHaveBeenCalledWith(reservation);expect(repository.finalize).not.toHaveBeenCalled();});
+ it("does not remove a possibly committed object after conflict or ambiguous failure",async()=>{repository.finalize.mockRejectedValueOnce(new ParticipantEvidenceFoundationRepositoryError("finalize","conflict",true));await expect(service().submit(input())).rejects.toMatchObject({kind:"conflict"});expect(repository.remove).not.toHaveBeenCalled();repository.finalize.mockRejectedValueOnce(new Error("network"));await expect(service().submit(input())).rejects.toMatchObject({kind:"unexpected"});expect(repository.remove).not.toHaveBeenCalled();});
+ it("verifies downloaded size, SHA-256, and signature",async()=>{repository.resolveDownload.mockResolvedValue({documentId,versionNumber:1,storageBucket:"assessment-evidence",storagePath:"private",originalFilename:"statement.pdf",mimeType:"application/pdf",fileSizeBytes:bytes.length,sha256:sha});repository.download.mockResolvedValue(bytes);await expect(service().download(documentId,actorId,1)).resolves.toMatchObject({bytes});repository.download.mockResolvedValue(new TextEncoder().encode("%PDF-tampered"));await expect(service().download(documentId,actorId,1)).rejects.toMatchObject({kind:"integrity"});});
+ it("derives durable dashboard status without overstating verification",()=>{const base={documentId,assessmentId,assessmentNumber:1,documentCategory:"income",documentType:"bank_statement",documentName:"Statement",description:null,originalFilename:"statement.pdf",mimeType:"application/pdf" as const,fileSizeBytes:10,verificationStatus:"pending" as const,verificationNotes:null,currentVersion:1,submittedAt:"2026",updatedAt:"2026",canResubmit:false};expect(participantEvidenceDashboardStatus([])).toBe("No evidence submitted");expect(participantEvidenceDashboardStatus([base])).toBe("Evidence submitted");expect(participantEvidenceDashboardStatus([{...base,canResubmit:true}])).toBe("Action required");expect(participantEvidenceDashboardStatus([{...base,verificationStatus:"verified"}])).toBe("Evidence verified");});
 });

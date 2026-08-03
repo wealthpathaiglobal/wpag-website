@@ -24,6 +24,14 @@ export interface EvidenceSubmissionInput {
   bytes: Uint8Array;
 }
 
+export interface EvidenceResubmissionInput {
+  documentId: string;
+  actorUserId: string;
+  originalFilename: string;
+  mimeType: EvidenceMimeType;
+  bytes: Uint8Array;
+}
+
 export interface EvidenceUploadReservation {
   reservationId: string;
   documentId: string;
@@ -41,6 +49,7 @@ export interface EvidenceUploadReservation {
 export interface ParticipantEvidenceSummary {
   documentId: string;
   assessmentId: string;
+  assessmentNumber: number;
   documentCategory: string;
   documentType: string;
   documentName: string;
@@ -49,10 +58,66 @@ export interface ParticipantEvidenceSummary {
   mimeType: EvidenceMimeType;
   fileSizeBytes: number;
   verificationStatus: EvidenceVerificationStatus;
-  verifiedAt: string | null;
   verificationNotes: string | null;
+  currentVersion: number;
+  submittedAt: string;
+  updatedAt: string;
+  canResubmit: boolean;
+}
+
+export interface ParticipantEvidenceContext {
+  assessmentId: string;
+  assessmentNumber: number;
+  assessmentSessionId: string;
+  sessionStatus: "draft" | "in_progress" | "submitted";
+}
+
+export interface ParticipantEvidenceVersion {
   versionNumber: number;
-  createdAt: string;
+  originalFilename: string;
+  mimeType: EvidenceMimeType;
+  fileSizeBytes: number;
+  submittedAt: string;
+}
+
+export interface ParticipantEvidenceEvent {
+  verificationEvent: string;
+  verificationStatus: EvidenceVerificationStatus;
+  participantNotes: string | null;
+  eventAt: string;
+}
+
+export interface ParticipantEvidenceDetail extends ParticipantEvidenceSummary {
+  canDownload: boolean;
+  versions: ParticipantEvidenceVersion[];
+  verificationHistory: ParticipantEvidenceEvent[];
+}
+
+export interface ParticipantEvidenceDownload {
+  documentId: string;
+  versionNumber: number;
+  storageBucket: "assessment-evidence";
+  storagePath: string;
+  originalFilename: string;
+  mimeType: EvidenceMimeType;
+  fileSizeBytes: number;
+  sha256: string;
+}
+
+export interface EvidenceMutationResult {
+  documentId: string;
+  assessmentId: string;
+  documentCategory: string;
+  documentType: string;
+  documentName: string;
+  description: string | null;
+  originalFilename: string;
+  mimeType: EvidenceMimeType;
+  fileSizeBytes: number;
+  verificationStatus: EvidenceVerificationStatus;
+  versionNumber: number;
+  submittedAt: string;
+  updatedAt: string;
 }
 
 export interface AdminEvidenceSummary {

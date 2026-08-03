@@ -36,8 +36,8 @@ const dashboardCards: DashboardCard[] = [
     title: "Evidence submissions",
     description:
       "Review evidence requirements and submit supporting financial records when requested.",
-    status: "No active requests",
-    buttonLabel: "View Evidence",
+    status: "No evidence submitted",
+    buttonLabel: "Open Evidence",
     route: "/participant/evidence",
   },
   {
@@ -174,6 +174,7 @@ type ParticipantDashboardClientProps = {
   researchStatus: string;
   enrollmentDate: string | null;
   reportAvailable: boolean;
+  evidenceStatus: string;
 };
 
 export default function ParticipantDashboardClient({
@@ -182,6 +183,7 @@ export default function ParticipantDashboardClient({
   researchStatus,
   enrollmentDate,
   reportAvailable,
+  evidenceStatus,
 }: ParticipantDashboardClientProps) {
   const router = useRouter();
 
@@ -354,7 +356,11 @@ export default function ParticipantDashboardClient({
 
             <div className="grid gap-4 sm:grid-cols-2">
               {dashboardCards.map((baseCard) => {
-                const card = baseCard.number === "08" ? {
+                const card = baseCard.number === "03" ? {
+                  ...baseCard,
+                  status: evidenceStatus,
+                  buttonLabel: "Open Evidence",
+                } : baseCard.number === "08" ? {
                   ...baseCard,
                   status: reportAvailable ? "Report available" : "No report available",
                   buttonLabel: "View Reports",
@@ -492,7 +498,7 @@ export default function ParticipantDashboardClient({
 
               <StatusRow
                 label="Evidence storage"
-                value="Not connected"
+                value="Connected"
               />
 
               <StatusRow

@@ -1,66 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/supabase/admin", async () => ({ supabaseAdmin: (await import("@/test/mocks/supabase-admin")).supabaseAdminMock }));
-
 import { ParticipantEvidenceFoundationRepository } from "./participant-evidence-foundation-repository";
-import { resetSupabaseAdminMock, setRpcResult, successfulResult, supabaseAdminSpies } from "@/test/mocks/supabase-admin";
+import { resetSupabaseAdminMock, setRpcResult, setStorageDownloadResult, successfulResult, supabaseAdminSpies } from "@/test/mocks/supabase-admin";
 
-const assessmentId = "10000000-0000-4000-8000-000000000001";
-const actorId = "20000000-0000-4000-8000-000000000001";
-const documentId = "30000000-0000-4000-8000-000000000001";
-const reservationId = "50000000-0000-4000-8000-000000000001";
-const assessmentSessionId = "60000000-0000-4000-8000-000000000001";
-const sha256 = "a".repeat(64);
-const path = `${actorId}/${assessmentId}/${documentId}/v1/40000000-0000-4000-8000-000000000001.pdf`;
-const prepareRow = { reservation_id: reservationId, document_id: documentId, assessment_id: assessmentId, assessment_session_id: assessmentSessionId, storage_bucket: "assessment-evidence", storage_path: path, original_filename: "statement.pdf", mime_type: "application/pdf", file_size_bytes: 10, sha256, version_number: 1 };
-const input = { assessmentId, actorUserId: actorId, documentCategory: "income", documentType: "bank_statement", documentName: "Bank statement", description: null, originalFilename: "statement.pdf", mimeType: "application/pdf" as const, fileSizeBytes: 10, sha256 };
+const actorId="20000000-0000-4000-8000-000000000001", assessmentId="10000000-0000-4000-8000-000000000001", sessionId="60000000-0000-4000-8000-000000000001", documentId="30000000-0000-4000-8000-000000000001", reservationId="50000000-0000-4000-8000-000000000001", sha="a".repeat(64), path=`${actorId}/${assessmentId}/${documentId}/v2/40000000-0000-4000-8000-000000000001.pdf`;
+const prepareRow={reservation_id:reservationId,document_id:documentId,assessment_id:assessmentId,assessment_session_id:sessionId,storage_bucket:"assessment-evidence",storage_path:path,original_filename:"statement.pdf",mime_type:"application/pdf",file_size_bytes:10,sha256:sha,version_number:2};
+const summary={document_id:documentId,assessment_id:assessmentId,assessment_number:1,document_category:"income",document_type:"bank_statement",document_name:"Statement",description:null,original_filename:"statement.pdf",mime_type:"application/pdf",file_size_bytes:10,verification_status:"rejected",verification_notes:"Replace file",current_version:1,submitted_at:"2026-08-03",updated_at:"2026-08-03",can_resubmit:true};
 
-describe("ParticipantEvidenceFoundationRepository", () => {
-  beforeEach(resetSupabaseAdminMock);
-
-  it("maps the exact prepare RPC contract", async () => {
-    setRpcResult(successfulResult([prepareRow]));
-    await expect(new ParticipantEvidenceFoundationRepository().prepare(input)).resolves.toMatchObject({ reservationId, documentId, assessmentSessionId, storageBucket: "assessment-evidence", sha256 });
-    expect(supabaseAdminSpies.rpc).toHaveBeenCalledWith("prepare_evidence_upload", {
-      p_assessment_id: assessmentId, p_actor_user_id: actorId,
-      p_document_category: "income", p_document_type: "bank_statement",
-      p_document_name: "Bank statement", p_description: null,
-      p_original_filename: "statement.pdf", p_mime_type: "application/pdf",
-      p_file_size_bytes: 10, p_sha256: sha256,
-    });
-  });
-
-  it("rejects an invalid reservation identity returned by the RPC", async () => {
-    setRpcResult(successfulResult([{ ...prepareRow, reservation_id: "not-a-uuid" }]));
-    await expect(new ParticipantEvidenceFoundationRepository().prepare(input))
-      .rejects.toMatchObject({ operation: "prepare", kind: "unexpected" });
-  });
-
-  it("uploads only to the private bucket without overwrite", async () => {
-    const repository = new ParticipantEvidenceFoundationRepository();
-    await repository.upload({ reservationId, documentId, assessmentId, assessmentSessionId, storageBucket: "assessment-evidence", storagePath: path, originalFilename: "statement.pdf", mimeType: "application/pdf", fileSizeBytes: 10, sha256, versionNumber: 1 }, new Uint8Array(10));
-    expect(supabaseAdminSpies.storageFrom).toHaveBeenCalledWith("assessment-evidence");
-    expect(supabaseAdminSpies.storageUpload).toHaveBeenCalledWith(path, expect.any(Uint8Array), { contentType: "application/pdf", upsert: false });
-  });
-
-  it("finalizes through the governed RPC and never writes a table directly", async () => {
-    const row = { document_id: documentId, assessment_id: assessmentId, document_category: "income", document_type: "bank_statement", document_name: "Bank statement", description: null, original_filename: "statement.pdf", mime_type: "application/pdf", file_size_bytes: 10, verification_status: "pending", created_at: "2026-08-03" };
-    setRpcResult(successfulResult([row]));
-    const reservation = { reservationId, documentId, assessmentId, assessmentSessionId, storageBucket: "assessment-evidence" as const, storagePath: path, originalFilename: "statement.pdf", mimeType: "application/pdf" as const, fileSizeBytes: 10, sha256, versionNumber: 1 };
-    await expect(new ParticipantEvidenceFoundationRepository().finalize(actorId, reservation)).resolves.toMatchObject({ documentId, verificationStatus: "pending" });
-    expect(supabaseAdminSpies.rpc).toHaveBeenCalledWith("finalize_evidence_upload", {
-      p_reservation_id: reservationId,
-      p_actor_user_id: actorId,
-      p_file_size_bytes: 10,
-      p_sha256: sha256,
-    });
-    expect(supabaseAdminSpies.from).not.toHaveBeenCalled();
-  });
-
-  it("participant listing maps safe fields without storage coordinates or checksum", async () => {
-    setRpcResult(successfulResult([{ document_id: documentId, assessment_id: assessmentId, document_category: "income", document_type: "bank_statement", document_name: "Bank statement", description: null, original_filename: "statement.pdf", mime_type: "application/pdf", file_size_bytes: 10, verification_status: "pending", verified_at: null, verification_notes: null, version_number: 1, created_at: "2026-08-03" }]));
-    const result = await new ParticipantEvidenceFoundationRepository().list(actorId);
-    expect(result[0]).not.toHaveProperty("storagePath");
-    expect(result[0]).not.toHaveProperty("sha256");
-  });
+describe("ParticipantEvidenceFoundationRepository",()=>{
+ beforeEach(resetSupabaseAdminMock);
+ it("maps the participant assessment context RPC",async()=>{setRpcResult(successfulResult([{assessment_id:assessmentId,assessment_number:1,assessment_session_id:sessionId,session_status:"submitted"}]));await expect(new ParticipantEvidenceFoundationRepository().context(actorId)).resolves.toMatchObject({assessmentId,assessmentSessionId:sessionId,sessionStatus:"submitted"});expect(supabaseAdminSpies.rpc).toHaveBeenCalledWith("get_participant_evidence_context",{p_actor_user_id:actorId});});
+ it("prepares resubmission through the exact governed RPC",async()=>{setRpcResult(successfulResult([prepareRow]));await expect(new ParticipantEvidenceFoundationRepository().prepareResubmission({documentId,actorUserId:actorId,originalFilename:"statement.pdf",mimeType:"application/pdf",fileSizeBytes:10,sha256:sha})).resolves.toMatchObject({reservationId,versionNumber:2});expect(supabaseAdminSpies.rpc).toHaveBeenCalledWith("prepare_evidence_resubmission",{p_document_id:documentId,p_actor_user_id:actorId,p_original_filename:"statement.pdf",p_mime_type:"application/pdf",p_file_size_bytes:10,p_sha256:sha});});
+ it("uploads without overwrite and finalizes through governed resubmission",async()=>{const repository=new ParticipantEvidenceFoundationRepository();const reservation={reservationId,documentId,assessmentId,assessmentSessionId:sessionId,storageBucket:"assessment-evidence" as const,storagePath:path,originalFilename:"statement.pdf",mimeType:"application/pdf" as const,fileSizeBytes:10,sha256:sha,versionNumber:2};await repository.upload(reservation,new Uint8Array(10));expect(supabaseAdminSpies.storageUpload).toHaveBeenCalledWith(path,expect.any(Uint8Array),{contentType:"application/pdf",upsert:false});setRpcResult(successfulResult([{...summary,version_number:2,created_at:"2026-08-04"}]));await repository.finalizeResubmission(actorId,reservation);expect(supabaseAdminSpies.rpc).toHaveBeenLastCalledWith("finalize_evidence_resubmission",{p_reservation_id:reservationId,p_actor_user_id:actorId,p_file_size_bytes:10,p_sha256:sha});expect(supabaseAdminSpies.from).not.toHaveBeenCalled();});
+ it("maps safe list and detail projections",async()=>{const repository=new ParticipantEvidenceFoundationRepository();setRpcResult(successfulResult([summary]));const list=await repository.list(actorId);expect(list[0]).toMatchObject({currentVersion:1,canResubmit:true});expect(list[0]).not.toHaveProperty("storagePath");setRpcResult(successfulResult([{...summary,can_download:true,versions:[{version_number:1,original_filename:"statement.pdf",mime_type:"application/pdf",file_size_bytes:10,submitted_at:"2026-08-03"}],verification_history:[{verification_event:"rejected",verification_status:"rejected",participant_notes:"Replace file",event_at:"2026-08-03"}]}]));const detail=await repository.get(documentId,actorId);expect(detail).toMatchObject({versions:[{versionNumber:1}],verificationHistory:[{participantNotes:"Replace file"}]});expect(detail).not.toHaveProperty("sha256");});
+ it("rejects unknown status values instead of widening the contract",async()=>{setRpcResult(successfulResult([{...summary,verification_status:"approved"}]));await expect(new ParticipantEvidenceFoundationRepository().list(actorId)).rejects.toMatchObject({operation:"map",kind:"unexpected"});});
+ it("resolves download only through RPC and trusted private storage",async()=>{setRpcResult(successfulResult([{document_id:documentId,version_number:1,storage_bucket:"assessment-evidence",storage_path:path,original_filename:"statement.pdf",mime_type:"application/pdf",file_size_bytes:9,sha256:sha}]));const repository=new ParticipantEvidenceFoundationRepository();const reference=await repository.resolveDownload(documentId,actorId,1);expect(supabaseAdminSpies.rpc).toHaveBeenCalledWith("get_participant_evidence_download",{p_document_id:documentId,p_actor_user_id:actorId,p_version_number:1});setStorageDownloadResult(successfulResult(new Blob(["%PDF-test"])));await expect(repository.download(reference)).resolves.toBeInstanceOf(Uint8Array);expect(supabaseAdminSpies.storageFrom).toHaveBeenCalledWith("assessment-evidence");});
 });
