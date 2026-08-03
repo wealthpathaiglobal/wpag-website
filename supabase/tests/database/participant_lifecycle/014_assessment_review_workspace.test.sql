@@ -180,7 +180,7 @@ values
 insert into public.assessment_documents(
     id, assessment_id, document_category, document_type, document_name,
     original_filename, storage_bucket, storage_path, mime_type,
-    file_size_bytes, verification_status, created_at
+    file_size_bytes, checksum, verification_status, created_at
 )
 values (
     'f8000000-0000-4000-8000-000000000001',
@@ -193,6 +193,7 @@ values (
     'participants/private/income.pdf',
     'application/pdf',
     1024,
+    repeat('a', 64),
     'pending',
     '2026-01-03'
 );

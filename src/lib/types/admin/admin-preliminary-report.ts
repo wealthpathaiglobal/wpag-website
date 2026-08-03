@@ -63,7 +63,12 @@ export interface PreliminaryReportDocumentSummary {
   original_filename: string;
   mime_type: string | null;
   file_size_bytes: number | null;
-  verification_status: "pending" | "verified" | "rejected";
+  verification_status:
+    | "pending"
+    | "in_progress"
+    | "verified"
+    | "rejected"
+    | "expired";
   verified_at: string | null;
   verification_notes: string | null;
   created_at: string;

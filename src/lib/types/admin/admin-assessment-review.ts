@@ -76,7 +76,12 @@ export interface AssessmentReviewDocument {
   original_filename: string;
   mime_type: string | null;
   file_size_bytes: number | null;
-  verification_status: "pending" | "verified" | "rejected";
+  verification_status:
+    | "pending"
+    | "in_progress"
+    | "verified"
+    | "rejected"
+    | "expired";
   verified_at: string | null;
   verified_by: string | null;
   verification_notes: string | null;
