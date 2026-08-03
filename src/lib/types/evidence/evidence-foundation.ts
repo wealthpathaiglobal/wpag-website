@@ -25,8 +25,10 @@ export interface EvidenceSubmissionInput {
 }
 
 export interface EvidenceUploadReservation {
+  reservationId: string;
   documentId: string;
   assessmentId: string;
+  assessmentSessionId: string;
   storageBucket: "assessment-evidence";
   storagePath: string;
   originalFilename: string;

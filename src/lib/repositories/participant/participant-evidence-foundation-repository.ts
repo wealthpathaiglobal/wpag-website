@@ -15,7 +15,8 @@ type PrepareInput = {
 };
 
 type PrepareRow = {
-  document_id: string; assessment_id: string; storage_bucket: string;
+  reservation_id: string; document_id: string; assessment_id: string;
+  assessment_session_id: string; storage_bucket: string;
   storage_path: string; original_filename: string; mime_type: string;
   file_size_bytes: number; sha256: string; version_number: number;
 };
@@ -34,6 +35,7 @@ const statuses = new Set<EvidenceVerificationStatus>([
 const mimeTypes = new Set<EvidenceMimeType>([
   "application/pdf", "image/jpeg", "image/png",
 ]);
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class ParticipantEvidenceFoundationRepositoryError extends Error {
   constructor(
@@ -95,11 +97,14 @@ export class ParticipantEvidenceFoundationRepository {
     });
     if (error) rpcFailure("prepare", error);
     const row = first<PrepareRow>(data);
-    if (!row || row.storage_bucket !== "assessment-evidence" || row.version_number !== 1) {
+    if (!row || !uuid.test(row.reservation_id) || !uuid.test(row.document_id)
+      || !uuid.test(row.assessment_id) || !uuid.test(row.assessment_session_id)
+      || row.storage_bucket !== "assessment-evidence" || row.version_number !== 1) {
       throw new ParticipantEvidenceFoundationRepositoryError("prepare", "unexpected");
     }
     return {
-      documentId: row.document_id, assessmentId: row.assessment_id,
+      reservationId: row.reservation_id, documentId: row.document_id,
+      assessmentId: row.assessment_id, assessmentSessionId: row.assessment_session_id,
       storageBucket: "assessment-evidence", storagePath: row.storage_path,
       originalFilename: row.original_filename, mimeType: mapMime(row.mime_type),
       fileSizeBytes: row.file_size_bytes, sha256: row.sha256,
@@ -124,19 +129,10 @@ export class ParticipantEvidenceFoundationRepository {
     if (error) throw new ParticipantEvidenceFoundationRepositoryError("remove", "storage");
   }
 
-  async finalize(input: PrepareInput, reservation: EvidenceUploadReservation): Promise<ParticipantEvidenceSummary> {
+  async finalize(actorUserId: string, reservation: EvidenceUploadReservation): Promise<ParticipantEvidenceSummary> {
     const { data, error } = await supabaseAdmin.rpc("finalize_evidence_upload", {
-      p_document_id: reservation.documentId,
-      p_assessment_id: input.assessmentId,
-      p_actor_user_id: input.actorUserId,
-      p_document_category: input.documentCategory,
-      p_document_type: input.documentType,
-      p_document_name: input.documentName,
-      p_description: input.description,
-      p_original_filename: reservation.originalFilename,
-      p_storage_bucket: reservation.storageBucket,
-      p_storage_path: reservation.storagePath,
-      p_mime_type: reservation.mimeType,
+      p_reservation_id: reservation.reservationId,
+      p_actor_user_id: actorUserId,
       p_file_size_bytes: reservation.fileSizeBytes,
       p_sha256: reservation.sha256,
     });

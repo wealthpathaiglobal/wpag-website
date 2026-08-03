@@ -70,7 +70,7 @@ export class ParticipantEvidenceFoundationService {
       safeError(error);
     }
     try {
-      return await this.repository.finalize(prepared, reservation);
+      return await this.repository.finalize(prepared.actorUserId, reservation);
     } catch (error) {
       if (error instanceof ParticipantEvidenceFoundationRepositoryError && error.rolledBack) {
         await this.repository.remove(reservation).catch(() => undefined);

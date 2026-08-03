@@ -9,9 +9,11 @@ import { ParticipantEvidenceFoundationRepositoryError } from "@/lib/repositories
 const assessmentId = "10000000-0000-4000-8000-000000000001";
 const actorId = "20000000-0000-4000-8000-000000000001";
 const documentId = "30000000-0000-4000-8000-000000000001";
+const reservationId = "50000000-0000-4000-8000-000000000001";
+const assessmentSessionId = "60000000-0000-4000-8000-000000000001";
 const bytes = new TextEncoder().encode("%PDF-evidence");
 const sha256 = createHash("sha256").update(bytes).digest("hex");
-const reservation = { documentId, assessmentId, storageBucket: "assessment-evidence" as const, storagePath: `${actorId}/${assessmentId}/${documentId}/v1/40000000-0000-4000-8000-000000000001.pdf`, originalFilename: "statement.pdf", mimeType: "application/pdf" as const, fileSizeBytes: bytes.byteLength, sha256, versionNumber: 1 };
+const reservation = { reservationId, documentId, assessmentId, assessmentSessionId, storageBucket: "assessment-evidence" as const, storagePath: `${actorId}/${assessmentId}/${documentId}/v1/40000000-0000-4000-8000-000000000001.pdf`, originalFilename: "statement.pdf", mimeType: "application/pdf" as const, fileSizeBytes: bytes.byteLength, sha256, versionNumber: 1 };
 const result = { documentId, assessmentId, documentCategory: "income", documentType: "statement", documentName: "Statement", description: null, originalFilename: "statement.pdf", mimeType: "application/pdf" as const, fileSizeBytes: bytes.byteLength, verificationStatus: "pending" as const, verifiedAt: null, verificationNotes: null, versionNumber: 1, createdAt: "2026-08-03" };
 
 describe("ParticipantEvidenceFoundationService", () => {
@@ -24,7 +26,7 @@ describe("ParticipantEvidenceFoundationService", () => {
     await expect(service().submit(input())).resolves.toEqual(result);
     expect(repository.prepare).toHaveBeenCalledWith(expect.objectContaining({ documentCategory: "income", documentName: "Bank statement", originalFilename: "statement.pdf", fileSizeBytes: bytes.byteLength, sha256 }));
     expect(repository.upload).toHaveBeenCalledWith(reservation, bytes);
-    expect(repository.finalize).toHaveBeenCalledWith(expect.objectContaining({ sha256 }), reservation);
+    expect(repository.finalize).toHaveBeenCalledWith(actorId, reservation);
   });
 
   it.each([
@@ -40,6 +42,13 @@ describe("ParticipantEvidenceFoundationService", () => {
   it("removes the private object after a definitive finalization rollback", async () => {
     repository.finalize.mockRejectedValue(new ParticipantEvidenceFoundationRepositoryError("finalize", "invalid", true));
     await expect(service().submit(input())).rejects.toBeInstanceOf(ParticipantEvidenceFoundationServiceError);
+    expect(repository.remove).toHaveBeenCalledWith(reservation);
+  });
+
+  it("never finalizes when storage upload fails", async () => {
+    repository.upload.mockRejectedValue(new ParticipantEvidenceFoundationRepositoryError("upload", "storage"));
+    await expect(service().submit(input())).rejects.toMatchObject({ kind: "unexpected" });
+    expect(repository.finalize).not.toHaveBeenCalled();
     expect(repository.remove).toHaveBeenCalledWith(reservation);
   });
 
