@@ -34,6 +34,8 @@ const margin = 54;
 const contentWidth = pageWidth - margin * 2;
 const bodySize = 10;
 const bodyLine = 15;
+const contentBottom = 58;
+const contentTop = pageHeight - margin - 35;
 
 function validDate(value: string): Date {
   const date = new Date(value);
@@ -94,12 +96,21 @@ export async function renderPreliminaryReportPdf(input: PreliminaryReportPdfInpu
     page.drawLine({ start: { x: margin, y: y - 10 }, end: { x: pageWidth - margin, y: y - 10 }, thickness: 0.7, color: rgb(0.72, 0.76, 0.8) });
     y -= 35;
   }
-  function ensure(height: number) { if (y - height < 58) newPage(); }
+  function ensure(height: number) { if (y - height < contentBottom) newPage(); }
+  function ensureLineSpace(lineHeight: number) {
+    if (y - lineHeight < contentBottom) newPage();
+  }
   function paragraph(text: string, options: { size?: number; font?: PDFFont; color?: ReturnType<typeof rgb>; indent?: number; gap?: number } = {}) {
     const size = options.size ?? bodySize; const chosen = options.font ?? regular; const indent = options.indent ?? 0;
     const wrapped = lines(text, chosen, size, contentWidth - indent);
-    ensure(Math.max(bodyLine, wrapped.length * (size + 5)));
-    for (const line of wrapped) { page.drawText(line, { x: margin + indent, y, size, font: chosen, color: options.color ?? rgb(0.13, 0.15, 0.18) }); y -= size + 5; }
+    const lineHeight = size + 5;
+    const paragraphHeight = Math.max(bodyLine, wrapped.length * lineHeight);
+    if (paragraphHeight <= contentTop - contentBottom) ensure(paragraphHeight);
+    for (const line of wrapped) {
+      ensureLineSpace(lineHeight);
+      page.drawText(line, { x: margin + indent, y, size, font: chosen, color: options.color ?? rgb(0.13, 0.15, 0.18) });
+      y -= lineHeight;
+    }
     y -= options.gap ?? 5;
   }
   function heading(text: string) { ensure(34); y -= 4; paragraph(text, { size: 13, font: bold, color: rgb(0.07, 0.24, 0.36), gap: 7 }); }
