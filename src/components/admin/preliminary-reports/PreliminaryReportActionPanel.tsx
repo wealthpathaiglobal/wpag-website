@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import AdminActionButton from "@/components/admin/AdminActionButton";
 import ConfirmActionDialog from "@/components/admin/ConfirmActionDialog";
+import { getPreliminaryReportActionPolicy } from "@/components/admin/preliminary-reports/preliminary-report-action-policy";
 import type { PreliminaryReportTransitionCommand } from "@/lib/types/admin/admin-preliminary-report";
 import {
   preliminaryReportListKeys,
@@ -47,7 +48,7 @@ export default function PreliminaryReportActionPanel({
   const [dialogValue, setDialogValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const editable = status === "draft" || status === "returned";
+  const actionPolicy = getPreliminaryReportActionPolicy(status);
   const dirty = useMemo(() => JSON.stringify(content) !== JSON.stringify(initialContent), [content, initialContent]);
 
   function updateText(key: (typeof preliminaryReportTextKeys)[number], value: string) {
@@ -103,7 +104,7 @@ export default function PreliminaryReportActionPanel({
             {labels[key]}
             <textarea
               value={content[key]} onChange={(event) => updateText(key, event.target.value)}
-              disabled={!editable || loading} rows={key === "reportTitle" ? 2 : 5}
+              disabled={!actionPolicy.canEdit || loading} rows={key === "reportTitle" ? 2 : 5}
               maxLength={key === "reportTitle" ? 200 : 5000}
               className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/25 disabled:cursor-not-allowed disabled:opacity-60"
             />
@@ -114,14 +115,14 @@ export default function PreliminaryReportActionPanel({
             {labels[key]} <span className="font-normal text-white/35">(one item per line)</span>
             <textarea
               value={content[key].join("\n")} onChange={(event) => updateList(key, event.target.value)}
-              disabled={!editable || loading} rows={5} maxLength={10000}
+              disabled={!actionPolicy.canEdit || loading} rows={5} maxLength={10000}
               className="mt-2 w-full resize-y rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/25 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </label>
         ))}
       </div>
 
-      {editable ? (
+      {actionPolicy.canSaveDraft ? (
         <div className="mt-6 border-t border-white/10 pt-6">
           <label className="block text-sm font-medium text-white/75">
             Change summary for version {currentVersion + 1}
@@ -129,14 +130,14 @@ export default function PreliminaryReportActionPanel({
           </label>
           <div className="mt-5 flex flex-wrap gap-3">
             <AdminActionButton label={status === "returned" ? "Save Revised Draft" : "Save Draft"} loading={loading} disabled={!dirty || !changeSummary.trim()} onClick={() => void submit("save_draft")} />
-            <AdminActionButton label="Submit for Internal Review" variant="success" disabled={loading || dirty} onClick={() => setConfirmedAction("submit_for_review")} />
+            {actionPolicy.canSubmitForReview ? <AdminActionButton label="Submit for Internal Review" variant="success" disabled={loading || dirty} onClick={() => setConfirmedAction("submit_for_review")} /> : null}
           </div>
           {dirty ? <p className="mt-3 text-xs text-amber-300/80">Save the current edits before submitting for review.</p> : null}
         </div>
       ) : null}
 
-      {status === "under_review" ? <div className="mt-6 flex flex-wrap gap-3 border-t border-white/10 pt-6"><AdminActionButton label="Return to Draft" variant="warning" disabled={loading} onClick={() => { setDialogValue(""); setConfirmedAction("return_to_draft"); }} /><AdminActionButton label="Approve Report" variant="success" disabled={loading} onClick={() => setConfirmedAction("approve")} /></div> : null}
-      {status === "approved" ? <div className="mt-6 border-t border-white/10 pt-6"><AdminActionButton label="Release to Participant" variant="success" disabled={loading} onClick={() => setConfirmedAction("release")} /></div> : null}
+      {actionPolicy.canReturn || actionPolicy.canApprove ? <div className="mt-6 flex flex-wrap gap-3 border-t border-white/10 pt-6">{actionPolicy.canReturn ? <AdminActionButton label="Return to Draft" variant="warning" disabled={loading} onClick={() => { setDialogValue(""); setConfirmedAction("return_to_draft"); }} /> : null}{actionPolicy.canApprove ? <AdminActionButton label="Approve Report" variant="success" disabled={loading} onClick={() => setConfirmedAction("approve")} /> : null}</div> : null}
+      {actionPolicy.canRelease ? <div className="mt-6 border-t border-white/10 pt-6"><AdminActionButton label="Release to Participant" variant="success" disabled={loading} onClick={() => setConfirmedAction("release")} /></div> : null}
       {status === "released" ? <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/60">Released reports and their content are read-only.</div> : null}
 
       <ConfirmActionDialog
