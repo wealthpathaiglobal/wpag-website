@@ -7,6 +7,7 @@ import AdminActionButton from "@/components/admin/AdminActionButton";
 import ConfirmActionDialog from "@/components/admin/ConfirmActionDialog";
 import { getPreliminaryReportActionPolicy } from "@/components/admin/preliminary-reports/preliminary-report-action-policy";
 import type { PreliminaryReportTransitionCommand } from "@/lib/types/admin/admin-preliminary-report";
+import type { PreliminaryReportArtifactSummary } from "@/lib/types/admin/preliminary-report-artifact";
 import {
   preliminaryReportListKeys,
   preliminaryReportTextKeys,
@@ -15,7 +16,8 @@ import {
 } from "@/lib/types/preliminary-report";
 
 type Feedback = { type: "success" | "error"; message: string };
-type ConfirmedAction = "submit_for_review" | "return_to_draft" | "approve" | "release";
+type ConfirmedAction = "generate_pdf" | "submit_for_review" | "return_to_draft" | "approve" | "release";
+type PreliminaryReportArtifactDisplay = Omit<PreliminaryReportArtifactSummary, "storageBucket" | "storagePath">;
 
 const labels: Record<keyof PreliminaryReportContent, string> = {
   reportTitle: "Report Title", reportPurpose: "Report Purpose",
@@ -29,17 +31,25 @@ const labels: Record<keyof PreliminaryReportContent, string> = {
 };
 
 const confirmations = {
+  generate_pdf: { title: "Generate immutable PDF", description: "Generate and verify the PDF artifact for this approved report version. The artifact cannot be overwritten.", confirmLabel: "Generate PDF" },
   submit_for_review: { title: "Submit for internal review", description: "Submit the current saved version for internal human review.", confirmLabel: "Submit Report" },
   return_to_draft: { title: "Return report to draft", description: "Return the report with documented internal review notes.", confirmLabel: "Return to Draft", reasonLabel: "Review notes", reasonRequired: true },
   approve: { title: "Approve preliminary report", description: "Approve the current immutable report version without changing its content.", confirmLabel: "Approve Report" },
   release: { title: "Release preliminary report", description: "Make the approved preliminary report visible to the participant.", confirmLabel: "Release Report" },
 } satisfies Record<ConfirmedAction, { title: string; description: string; confirmLabel: string; reasonLabel?: string; reasonRequired?: boolean }>;
 
+function formatArtifactDate(value: string) {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime())
+    ? "Not recorded"
+    : new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" }).format(parsed);
+}
+
 export default function PreliminaryReportActionPanel({
-  reportId, status, currentVersion, initialContent,
+  reportId, status, currentVersion, initialContent, artifact,
 }: {
   reportId: string; status: PreliminaryReportStatus; currentVersion: number;
-  initialContent: PreliminaryReportContent;
+  initialContent: PreliminaryReportContent; artifact: PreliminaryReportArtifactDisplay | null;
 }) {
   const router = useRouter();
   const [content, setContent] = useState(initialContent);
@@ -48,7 +58,7 @@ export default function PreliminaryReportActionPanel({
   const [dialogValue, setDialogValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const actionPolicy = getPreliminaryReportActionPolicy(status);
+  const actionPolicy = getPreliminaryReportActionPolicy(status, artifact !== null);
   const dirty = useMemo(() => JSON.stringify(content) !== JSON.stringify(initialContent), [content, initialContent]);
 
   function updateText(key: (typeof preliminaryReportTextKeys)[number], value: string) {
@@ -81,8 +91,26 @@ export default function PreliminaryReportActionPanel({
     } finally { setLoading(false); }
   }
 
+  async function generatePdf() {
+    if (loading) return;
+    setLoading(true); setFeedback(null);
+    try {
+      const response = await fetch("/api/admin/preliminary-reports/artifacts/generate", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reportId }),
+      });
+      const result = (await response.json()) as { message?: string; error?: string };
+      if (!response.ok) throw new Error(result.error ?? "Preliminary report PDF could not be generated.");
+      setConfirmedAction(null);
+      setFeedback({ type: "success", message: result.message ?? "Preliminary report PDF generated successfully." });
+      router.refresh();
+    } catch (caught) {
+      setFeedback({ type: "error", message: caught instanceof Error ? caught.message : "Preliminary report PDF could not be generated." });
+    } finally { setLoading(false); }
+  }
+
   function confirm() {
     if (!confirmedAction) return;
+    if (confirmedAction === "generate_pdf") { void generatePdf(); return; }
     void submit(confirmedAction, confirmedAction === "return_to_draft" ? { reviewNotes: dialogValue.trim() } : undefined);
   }
   const confirmation = confirmedAction ? confirmations[confirmedAction] : null;
@@ -137,6 +165,8 @@ export default function PreliminaryReportActionPanel({
       ) : null}
 
       {actionPolicy.canReturn || actionPolicy.canApprove ? <div className="mt-6 flex flex-wrap gap-3 border-t border-white/10 pt-6">{actionPolicy.canReturn ? <AdminActionButton label="Return to Draft" variant="warning" disabled={loading} onClick={() => { setDialogValue(""); setConfirmedAction("return_to_draft"); }} /> : null}{actionPolicy.canApprove ? <AdminActionButton label="Approve Report" variant="success" disabled={loading} onClick={() => setConfirmedAction("approve")} /> : null}</div> : null}
+      {actionPolicy.canGeneratePdf ? <div className="mt-6 border-t border-white/10 pt-6"><AdminActionButton label="Generate PDF" variant="success" disabled={loading} onClick={() => setConfirmedAction("generate_pdf")} /><p className="mt-3 text-xs text-white/45">Release remains unavailable until the current report version has a verified immutable PDF.</p></div> : null}
+      {artifact ? <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/65"><p className="font-medium text-white">Verified PDF artifact</p><p className="mt-2 break-all">{artifact.filename}</p><p className="mt-1">Version {artifact.reportVersion} · Generated {formatArtifactDate(artifact.generatedAt)} · {(artifact.byteSize / 1024).toFixed(1)} KB · SHA-256 {artifact.sha256.slice(0, 12)}…</p><div className="mt-3 flex gap-4"><a href={`/api/admin/preliminary-reports/${reportId}/artifact?disposition=inline`} target="_blank" rel="noreferrer" className="text-sky-300 hover:underline">Preview PDF</a><a href={`/api/admin/preliminary-reports/${reportId}/artifact?disposition=attachment`} className="text-sky-300 hover:underline">Download PDF</a></div></div> : null}
       {actionPolicy.canRelease ? <div className="mt-6 border-t border-white/10 pt-6"><AdminActionButton label="Release to Participant" variant="success" disabled={loading} onClick={() => setConfirmedAction("release")} /></div> : null}
       {status === "released" ? <div className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/60">Released reports and their content are read-only.</div> : null}
 

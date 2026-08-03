@@ -36,15 +36,27 @@ describe("preliminary report action policy", () => {
       canApprove: true,
       canRelease: false,
     });
-    expect(getPreliminaryReportActionPolicy("approved")).toMatchObject({
+    expect(getPreliminaryReportActionPolicy("approved", true)).toMatchObject({
       canReturn: false,
       canApprove: false,
+      canGeneratePdf: false,
       canRelease: true,
     });
     expect(getPreliminaryReportActionPolicy("released")).toMatchObject({
       canReturn: false,
       canApprove: false,
       canRelease: false,
+    });
+  });
+
+  it("requires a finalized current-version PDF before release", () => {
+    expect(getPreliminaryReportActionPolicy("approved", false)).toMatchObject({
+      canGeneratePdf: true,
+      canRelease: false,
+    });
+    expect(getPreliminaryReportActionPolicy("approved", true)).toMatchObject({
+      canGeneratePdf: false,
+      canRelease: true,
     });
   });
 });
