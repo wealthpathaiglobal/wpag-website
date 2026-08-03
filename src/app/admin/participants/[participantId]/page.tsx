@@ -184,6 +184,14 @@ export default async function ParticipantDetailPage({
             <div><p className="text-xs text-white/40">Versions</p><p className="mt-2">{assessmentSummary ? `${assessmentSummary.assessment_version} · ${assessmentSummary.hfos_version}` : "—"}</p></div>
             <div><p className="text-xs text-white/40">Submitted</p><p className="mt-2">{formatDate(assessmentSummary?.submitted_at ?? null)}</p></div>
           </div>
+          {assessmentSummary?.session_status === "submitted" && assessmentSummary.assessment_id ? (
+            <Link
+              href={`/admin/reviews/assessments/${assessmentSummary.assessment_id}`}
+              className="mt-6 inline-flex rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-500"
+            >
+              Open Assessment Review
+            </Link>
+          ) : null}
         </section>
 
         <HfosMeasurementFoundationCard summary={measurementSummary} />
