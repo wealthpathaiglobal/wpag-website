@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth/authorization";
 import { adminApplicationService } from "@/lib/services/admin/admin-application-service";
 import { adminAssessmentReviewService } from "@/lib/services/admin/admin-assessment-review-service";
+import { adminEvidenceVerificationService } from "@/lib/services/admin/admin-evidence-verification-service";
 import { adminPreliminaryReportService } from "@/lib/services/admin/admin-preliminary-report-service";
 import { getParticipants } from "@/lib/services/admin/admin-participant-service";
 
@@ -72,11 +73,12 @@ function getApplicationStatusClasses(status: string) {
 export default async function AdminDashboardPage() {
   const staff = await requireRole("administrator");
 
-  const [participants, pendingApplications, assessmentReviews, preliminaryReports] = await Promise.all([
+  const [participants, pendingApplications, assessmentReviews, preliminaryReports, evidenceQueue] = await Promise.all([
     getParticipants(),
     adminApplicationService.getPendingApplications(),
     adminAssessmentReviewService.listAssessmentReviews(staff.auth_user_id),
     adminPreliminaryReportService.listReports(staff.auth_user_id),
+    adminEvidenceVerificationService.list(staff.auth_user_id),
   ]);
 
   const totalParticipants = participants.length;
@@ -126,7 +128,7 @@ export default async function AdminDashboardPage() {
           </div>
         </header>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-7">
           <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
             <p className="text-sm text-white/50">
               Pending Applications
@@ -166,6 +168,19 @@ export default async function AdminDashboardPage() {
             </p>
             <p className="mt-2 text-sm leading-6 text-white/40">
               Open the governed preliminary report workspace.
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/evidence"
+            className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] p-6 transition-colors hover:bg-amber-400/10"
+          >
+            <p className="text-sm text-amber-200/70">Evidence Verification</p>
+            <p className="mt-3 text-3xl font-semibold text-white">
+              {evidenceQueue.filter((item) => item.verificationStatus === "pending" || item.verificationStatus === "in_progress").length}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-white/40">
+              Open the governed evidence review queue.
             </p>
           </Link>
 

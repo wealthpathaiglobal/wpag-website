@@ -213,6 +213,9 @@ export default async function AssessmentReviewDetailPage({ params }: Props) {
                   <p className="mt-2 text-sm text-white/50">
                     {formatStatus(document.document_category)} · {formatStatus(document.document_type)} · Verification: {formatStatus(document.verification_status)}
                   </p>
+                  <Link href={`/admin/evidence/${document.id}`} className="mt-3 inline-flex text-sm text-sky-300 hover:text-sky-200">
+                    Open Evidence Review
+                  </Link>
                 </article>
               ))}
             </div>
