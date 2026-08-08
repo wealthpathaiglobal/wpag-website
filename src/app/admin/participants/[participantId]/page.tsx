@@ -5,6 +5,7 @@ import ParticipantInvitationPanel from "@/components/admin/ParticipantInvitation
 import HfosMeasurementFoundationCard from "@/components/admin/HfosMeasurementFoundationCard";
 import { requireRole } from "@/lib/auth/authorization";
 import { getParticipantDetail } from "@/lib/services/admin/admin-participant-detail-service";
+import { adminEvidenceFoundationService } from "@/lib/services/admin/admin-evidence-foundation-service";
 
 interface ParticipantDetailPageProps {
   params: Promise<{
@@ -71,7 +72,7 @@ function getStatusClasses(status: string | null) {
 export default async function ParticipantDetailPage({
   params,
 }: ParticipantDetailPageProps) {
-  await requireRole("administrator");
+  const staff = await requireRole("administrator");
 
   const { participantId } = await params;
 
@@ -90,7 +91,11 @@ export default async function ParticipantDetailPage({
   invitation,
   assessmentSummary,
   measurementSummary,
-} = participantDetail;
+  } = participantDetail;
+  const evidence = await adminEvidenceFoundationService.list(
+    staff.auth_user_id,
+    { participantId },
+  );
 
   return (
     <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8">
@@ -195,6 +200,11 @@ export default async function ParticipantDetailPage({
         </section>
 
         <HfosMeasurementFoundationCard summary={measurementSummary} />
+
+        <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-6" aria-label="Participant evidence">
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">Evidence</h2><p className="mt-1 text-sm text-white/45">Governed assessment evidence and current verification status.</p></div><Link href="/admin/evidence" className="text-sm text-sky-300">Open Evidence Queue</Link></div>
+          {evidence.length === 0 ? <p className="mt-5 text-sm text-white/45">No evidence is available for this participant.</p> : <div className="mt-5 space-y-3">{evidence.map((item) => <Link key={item.documentId} href={`/admin/evidence/${item.documentId}`} className="flex flex-col gap-2 rounded-xl border border-white/10 p-4 hover:bg-white/[0.04] sm:flex-row sm:items-center sm:justify-between"><span>{item.documentName} · v{item.versionNumber}</span><span className="text-sm text-white/50">{formatStatus(item.verificationStatus)}</span></Link>)}</div>}
+        </section>
 
        <ParticipantInvitationPanel
   participantId={participant.id}
