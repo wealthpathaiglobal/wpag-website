@@ -46,6 +46,14 @@ export const metadata: Metadata = {
   creator: "Wealth Path AI Global",
   publisher: "Wealth Path AI Global",
 
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+
   openGraph: {
     type: "website",
     locale: "en_US",

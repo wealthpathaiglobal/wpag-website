@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Wealth Path AI Global is an independent research organization developing the Human Financial Operating System (HFOS) and structured systems for financial stability.",
     start_url: "/",
     display: "standalone",
-    background_color: "#000000",
-    theme_color: "#000000",
+    background_color: "#0A0A0A",
+    theme_color: "#0A0A0A",
     orientation: "portrait-primary",
     icons: [
       {
