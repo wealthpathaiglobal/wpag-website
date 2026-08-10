@@ -41,7 +41,7 @@ export default function OpenGraphImage() {
             maxWidth: 900,
             fontSize: 32,
             lineHeight: 1.4,
-            color: "#d1d1d1",
+            color: "#FFFFFF",
           }}
         >
           Stability. Clarity. Legacy.
