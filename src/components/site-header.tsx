@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -21,15 +22,26 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/90 text-white backdrop-blur">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#0A0A0A]/90 text-white backdrop-blur">
       <Container>
         <div className="flex h-20 items-center justify-between gap-3">
           <Link
             href="/"
             onClick={closeMenu}
-            className="min-w-0 truncate whitespace-nowrap text-xs font-semibold uppercase tracking-[0.14em] text-white sm:text-sm sm:tracking-[0.2em]"
+            aria-label="Wealth Path AI Global home"
+            className="flex min-w-0 items-center gap-2.5 text-white sm:gap-3"
           >
-            Wealth Path AI Global
+            <Image
+              src="/brand/wpag-primary-master.svg"
+              alt=""
+              width={530}
+              height={235}
+              priority
+              className="h-7 w-auto shrink-0 sm:h-8"
+            />
+            <span className="truncate whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.12em] sm:text-sm sm:tracking-[0.16em]">
+              Wealth Path AI Global
+            </span>
           </Link>
 
           <nav
@@ -80,7 +92,7 @@ export function SiteHeader() {
         <nav
           id="mobile-navigation"
           aria-label="Mobile navigation"
-          className="border-t border-white/10 bg-black md:hidden"
+          className="border-t border-white/10 bg-[#0A0A0A] md:hidden"
         >
           <Container className="py-6">
             <div className="flex flex-col">

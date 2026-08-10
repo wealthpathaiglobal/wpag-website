@@ -14,8 +14,8 @@ export default function OpenGraphImage() {
         style={{
           width: "100%",
           height: "100%",
-          background: "#000000",
-          color: "#ffffff",
+          background: "#0A0A0A",
+          color: "#FFFFFF",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -41,17 +41,17 @@ export default function OpenGraphImage() {
             maxWidth: 900,
             fontSize: 32,
             lineHeight: 1.4,
-            color: "#d1d1d1",
+            color: "#FFFFFF",
           }}
         >
-          Advancing Financial Stability Through Structured Research
+          Stability. Clarity. Legacy.
         </div>
 
         <div
           style={{
             marginTop: 60,
             fontSize: 24,
-            color: "#8f8f8f",
+            color: "#C8A24A",
           }}
         >
           Human Financial Operating System (HFOS)
