@@ -35,13 +35,23 @@ This packet asks only for the decisions needed before a first controlled partici
 
 | Service | Observed purpose | Potential data class | Region/config evidence | Authority status | Pre-participant effect |
 | --- | --- | --- | --- | --- | --- |
-| Supabase project `wpag-production` | Authentication, PostgreSQL, private storage, server RPC | Identity, financial evidence, research records, Audit | Project link present; region/contract/subprocessors/backup posture **NOT VERIFIED** | Legal/provider review required | **BLOCKING** |
+| Supabase project `wpag-production` (`ujitsgycbnswvomlqetr`) | Authentication, PostgreSQL, private storage, server RPC | Identity, financial evidence, research records, Audit | Supabase Management metadata identifies `ap-south-1`, PostgreSQL 17, active/healthy. The account exposes no separate staging project. Physical-backup metadata reports `walg_enabled=true`, `pitr_enabled=false`, no listed physical backups; restoration was not exercised. Contracts, subprocessors, transfer authority, retention, and legal adequacy remain **NOT VERIFIED**. | Legal/provider review required | **BLOCKING**; this target was classified Production and was not modified during Sprint 30. |
 | Vercel | Intended Next.js hosting; Vercel Analytics package on public routes | Request metadata; participant data if app is deployed there | No `.vercel` project link; deployment/region **NOT VERIFIED** | Legal/provider and target verification required | **BLOCKING** |
 | Supabase Auth email / external email provider | Invitations/authentication messages | Email, identity/linkage metadata | Local Mailpit configured; remote SMTP/provider **NOT VERIFIED** | Review required before participant messaging | **BLOCKING if used** |
 | Supabase Storage | Assessment/evidence objects | Restricted financial evidence and file metadata | Private `assessment-evidence` architecture exists locally; remote migration absent | Part of Supabase review; allowlist unresolved | **BLOCKING** |
 | Google Analytics | Public-route analytics | Public route/device metadata | Hard-coded public GA identifier; governed participant/admin routes excluded in code | Must remain excluded from research routes; provider review for public site separate | Non-blocking only if deployment exclusion is independently confirmed |
 | Vercel Analytics | Public-route analytics | Public route/device metadata | Package present; governed participant/admin routes excluded in code | Same firewall requirement | Non-blocking only if deployment exclusion is independently confirmed |
 | AI services | None authorized in participant workflow | Participant research data prohibited | No application AI SDK/path found; local Supabase Studio has optional env reference only | `NOT AUTHORIZED` | Any participant-data use is **BLOCKING/PROHIBITED** |
+
+## Sprint 30 factual environment update
+
+- Read-only project inventory on 2026-08-11 returned one Supabase project only: `wpag-production`, reference `ujitsgycbnswvomlqetr`, region `ap-south-1`.
+- That target is classified Production by controlled project metadata and was not migrated, reset, seeded, linked to a staging deployment, or otherwise modified.
+- Its remote migration ledger ends at `20260729013000`; the 25 controlled local migrations numbered `031` through `055` are absent remotely.
+- No `.vercel/project.json` or other exact application-deployment binding is present in the repository.
+- No separate synthetic-only research/staging target exists in the accessible project inventory.
+- Creation of a new Supabase project requires a project size/billing selection and a new database credential. Neither billing nor credential-custody authority is supplied by the controlled packet, so no resource was created.
+- These are factual deployment inputs only. They do not answer any jurisdiction, legal-basis, controller/processor, transfer, retention, consent, rights, or breach-notification question above.
 
 ## Required response format
 
