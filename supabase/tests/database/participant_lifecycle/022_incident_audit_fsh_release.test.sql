@@ -132,9 +132,9 @@ select throws_ok('update public.research_control_audit_events set reason_code=''
 -- Release gate is physically fail-closed.
 create temporary table release_check as select * from public.evaluate_wave3_release_gate('synthetic_test','c1000000-0000-4000-8000-000000000001','c9000000-0000-4000-8000-000000000040');
 select is((select gate_status from release_check),'BLOCKED','B1 blockers keep release blocked');
-select ok((select reason_codes @> array['CONSENT_WORDING_PENDING_INDEPENDENT_REVIEW'] from release_check),'unapproved participant consent wording blocks release');
+select ok((select reason_codes @> array['INDEPENDENT_REMEDIATION_REVIEW_REQUIRED'] from release_check),'independent remediation re-review still blocks release');
 select ok((select reason_codes @> array['LEGAL_PRIVACY_DEPENDENCY_UNRESOLVED'] from release_check),'legal/privacy dependency remains unresolved');
-select is((select dependency_results->>'synthetic_e2e' from public.research_release_gate_assessments where id=(select assessment_id from release_check)),'IMPLEMENTED_PENDING_INDEPENDENT_VERIFICATION','synthetic E2E remains subject to independent verification');
+select is((select dependency_results->>'synthetic_e2e' from public.research_release_gate_assessments where id=(select assessment_id from release_check)),'IMPLEMENTED_PENDING_TARGETED_RE_REVIEW','synthetic E2E remains subject to targeted independent re-review');
 select is((select dependency_results->>'participant_output_suppression' from public.research_release_gate_assessments where id=(select assessment_id from release_check)),'OPEN','participant output suppression check is satisfied');
 select is((select dependency_results->>'actual_enrollment' from public.research_release_gate_assessments where id=(select assessment_id from release_check)),'NOT_AUTHORIZED','real enrollment attempt remains rejected');
 select is((select dependency_results->>'evidence_collection' from public.research_release_gate_assessments where id=(select assessment_id from release_check)),'NOT_AUTHORIZED','real evidence activation remains rejected');

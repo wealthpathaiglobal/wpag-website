@@ -14,12 +14,15 @@ const acknowledgementLabels = {
   withdrawal_no_automatic_deletion: "Withdrawal does not automatically delete lawfully retained records.",
 } as const;
 
-export default function ResearchParticipationActions({ consentAvailable, withdrawalAvailable }: { consentAvailable: boolean; withdrawalAvailable: boolean }) {
+type PresentationBinding = { eventId: string; version: string; sha256: string; presentedAt: string };
+
+export default function ResearchParticipationActions({ consentAvailable, withdrawalAvailable, presentation }: { consentAvailable: boolean; withdrawalAvailable: boolean; presentation: PresentationBinding | null }) {
   const router = useRouter(); const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
   const [baseline, setBaseline] = useState(false); const [followUp, setFollowUp] = useState(false); const [acks, setAcks] = useState<Record<string, boolean>>({});
   async function decide(decision: "GRANTED" | "DECLINED") {
     setBusy(true); setError(null);
-    const response = await fetch("/api/participant/research-controls/consent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision, directConsent: true, baselineConsent: decision === "GRANTED" && baseline, followUpConsent: decision === "GRANTED" && followUp, acknowledgements: decision === "GRANTED" ? acks : {} }) });
+    if (!presentation) { setError("The controlled consent presentation must be presented again."); setBusy(false); return; }
+    const response = await fetch("/api/participant/research-controls/consent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ decision, directConsent: true, baselineConsent: decision === "GRANTED" && baseline, followUpConsent: decision === "GRANTED" && followUp, acknowledgements: decision === "GRANTED" ? acks : {}, presentationEventId: presentation.eventId, presentedArtifactVersion: presentation.version, presentedArtifactSha256: presentation.sha256, presentedAt: presentation.presentedAt }) });
     const body = await response.json(); if (!response.ok) { setError(body.error ?? "Request failed."); setBusy(false); return; } router.refresh();
   }
   async function withdraw() {
@@ -32,7 +35,7 @@ export default function ResearchParticipationActions({ consentAvailable, withdra
       <label className="mt-5 flex gap-3 text-sm"><input type="checkbox" checked={baseline} onChange={(e) => setBaseline(e.target.checked)} />I consent to baseline FSH research participation.</label>
       <label className="mt-3 flex gap-3 text-sm"><input type="checkbox" checked={followUp} onChange={(e) => setFollowUp(e.target.checked)} />I separately consent to follow-up research participation.</label>
       {wave4ConsentAcknowledgements.map((key) => <label key={key} className="mt-3 flex gap-3 text-sm"><input type="checkbox" checked={acks[key] === true} onChange={(e) => setAcks((old) => ({ ...old, [key]: e.target.checked }))} />{acknowledgementLabels[key]}</label>)}
-      <div className="mt-6 flex flex-wrap gap-3"><button disabled={busy || !baseline || wave4ConsentAcknowledgements.some((key) => acks[key] !== true)} onClick={() => decide("GRANTED")} className="bg-black px-5 py-3 text-sm text-white disabled:opacity-35">Give direct consent</button><button disabled={busy} onClick={() => decide("DECLINED")} className="border border-black px-5 py-3 text-sm disabled:opacity-35">Decline</button></div>
+      <div className="mt-6 flex flex-wrap gap-3"><button disabled={busy || !presentation || !baseline || wave4ConsentAcknowledgements.some((key) => acks[key] !== true)} onClick={() => decide("GRANTED")} className="bg-black px-5 py-3 text-sm text-white disabled:opacity-35">Give direct consent</button><button disabled={busy || !presentation} onClick={() => decide("DECLINED")} className="border border-black px-5 py-3 text-sm disabled:opacity-35">Decline</button></div>
     </div> : null}
     {withdrawalAvailable ? <button disabled={busy} onClick={withdraw} className="mt-6 border border-rose-700 px-5 py-3 text-sm text-rose-800 disabled:opacity-35">Request research withdrawal</button> : null}
     {error ? <p role="alert" className="mt-4 text-sm text-rose-700">{error}</p> : null}

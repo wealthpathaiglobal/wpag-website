@@ -2,6 +2,22 @@ import { beforeEach,describe,expect,it,vi } from "vitest";
 const mocks=vi.hoisted(()=>({get:vi.fn(),decide:vi.fn()}));
 vi.mock("@/lib/repositories/participant/participant-research-journey-repository",()=>({participantResearchJourneyRepository:mocks,ParticipantResearchJourneyRepositoryError:class extends Error{constructor(readonly kind:string){super();}}}));
 import { ParticipantResearchJourneyService } from "./participant-research-journey-service";
-const participantId="20000000-0000-4000-8000-000000000001",actorUserId="10000000-0000-4000-8000-000000000001",correlationId="30000000-0000-4000-8000-000000000001",enrollmentId="40000000-0000-4000-8000-000000000001";
+
+const participantId="20000000-0000-4000-8000-000000000001";
+const actorUserId="10000000-0000-4000-8000-000000000001";
+const correlationId="30000000-0000-4000-8000-000000000001";
+const enrollmentId="40000000-0000-4000-8000-000000000001";
+const presentationEventId="50000000-0000-4000-8000-000000000001";
+const presentedArtifactVersion="HFOS-W4-PARTICIPANT-RESEARCH-CONSENT-v0.1";
+const presentedArtifactSha256="a8fedbe933d893fd7bbdf31c1b2351a49508cb83c660dac88fda3852ae93f744";
+const presentedAt="2026-08-11T12:00:00.000Z";
 const acknowledgements={research_purpose:true,voluntary_participation:true,research_only_no_final_state:true,privacy_data_use:true,withdrawal_no_automatic_deletion:true};
-describe("ParticipantResearchJourneyService",()=>{beforeEach(()=>{vi.resetAllMocks();mocks.get.mockResolvedValue({enrollmentId});mocks.decide.mockResolvedValue({consent_status:"GRANTED"});});it("resolves actor-owned enrollment and records a complete direct grant",async()=>{await new ParticipantResearchJourneyService().decide({participantId,actorUserId,decision:"GRANTED",directConsent:true,baselineConsent:true,followUpConsent:false,acknowledgements,correlationId});expect(mocks.decide).toHaveBeenCalledWith({participantId,actorUserId,decision:"GRANTED",directConsent:true,baselineConsent:true,followUpConsent:false,acknowledgements,correlationId,enrollmentId});});it("rejects representative, incomplete, or implicit grants",async()=>{const service=new ParticipantResearchJourneyService();await expect(service.decide({participantId,actorUserId,decision:"GRANTED",directConsent:false,baselineConsent:true,followUpConsent:false,acknowledgements,correlationId})).rejects.toMatchObject({kind:"invalid"});await expect(service.decide({participantId,actorUserId,decision:"GRANTED",directConsent:true,baselineConsent:false,followUpConsent:false,acknowledgements,correlationId})).rejects.toMatchObject({kind:"invalid"});expect(mocks.decide).not.toHaveBeenCalled();});it("permits an explicit decline without affirmative research acknowledgements",async()=>{await new ParticipantResearchJourneyService().decide({participantId,actorUserId,decision:"DECLINED",directConsent:true,baselineConsent:false,followUpConsent:false,acknowledgements:{},correlationId});expect(mocks.decide).toHaveBeenCalled();});});
+const binding={presentationEventId,presentedArtifactVersion,presentedArtifactSha256,presentedAt};
+const input={participantId,actorUserId,decision:"GRANTED" as const,directConsent:true,baselineConsent:true,followUpConsent:false,acknowledgements,...binding,correlationId};
+
+describe("ParticipantResearchJourneyService",()=>{
+  beforeEach(()=>{vi.resetAllMocks();mocks.get.mockResolvedValue({enrollmentId,consentPresentationEventId:presentationEventId,consentArtifactVersion:presentedArtifactVersion,consentArtifactSha256:presentedArtifactSha256,consentPresentedAt:presentedAt});mocks.decide.mockResolvedValue({consent_status:"GRANTED",technical_result:"CONSENT_GRANTED"});});
+  it("resolves the exact presented binding and records a complete direct grant",async()=>{await new ParticipantResearchJourneyService().decide(input);expect(mocks.decide).toHaveBeenCalledWith({...input,enrollmentId});});
+  it("rejects representative, incomplete, false, missing, extra, or stale grants",async()=>{const service=new ParticipantResearchJourneyService();const cases=[{...input,directConsent:false},{...input,baselineConsent:false},{...input,acknowledgements:{...acknowledgements,research_purpose:false}},{...input,acknowledgements:{research_purpose:true}},{...input,acknowledgements:{...acknowledgements,unexpected:true}},{...input,presentedArtifactSha256:"b".repeat(64)}];for(const value of cases)await expect(service.decide(value)).rejects.toMatchObject({kind:"invalid"});expect(mocks.decide).not.toHaveBeenCalled();});
+  it("permits an explicit decline bound to the exact presentation",async()=>{await new ParticipantResearchJourneyService().decide({...input,decision:"DECLINED",baselineConsent:false,acknowledgements:{}});expect(mocks.decide).toHaveBeenCalled();});
+});

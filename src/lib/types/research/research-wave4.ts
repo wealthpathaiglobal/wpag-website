@@ -12,7 +12,11 @@ export type ParticipantResearchJourney = {
   followUps: Array<{ sequenceNumber: number; family: string; status: string; createdAt: string }>;
   consentArtifactVersion: string;
   consentArtifactSha256: string;
-  consentWordingReviewStatus: "PENDING_INDEPENDENT_GOVERNANCE_REVIEW";
+  consentWordingReviewStatus: "APPROVED_WITH_NON_BLOCKING_GOVERNANCE_NOTES";
+  consentPresentationEventId: string | null;
+  consentPresentedAt: string | null;
+  consentAuthorityVersion: string | null;
+  privacyAuthorityVersion: string | null;
   consentActionAvailable: boolean;
   participantOutputScope: "FACTUAL_STATUS_ONLY";
   fshOutputStatus: "SUPPRESSED";
@@ -29,8 +33,19 @@ export type AdminResearchWave4Overview = {
   researchOutcomes: Array<Record<string, unknown>>;
   auditEvents: Array<Record<string, unknown>>;
   actorPermissions: Record<string, boolean>;
-  consentWordingReviewStatus: "PENDING_INDEPENDENT_GOVERNANCE_REVIEW";
+  consentWordingReviewStatus: "APPROVED_WITH_NON_BLOCKING_GOVERNANCE_NOTES";
   releaseGateStatus: "BLOCKED";
+};
+
+export const researchHistoryFamilies = ["EVIDENCE", "SNAPSHOT", "FOLLOW_UP", "LIFECYCLE", "OBSERVATION", "VERIFIED_EVENT", "OUTCOME", "INCIDENT", "AUDIT", "FSH"] as const;
+export type ResearchHistoryFamily = (typeof researchHistoryFamilies)[number];
+export type ResearchHistoryPage = {
+  enrollmentId: string;
+  historyFamily: ResearchHistoryFamily;
+  items: Array<Record<string, unknown>>;
+  nextCursorAt: string | null;
+  nextCursorId: string | null;
+  hasMore: boolean;
 };
 
 export const wave4ConsentAcknowledgements = [

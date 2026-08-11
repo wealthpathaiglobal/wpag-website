@@ -8,9 +8,19 @@ function safe(error: unknown): never { if (error instanceof ParticipantResearchJ
 export class ParticipantResearchJourneyService {
   constructor(private readonly repository = participantResearchJourneyRepository) {}
   async get(participantId: string, actorUserId: string) { if (!uuid.test(participantId) || !uuid.test(actorUserId)) throw new ParticipantResearchJourneyServiceError("invalid"); try { return await this.repository.get(participantId, actorUserId); } catch (error) { safe(error); } }
-  async decide(input: { participantId: string; actorUserId: string; decision: "GRANTED" | "DECLINED"; directConsent: boolean; baselineConsent: boolean; followUpConsent: boolean; acknowledgements: Record<string, boolean>; correlationId: string }) {
-    if (![input.participantId,input.actorUserId,input.correlationId].every(uuid.test.bind(uuid)) || !["GRANTED","DECLINED"].includes(input.decision) || !input.directConsent || (input.decision === "GRANTED" && (!input.baselineConsent || wave4ConsentAcknowledgements.some((key) => input.acknowledgements[key] !== true)))) throw new ParticipantResearchJourneyServiceError("invalid");
-    try { const journey = await this.repository.get(input.participantId,input.actorUserId); if (!journey) throw new ParticipantResearchJourneyServiceError("not_found"); return await this.repository.decide({ ...input, enrollmentId: journey.enrollmentId }); } catch (error) { if (error instanceof ParticipantResearchJourneyServiceError) throw error; safe(error); }
+  async decide(input: { participantId: string; actorUserId: string; decision: "GRANTED" | "DECLINED"; directConsent: boolean; baselineConsent: boolean; followUpConsent: boolean; acknowledgements: Record<string, boolean>; presentationEventId: string; presentedArtifactVersion: string; presentedArtifactSha256: string; presentedAt: string; correlationId: string }) {
+    const acknowledgementKeys = Object.keys(input.acknowledgements);
+    const exactGrantAcknowledgements = acknowledgementKeys.length === wave4ConsentAcknowledgements.length && wave4ConsentAcknowledgements.every((key) => input.acknowledgements[key] === true);
+    if (![input.participantId,input.actorUserId,input.presentationEventId,input.correlationId].every(uuid.test.bind(uuid)) || !["GRANTED","DECLINED"].includes(input.decision) || !input.directConsent
+      || !/^HFOS-W4-PARTICIPANT-RESEARCH-CONSENT-v0[.]1$/.test(input.presentedArtifactVersion) || !/^[0-9a-f]{64}$/.test(input.presentedArtifactSha256)
+      || Number.isNaN(Date.parse(input.presentedAt)) || (input.decision === "GRANTED" && (!input.baselineConsent || !exactGrantAcknowledgements))
+      || (input.decision === "DECLINED" && acknowledgementKeys.length !== 0)) throw new ParticipantResearchJourneyServiceError("invalid");
+    try {
+      const journey = await this.repository.get(input.participantId,input.actorUserId);
+      if (!journey) throw new ParticipantResearchJourneyServiceError("not_found");
+      if (journey.consentPresentationEventId !== input.presentationEventId || journey.consentArtifactVersion !== input.presentedArtifactVersion || journey.consentArtifactSha256 !== input.presentedArtifactSha256 || journey.consentPresentedAt !== input.presentedAt) throw new ParticipantResearchJourneyServiceError("invalid");
+      return await this.repository.decide({ ...input, enrollmentId: journey.enrollmentId });
+    } catch (error) { if (error instanceof ParticipantResearchJourneyServiceError) throw error; safe(error); }
   }
 }
 export const participantResearchJourneyService = new ParticipantResearchJourneyService();

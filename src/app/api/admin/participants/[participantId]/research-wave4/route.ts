@@ -6,8 +6,8 @@ import { adminResearchWave4Service, AdminResearchWave4ServiceError } from "@/lib
 type Context = { params: Promise<{ participantId: string }> };
 const fields: Record<string, Set<string>> = { present_consent: new Set(["command", "enrollmentId"]), attempt_activation: new Set(["command", "target"]) };
 function json(body: object, status: number) { return NextResponse.json(body, { status, headers: { "Cache-Control": "private, no-store" } }); }
-export async function GET(_request: NextRequest, context: Context) {
-  try { const staff = await requireAnyRole(["administrator", "reviewer", "evidence_verifier"]); const { participantId } = await context.params; return json({ success: true, overview: await adminResearchWave4Service.getOverview(participantId, staff.auth_user_id, randomUUID()) }, 200); }
+export async function GET(request: NextRequest, context: Context) {
+  try { const staff = await requireAnyRole(["administrator", "reviewer", "evidence_verifier"]); const { participantId } = await context.params; const family=request.nextUrl.searchParams.get("historyFamily");if(family){const cursorAt=request.nextUrl.searchParams.get("cursorAt");const cursorId=request.nextUrl.searchParams.get("cursorId");const limit=Number(request.nextUrl.searchParams.get("limit")??"25");return json({success:true,page:await adminResearchWave4Service.getHistoryPage({participantId,actorUserId:staff.auth_user_id,family:family as never,cursorAt,cursorId,limit,correlationId:randomUUID()})},200);}return json({ success: true, overview: await adminResearchWave4Service.getOverview(participantId, staff.auth_user_id, randomUUID()) }, 200); }
   catch (error) { return handle(error); }
 }
 export async function POST(request: NextRequest, context: Context) {

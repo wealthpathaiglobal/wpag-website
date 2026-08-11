@@ -1,7 +1,6 @@
 import { OrganizationJsonLd } from "@/components/seo/organization-json-ld";
 import { WebsiteJsonLd } from "@/components/seo/website-json-ld";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { Analytics } from "@vercel/analytics/react";
+import GovernedAnalytics from "@/components/analytics/GovernedAnalytics";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -101,8 +100,7 @@ export default function RootLayout({
 
         {children}
 
-        <GoogleAnalytics gaId="G-3J05MQ5HQJ" />
-        <Analytics />
+        <GovernedAnalytics />
       </body>
     </html>
   );
