@@ -1,10 +1,15 @@
 # HFOS Sprint 30A — Research Staging Provisioning and Binding
 
 **Classification:** Controlled provisioning evidence / non-release authority
+
 **Evidence date:** 2026-08-11
+
 **Repository branch:** `feat/hfos-research-evidence-backbone`
-**Starting HEAD:** `436a5c3f12e5318ca840b0aad2e7403d5db8d64f`
-**Data boundary:** no participant data accessed; no synthetic remote data created
+
+**Sprint 30A continuation HEAD:** `ef450c3e69670503175f1658723796b56e1d9afe`
+
+**Data boundary:** synthetic-data-only; no Production data cloned or accessed
+
 **Release gate:** `BLOCKED`
 
 ## 1. Controlled input gate
@@ -14,173 +19,192 @@
 | Sprint 30 Research Staging Environment Readiness | `fd9bdbcced54c7ea3606833761d20deb6a61b52062c961793afe69d1e305c907` | MATCH |
 | Updated Pre-Soft-Launch Legal Review Packet v1.0 | `de74501eeae44a8e3030b0a054231efc1ad0253be21687b6dbf1ba6c54ee9de3` | MATCH |
 
-The working tree was clean and Sprint 30 ancestry was intact at the input gate.
+The working tree was clean and Sprint 30 ancestry was intact at the original input gate.
 
-## 2. Supabase project inventory
+## 2. Staging project identity
 
-Read-only project inventory returned exactly one accessible Supabase project:
+The organization owner manually provisioned the dedicated project. Independent Supabase project inventory then confirmed its identity and health.
 
-| Field | Value |
+| Field | Staging value |
+| --- | --- |
+| Project name | `wpag-research-staging` |
+| Project reference | `dllefpzhmelflbmopdas` |
+| Organization | Wealth Path AI Global |
+| Region | `ap-south-1` / South Asia (Mumbai) |
+| Compute | Nano |
+| Status | `ACTIVE_HEALTHY` |
+| Classification | HFOS Research Staging / synthetic-data-only |
+| Starting migration state | No remote migrations |
+
+Production remains a separate project:
+
+| Field | Production value |
 | --- | --- |
 | Project name | `wpag-production` |
 | Project reference | `ujitsgycbnswvomlqetr` |
-| Organization | `msxkudbptgvzahccdraw` / Wealth Path AI Global |
 | Region | `ap-south-1` |
-| Status | `ACTIVE_HEALTHY` |
-| Classification | Production |
 
-No `wpag-research-staging`, staging, research, or development project exists in the accessible inventory.
+No Production link, migration, repair, reset, schema, data, storage, domain, or configuration mutation was performed.
 
 `PRODUCTION MODIFIED: NO`
 
-## 3. Billing and external-authority gate
+## 3. Billing and authority
 
-Current official Supabase billing documentation states that Free-plan users may have two active Free projects. The organization currently exposes one project. However:
+The staging project was manually provisioned by the organization owner under the Wealth Path AI Global Free organization using Nano compute. Codex did not create a paid resource, change a subscription, add a payment method, or alter billing configuration.
 
-- the Supabase CLI project and organization responses do not expose this organization's subscription plan;
-- the available browser session is not authenticated to the Supabase dashboard;
-- the project-creation command requires a database password and may require a compute-size/billing selection depending on the organization's plan;
-- no explicit paid provisioning approval, subscription-plan evidence, or credential-custody owner is supplied by the controlled packet.
-
-Official factual references:
-
-- <https://supabase.com/pricing>
-- <https://supabase.com/docs/guides/platform/billing-on-supabase>
-
-The task's provisioning stop condition therefore applies. No potentially chargeable resource was created and no payment method, plan, spend cap, or invoice state was changed.
-
-`PAID PROVISIONING OCCURRED: NO`
+`PAID PROVISIONING OCCURRED BY CODEX: NO`
 
 ## 4. Credential custody
 
-No staging credentials exist. No password, URL, anon key, service-role key, connection string, or access token was created, printed, copied, committed, or reused from Production.
+The existing authenticated Supabase CLI session was used to link and migrate staging without printing or committing a password, access token, anon key, service-role key, connection string, or project URL containing credentials.
 
-Before project creation, an authorized owner must bind:
+- Production credentials were not reused.
+- No secret-bearing file was added to Git.
+- The repository contains only a non-secret environment contract.
+- Service-role and Vercel encrypted-environment custody remain pending because no Vercel target or owner was supplied.
 
-1. database-password generation and recovery custody;
-2. Supabase service-role key custody;
-3. Vercel encrypted environment ownership;
-4. named administrators permitted to retrieve or rotate secrets;
-5. revocation and emergency rotation responsibility.
+`STAGING CLI CREDENTIAL CUSTODY: AUTHENTICATED LOCAL SESSION / NO SECRET COMMITTED`
 
-The service-role key must remain server-only. Production credentials may not be reused.
+## 5. Supabase binding
 
-`STAGING CREDENTIAL CUSTODY: NOT ESTABLISHED`
+The repository workflow was explicitly linked to `dllefpzhmelflbmopdas`. The local ignored Supabase link metadata identifies:
 
-## 5. Prepared non-secret configuration contract
+- ref: `dllefpzhmelflbmopdas`;
+- name: `wpag-research-staging`;
+- organization: Wealth Path AI Global.
 
-The repository now contains:
+Project identity was checked before remote mutation. The Production project was not linked or mutated during this continuation.
 
-`config/hfos-research-staging.environment.example.json`
+`SUPABASE STAGING BINDING: ESTABLISHED`
 
-SHA-256: `25ce75265fb4cb11be8f0c3aa952db0c6ad1ec4161c6ef9259d4a6e61b3412df`
+## 6. Controlled migration application
 
-It records, without secret values:
+Pre-application dry run identified exactly 56 pending local migrations. The complete fresh-project chain was then applied transactionally in controlled order through:
 
-- `HFOS_RESEARCH_STAGING` environment identity;
-- synthetic-only data policy;
-- required project name and preferred `ap-south-1` region;
-- explicit prohibition on Production project `ujitsgycbnswvomlqetr`;
-- required secret names and custody prohibitions;
-- intended Vercel preview/staging binding;
-- analytics exclusions for `/participant/**` and `/admin/**`;
-- migration target through `055`;
-- release and participant gates fixed to blocked/not authorized.
+`20260812010000_055_add_pre_soft_launch_request_routing.sql`
 
-This contract does not bind a live environment and contains no credential.
+Final remote ledger verification reports 56 matching local/remote versions and zero missing migrations.
 
-## 6. Supabase binding
+`STAGING MIGRATIONS THROUGH 055: APPLIED`
 
-- Current repository link: Production `ujitsgycbnswvomlqetr`.
-- Staging link: not created.
-- Production link mutation: not performed.
-- Staging CLI binding: not possible without a project reference and approved database credential.
-- Ambiguous binding was not introduced.
+## 7. Schema parity
 
-`SUPABASE STAGING BINDING: NOT ESTABLISHED`
+Bidirectional schema diff was run between the migration-built shadow schema and linked staging for `public` and `storage`.
 
-## 7. Vercel staging binding
+No table, column, constraint, index, function, trigger, RLS, policy, or storage-schema drift was reported. The only variance is a hosted-project security hardening difference: staging revokes `UPDATE` on five code-generation sequences, and matching default privileges, from `anon`, `authenticated`, and `service_role`, while the migration shadow grants it. The affected sequences are:
 
-- `.vercel/project.json`: absent.
-- `VERCEL_TOKEN`: absent from the execution environment.
-- Exact Vercel project/environment/region: not identified.
-- Production domain routing: not modified.
-- Staging Supabase secrets: not available to bind.
+- `application_code_seq`
+- `consent_code_seq`
+- `participant_code_seq`
+- `participant_research_code_seq`
+- `staff_code_seq`
 
-`VERCEL STAGING BINDING: NOT ESTABLISHED`
+The reverse diff proposes granting those privileges, confirming staging is more restrictive. No migration was added to weaken that posture.
 
-## 8. Migration result
+`SCHEMA PARITY: VERIFIED WITH ONE PROVIDER-HARDENED SEQUENCE-PRIVILEGE VARIANCE`
 
-Expected local chain:
+## 8. RLS, grants, function security, and immutability
 
-- 56 timestamped migration files;
-- final migration `20260812010000_055_add_pre_soft_launch_request_routing.sql`.
+A read-only remote catalog probe completed 10/10 checks successfully:
 
-Sprint 30 already proved clean local application through `055` and 25 pgTAP files / 2,310 passing tests. Sprint 30A did not apply, repair, mark, revert, or push any remote migration.
+1. all 36 Wave 1–4 research tables exist;
+2. all 36 have RLS enabled and forced;
+3. `anon` has no direct DML privilege on research tables;
+4. `authenticated` has no direct DML privilege on research tables;
+5. `service_role` uses governed RPCs rather than direct research-table DML;
+6. research `SECURITY DEFINER` functions pin `search_path`;
+7. the release-gate physical domain excludes `OPEN`;
+8. the activation RPC returns only `ACTIVATION_NOT_AUTHORIZED` / `BLOCKED`;
+9. no browser storage policy references `assessment-evidence`;
+10. immutable research histories have update/delete protection triggers.
 
-- Staging starting state: no project.
-- Staging ending state: no project.
-- Migration through `055`: NOT APPLIED.
-- Final staging ledger: unavailable.
-- Schema parity: NOT VERIFIED.
+The remote CLI test login was also denied direct reads of protected research tables, consistent with revoked direct privileges.
+
+Remote database lint completed successfully with two existing non-blocking PL/pgSQL warnings: unused variables `v_profile_id` and `v_complete_at`. No migration error or security lint failure was reported.
 
 ## 9. Storage posture
 
-The expected local schema provisions private governed evidence storage and passes synthetic storage authorization tests. No staging bucket exists. No Production object or participant evidence was accessed or cloned.
+Read-only staging storage metadata confirms:
 
-`STAGING STORAGE: NOT PROVISIONED`
+| Bucket | Public | Size limit | MIME allowlist | Objects |
+| --- | --- | --- | --- | --- |
+| `assessment-evidence` | `false` | 10 MiB | PDF, JPEG, PNG | 0 |
+| `preliminary-report-artifacts` | `false` | 10 MiB | PDF | 0 |
 
-## 10. Initial staging security result
+There is no browser policy exposing `assessment-evidence`. No real or Production object was cloned or accessed.
 
-Target-level testing could not be performed without a target. The following remain unavailable on staging:
+`STAGING STORAGE: PROVISIONED, PRIVATE, EMPTY`
 
-- participant cross-access denial;
-- administrator-role denial;
-- FORCE RLS and grant inspection;
-- governed RPC execution;
-- actor-independence rejection;
-- release-firewall bypass rejection;
-- storage ownership and cross-participant denial.
+## 10. Release blocking
 
-Local regression evidence remains valid but is not substituted for deployed staging proof.
+The five seeded release-firewall rows remain fail-closed:
 
-`INITIAL STAGING SECURITY VERIFICATION: NOT PERFORMED`
+- `synthetic_development`: enrollment and evidence `BLOCKED`;
+- `synthetic_test`: enrollment and evidence `BLOCKED`;
+- `controlled_research`: enrollment and evidence `NOT_AUTHORIZED`;
+- `pilot`: all activation `NOT_AUTHORIZED`;
+- `production`: all activation `NOT_AUTHORIZED`.
 
-## 11. Backup capability
+There are no release-gate assessment rows and therefore no `OPEN` assessment. The table constraint permits only `BLOCKED` or `UNRESOLVED`; the activation RPC is hard-coded to reject activation. Seeded participant-consent presentation authority also retains `real_activation_status = BLOCKED`.
 
-No staging project exists, so staging backup, PITR, snapshot, restoration, and retention capabilities cannot be discovered or tested. The Production backup metadata from Sprint 30 is not treated as staging evidence.
+`SOFT_LAUNCH_RELEASE_GATE: BLOCKED`
 
-`STAGING RECOVERY CAPABILITY: NOT VERIFIED`
+## 11. Synthetic-only state
 
-## 12. Environment separation and release firewall
+The remote public-data inspection contains no participants, participant research identities, research enrollments, evidence, incidents, FSH results, or release assessments. Only controlled migration seed/configuration records are present.
 
-The non-secret contract distinguishes local, test, intended staging, and Production identities. It preserves:
+`REAL PARTICIPANT DATA PRESENT: NO`
 
-- synthetic-only staging;
-- no Production credential reuse;
-- no Production domain mutation;
-- research-route analytics exclusion;
-- no participant-data analytics transmission;
-- `SOFT_LAUNCH_RELEASE_GATE: BLOCKED`.
+## 12. Test evidence and limitation
 
-No runtime environment was changed.
+- Local Sprint 30 regression evidence remains 25 pgTAP files / 2,310 passing assertions.
+- The remote catalog security probe passes 10/10.
+- The full hosted pgTAP suite could not enter its assertions because Supabase's remote CLI test login does not resolve `plan()` / `no_plan()` from the `extensions` schema.
+- A dedicated probe confirmed that the staging `pgtap` extension exists in `extensions` and contains both functions. This is a hosted CLI test-runner namespace/usage limitation, not a missing migration.
 
-## 13. Remaining blockers
+The full remote 2,310-assertion result is therefore `NOT VERIFIED`; it is not represented as passing.
 
-1. Confirm the Supabase organization's subscription plan and that a second project will incur no unapproved charge, or provide explicit paid provisioning authority.
-2. Approve the minimum project class and selected region `ap-south-1` as an operational choice without treating it as legal approval.
-3. Name the owner and mechanism for database-password, service-role, and CLI credential custody/recovery.
-4. Provide an authenticated/authorized Supabase provisioning session with project-creation permission.
-5. Identify or authorize the Vercel preview/staging project and encrypted environment ownership.
-6. After provisioning, bind only staging credentials, apply all 56 migrations through `055`, and verify ledger/schema parity.
-7. Provision synthetic storage and run initial target security checks.
-8. Discover actual staging backup/PITR/restore controls.
+## 13. Backup capability
 
-## 14. Next authority
+Provider backup inventory reports:
 
-Because the project was not provisioned or bound:
+- backups: none;
+- PITR: disabled;
+- WAL-G: enabled;
+- region: `ap-south-1`.
 
-`STAGING MIGRATION / SECURITY / RESTORE / DEPLOYED-E2E VERIFICATION: NOT AUTHORIZED`
+No restore was attempted. Recovery capability remains unverified until a provider-supported snapshot/restore path is available and tested.
+
+`STAGING RECOVERY VERIFICATION: NOT PERFORMED`
+
+## 14. Vercel staging binding and environment separation
+
+- `.vercel/project.json`: absent;
+- Vercel CLI: unavailable;
+- Vercel token/environment owner: unavailable;
+- exact preview/staging project: not identified;
+- Production domain routing: not modified;
+- Production Supabase credentials: not reused.
+
+The non-secret contract preserves `HFOS_RESEARCH_STAGING`, synthetic-only data, analytics exclusions for `/participant/**` and `/admin/**`, and all release/participant gates as blocked or not authorized.
+
+`VERCEL STAGING BINDING: NOT ESTABLISHED`
+
+## 15. Remaining blockers
+
+1. Identify the exact Vercel preview/staging project and encrypted-environment owner.
+2. Bind only staging Supabase values in that non-Production Vercel environment without exposing secrets or changing Production routing.
+3. Resolve the hosted pgTAP test-role namespace/usage limitation or run the full suite through an approved privileged staging test mechanism.
+4. Execute deployed synthetic E2E, cross-actor, RPC, storage download/upload, and browser-security verification against the bound staging deployment.
+5. Establish and test a provider-supported staging backup/restore method.
+
+## 16. Next authority and formal decision
+
+Database migration and initial security verification were explicitly authorized by the organization owner and completed. Full Sprint 30A binding is not closed because the mandatory Vercel staging target and custody owner are unavailable.
+
+`STAGING DATABASE MIGRATION / INITIAL SECURITY VERIFICATION: COMPLETED`
+
+`STAGING RESTORE / DEPLOYED-E2E VERIFICATION: NOT AUTHORIZED`
 
 `REAL PARTICIPANT EVIDENCE COLLECTION: NOT AUTHORIZED`
 
@@ -191,11 +215,5 @@ Because the project was not provisioned or bound:
 `PILOT: NOT AUTHORIZED`
 
 `PRODUCTION: NOT AUTHORIZED`
-
-## 15. Narrowest next action
-
-An authorized Supabase organization owner must confirm the current subscription/no-cost project allowance and approve credential custody. An authorized Vercel owner must identify the staging/preview project and encrypted environment owner. Once those external gates are recorded, create `wpag-research-staging` in `ap-south-1` without touching Production.
-
-## 16. Formal decision
 
 `RESEARCH STAGING PROJECT PROVISIONING BLOCKED — EXTERNAL AUTHORITY / ACCESS REQUIRED`

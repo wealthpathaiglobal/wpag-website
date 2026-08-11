@@ -2,11 +2,11 @@
   "schemaVersion": "1.0",
   "environmentIdentity": "HFOS_RESEARCH_STAGING",
   "environmentClass": "STAGING",
-  "bindingStatus": "BLOCKED_EXTERNAL_AUTHORITY",
+  "bindingStatus": "SUPABASE_BOUND_VERCEL_PENDING",
   "dataPolicy": "SYNTHETIC_ONLY",
   "supabase": {
     "requiredProjectName": "wpag-research-staging",
-    "projectRef": null,
+    "projectRef": "dllefpzhmelflbmopdas",
     "preferredRegion": "ap-south-1",
     "productionProjectRefProhibited": "ujitsgycbnswvomlqetr",
     "requiredSecretNames": [
@@ -19,7 +19,7 @@
       "reuseProductionCredentials": false,
       "commitSecretsToGit": false,
       "serviceRoleClientExposure": false,
-      "custodyMethod": "UNRESOLVED_PENDING_OWNER_APPROVAL"
+      "custodyMethod": "AUTHENTICATED_LOCAL_CLI_NO_SECRET_COMMITTED"
     }
   },
   "applicationHosting": {
@@ -45,6 +45,6 @@
   "migrationTarget": {
     "requiredFinalMigration": "20260812010000_055_add_pre_soft_launch_request_routing.sql",
     "expectedMigrationFileCount": 56,
-    "applicationStatus": "NOT_APPLIED_NO_STAGING_TARGET"
+    "applicationStatus": "APPLIED_TO_STAGING_THROUGH_055"
   }
 }
