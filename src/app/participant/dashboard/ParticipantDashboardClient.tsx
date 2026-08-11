@@ -14,6 +14,15 @@ type DashboardCard = {
 
 const dashboardCards: DashboardCard[] = [
   {
+    number: "00",
+    title: "Research participation",
+    description:
+      "View factual research status, controlled consent choices, withdrawal controls, and follow-up status.",
+    status: "Synthetic readiness only",
+    buttonLabel: "Open Research Status",
+    route: "/participant/research-participation",
+  },
+  {
     number: "01",
     title: "Participant profile",
     description:

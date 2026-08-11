@@ -1,0 +1,11 @@
+import { adminResearchWave4Repository, AdminResearchWave4RepositoryError } from "@/lib/repositories/admin/admin-research-wave4-repository";
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export class AdminResearchWave4ServiceError extends Error { constructor(readonly kind:"invalid"|"unauthorized"|"unexpected"){super(kind==="invalid"?"Wave 4 research request is invalid.":"Wave 4 research operation could not be completed.");} }
+function safe(error:unknown):never{if(error instanceof AdminResearchWave4RepositoryError)throw new AdminResearchWave4ServiceError(error.kind);throw new AdminResearchWave4ServiceError("unexpected");}
+export class AdminResearchWave4Service {
+ constructor(private readonly repository=adminResearchWave4Repository){}
+ async getOverview(participantId:string,actorUserId:string,correlationId:string){if(![participantId,actorUserId,correlationId].every((v)=>uuid.test(v)))throw new AdminResearchWave4ServiceError("invalid");try{return await this.repository.get(participantId,actorUserId,correlationId);}catch(e){safe(e);}}
+ async presentConsent(enrollmentId:string,actorUserId:string,correlationId:string){if(![enrollmentId,actorUserId,correlationId].every((v)=>uuid.test(v)))throw new AdminResearchWave4ServiceError("invalid");try{return await this.repository.present(enrollmentId,actorUserId,correlationId);}catch(e){safe(e);}}
+ async attemptActivation(target:string,actorUserId:string,correlationId:string){if(![actorUserId,correlationId].every((v)=>uuid.test(v))||!["REAL_ENROLLMENT","REAL_EVIDENCE_COLLECTION","SOFT_LAUNCH_OPEN","PILOT","PRODUCTION"].includes(target))throw new AdminResearchWave4ServiceError("invalid");try{return await this.repository.attemptActivation(target,actorUserId,correlationId);}catch(e){safe(e);}}
+}
+export const adminResearchWave4Service=new AdminResearchWave4Service();
