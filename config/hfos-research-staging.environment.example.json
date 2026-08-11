@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0",
+  "environmentIdentity": "HFOS_RESEARCH_STAGING",
+  "environmentClass": "STAGING",
+  "bindingStatus": "BLOCKED_EXTERNAL_AUTHORITY",
+  "dataPolicy": "SYNTHETIC_ONLY",
+  "supabase": {
+    "requiredProjectName": "wpag-research-staging",
+    "projectRef": null,
+    "preferredRegion": "ap-south-1",
+    "productionProjectRefProhibited": "ujitsgycbnswvomlqetr",
+    "requiredSecretNames": [
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "SUPABASE_DB_PASSWORD"
+    ],
+    "credentialRules": {
+      "reuseProductionCredentials": false,
+      "commitSecretsToGit": false,
+      "serviceRoleClientExposure": false,
+      "custodyMethod": "UNRESOLVED_PENDING_OWNER_APPROVAL"
+    }
+  },
+  "applicationHosting": {
+    "provider": "VERCEL_INTENDED_NOT_BOUND",
+    "projectId": null,
+    "environment": "preview_or_staging",
+    "productionDomainMutationAllowed": false
+  },
+  "releaseControls": {
+    "softLaunchReleaseGate": "BLOCKED",
+    "realParticipantEvidenceCollection": "NOT_AUTHORIZED",
+    "actualParticipantEnrollment": "NOT_AUTHORIZED",
+    "pilot": "NOT_AUTHORIZED",
+    "production": "NOT_AUTHORIZED"
+  },
+  "analytics": {
+    "excludedPathPrefixes": [
+      "/participant",
+      "/admin"
+    ],
+    "participantResearchTransmissionAllowed": false
+  },
+  "migrationTarget": {
+    "requiredFinalMigration": "20260812010000_055_add_pre_soft_launch_request_routing.sql",
+    "expectedMigrationFileCount": 56,
+    "applicationStatus": "NOT_APPLIED_NO_STAGING_TARGET"
+  }
+}
