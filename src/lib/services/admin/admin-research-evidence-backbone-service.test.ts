@@ -1,0 +1,18 @@
+import { describe, expect, it, vi } from "vitest";
+vi.mock("@/lib/supabase/admin",()=>({supabaseAdmin:{rpc:vi.fn()}}));
+import { AdminResearchEvidenceBackboneService } from "./admin-research-evidence-backbone-service";
+
+const enrollmentId="10000000-0000-4000-8000-000000000001", actorUserId="20000000-0000-4000-8000-000000000001", correlationId="30000000-0000-4000-8000-000000000001";
+const repository={ createEvidence:vi.fn(), freezeSnapshot:vi.fn(), proposeOutcome:vi.fn(), completeBaseline:vi.fn(), createFollowUp:vi.fn(), completeFollowUp:vi.fn(), recordObservation:vi.fn(), verifyEvent:vi.fn(), adjudicateOutcome:vi.fn() };
+const service=()=>new AdminResearchEvidenceBackboneService(repository as never);
+const evidence={enrollmentId,family:"FSH" as const,actorUserId,purposeId:"PUR-01",sourceIdentity:"SYNTHETIC-1",sourceType:"SYSTEM_RECORDED" as const,observedAt:"2026-08-11T00:00:00Z",effectiveAt:"2026-08-11T00:00:00Z",valueState:"PRESENT" as const,governedValue:{value:10},provenance:{synthetic:true},correlationId};
+
+describe("AdminResearchEvidenceBackboneService",()=>{
+  it("accepts an explicit present value and forwards only the synthetic contract",async()=>{repository.createEvidence.mockResolvedValue({evidence_version_id:"x"}); await service().createEvidence(evidence); expect(repository.createEvidence).toHaveBeenCalledWith(evidence);});
+  it("requires exact confirmed zero rather than coercing missingness",async()=>{await expect(service().createEvidence({...evidence,valueState:"CONFIRMED_ZERO",governedValue:{value:1}})).rejects.toMatchObject({kind:"invalid"}); await expect(service().createEvidence({...evidence,valueState:"MISSING",governedValue:{value:0}})).rejects.toMatchObject({kind:"invalid"});});
+  it("accepts confirmed zero and governed missing without a value",async()=>{repository.createEvidence.mockResolvedValue({}); await service().createEvidence({...evidence,valueState:"CONFIRMED_ZERO",governedValue:{value:0}}); await service().createEvidence({...evidence,valueState:"MISSING",governedValue:{reason:"not supplied"}}); expect(repository.createEvidence).toHaveBeenCalledTimes(2);});
+  it("requires paired mature document and file-version adapters",async()=>{await expect(service().createEvidence({...evidence,assessmentDocumentId:"40000000-0000-4000-8000-000000000001"})).rejects.toMatchObject({kind:"invalid"});});
+  it("rejects duplicate or malformed snapshot manifests",async()=>{const id="40000000-0000-4000-8000-000000000001"; await expect(service().freezeSnapshot({enrollmentId,family:"FSH",actorUserId,snapshotKind:"BASELINE",evidenceVersionIds:[id,id],completeness:"COMPLETE",currentness:"CURRENT",correlationId})).rejects.toMatchObject({kind:"invalid"});});
+  it("rejects reserved and final-State outcome names before repository access",async()=>{for(const outcomeClass of ["NO_MATERIAL_OUTCOME_OBSERVED","Stable","Under Pressure","Fragile"]){await expect(service().proposeOutcome({enrollmentId,evaluationId:"40000000-0000-4000-8000-000000000001",family:"FSH",actorUserId,outcomeClass:outcomeClass as never,eventIds:["50000000-0000-4000-8000-000000000001"],reasonCode:"TEST",correlationId})).rejects.toMatchObject({kind:"invalid"});} expect(repository.proposeOutcome).not.toHaveBeenCalled();});
+  it("rejects reserved STRESS event leakage before repository access",async()=>{await expect(service().verifyEvent("40000000-0000-4000-8000-000000000001","50000000-0000-4000-8000-000000000001",actorUserId,"REPEATED_PRESSURE_MANIFESTATION" as never,"SUFFICIENT","TEST",correlationId)).rejects.toMatchObject({kind:"invalid"}); expect(repository.verifyEvent).not.toHaveBeenCalled();});
+});

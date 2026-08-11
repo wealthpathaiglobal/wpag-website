@@ -1,0 +1,8 @@
+import { beforeEach,describe,expect,it,vi } from "vitest";
+const mocks=vi.hoisted(()=>({rpc:vi.fn()})); vi.mock("@/lib/supabase/admin",()=>({supabaseAdmin:{rpc:mocks.rpc}}));
+import { AdminResearchEvidenceBackboneRepository,ResearchEvidenceBackboneRepositoryError } from "./admin-research-evidence-backbone-repository";
+const enrollmentId="10000000-0000-4000-8000-000000000001",actorUserId="20000000-0000-4000-8000-000000000001",correlationId="30000000-0000-4000-8000-000000000001";
+describe("AdminResearchEvidenceBackboneRepository",()=>{beforeEach(()=>vi.resetAllMocks());
+it("maps the complete evidence RPC contract",async()=>{mocks.rpc.mockResolvedValue({data:[{evidence_item_id:"i",evidence_version_id:"v",evaluation_id:"e"}],error:null}); await new AdminResearchEvidenceBackboneRepository().createEvidence({enrollmentId,family:"FSH",actorUserId,purposeId:"PUR-01",sourceIdentity:"SYNTHETIC",sourceType:"SYSTEM_RECORDED",observedAt:"2026-08-11",effectiveAt:"2026-08-11",valueState:"MISSING",governedValue:{},provenance:{synthetic:true},correlationId}); expect(mocks.rpc).toHaveBeenCalledWith("create_synthetic_research_evidence",expect.objectContaining({p_enrollment_id:enrollmentId,p_evaluation_id:null,p_value_state:"MISSING",p_assessment_document_id:null,p_file_version_history_id:null}));});
+it("does not expose database diagnostics",async()=>{mocks.rpc.mockResolvedValue({data:null,error:{code:"XX000",message:"private row detail"}}); const promise=new AdminResearchEvidenceBackboneRepository().createFollowUp(enrollmentId,"FSH",actorUserId,"40000000-0000-4000-8000-000000000001",correlationId); await expect(promise).rejects.toBeInstanceOf(ResearchEvidenceBackboneRepositoryError); await expect(promise).rejects.not.toThrow("private row detail");});
+});
