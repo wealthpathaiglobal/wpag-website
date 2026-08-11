@@ -3,9 +3,11 @@ import Link from "next/link";
 import LifecycleActionPanel from "@/components/admin/LifecycleActionPanel";
 import ParticipantInvitationPanel from "@/components/admin/ParticipantInvitationPanel";
 import HfosMeasurementFoundationCard from "@/components/admin/HfosMeasurementFoundationCard";
+import ResearchControlsFoundationCard from "@/components/admin/ResearchControlsFoundationCard";
 import { requireRole } from "@/lib/auth/authorization";
 import { getParticipantDetail } from "@/lib/services/admin/admin-participant-detail-service";
 import { adminEvidenceFoundationService } from "@/lib/services/admin/admin-evidence-foundation-service";
+import { adminResearchControlsService } from "@/lib/services/admin/admin-research-controls-service";
 
 interface ParticipantDetailPageProps {
   params: Promise<{
@@ -95,6 +97,10 @@ export default async function ParticipantDetailPage({
   const evidence = await adminEvidenceFoundationService.list(
     staff.auth_user_id,
     { participantId },
+  );
+  const researchControls = await adminResearchControlsService.getStatus(
+    participantId,
+    staff.auth_user_id,
   );
 
   return (
@@ -200,6 +206,8 @@ export default async function ParticipantDetailPage({
         </section>
 
         <HfosMeasurementFoundationCard summary={measurementSummary} />
+
+        <ResearchControlsFoundationCard status={researchControls} />
 
         <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-6" aria-label="Participant evidence">
           <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">Evidence</h2><p className="mt-1 text-sm text-white/45">Governed assessment evidence and current verification status.</p></div><Link href="/admin/evidence" className="text-sm text-sky-300">Open Evidence Queue</Link></div>
