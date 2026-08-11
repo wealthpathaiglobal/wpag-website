@@ -4,6 +4,8 @@ import { getCurrentUser } from "@/lib/auth/current-participant";
 import { participantResearchJourneyService } from "@/lib/services/participant/participant-research-journey-service";
 import ControlledResearchConsentPresentation from "@/components/participant/research/ControlledResearchConsentPresentation";
 import ResearchParticipationActions from "./ResearchParticipationActions";
+import ParticipantResearchRequestPanel from "@/components/participant/research/ParticipantResearchRequestPanel";
+import { participantResearchControlsService } from "@/lib/services/participant/participant-research-controls-service";
 
 function label(value: string) {
   return value.toLowerCase().split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
@@ -13,6 +15,7 @@ export default async function ResearchParticipationPage() {
   const participant = await requireParticipantAccess("/participant/research-participation");
   const user = await getCurrentUser();
   const journey = await participantResearchJourneyService.get(participant.participant_id, user.id);
+  const requests = journey ? await participantResearchControlsService.listRequests(participant.participant_id, user.id) : [];
   return <main className="min-h-screen bg-[#f4f2ed] px-5 py-10 text-black sm:px-8"><div className="mx-auto max-w-4xl">
     <Link href="/participant/dashboard" className="text-sm underline">Back to dashboard</Link>
     <p className="mt-10 text-xs font-semibold uppercase tracking-[0.24em]">Synthetic research readiness · factual status only</p>
@@ -38,6 +41,7 @@ export default async function ResearchParticipationPage() {
           presentedAt: journey.consentPresentedAt,
         } : null}
       />
+      <ParticipantResearchRequestPanel requests={requests} />
     </>}
   </div></main>;
 }

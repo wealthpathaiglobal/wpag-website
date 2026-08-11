@@ -6,6 +6,7 @@ import HfosMeasurementFoundationCard from "@/components/admin/HfosMeasurementFou
 import ResearchControlsFoundationCard from "@/components/admin/ResearchControlsFoundationCard";
 import ResearchWave3GovernanceCard from "@/components/admin/ResearchWave3GovernanceCard";
 import ResearchWave4ReadinessCard from "@/components/admin/ResearchWave4ReadinessCard";
+import ResearchParticipantRequestPanel from "@/components/admin/ResearchParticipantRequestPanel";
 import { randomUUID } from "node:crypto";
 import { requireRole } from "@/lib/auth/authorization";
 import { getParticipantDetail } from "@/lib/services/admin/admin-participant-detail-service";
@@ -107,6 +108,7 @@ export default async function ParticipantDetailPage({
     participantId,
     staff.auth_user_id,
   );
+  const researchRequests = await adminResearchControlsService.listRequests(participantId, staff.auth_user_id);
   const researchWave3 = await adminResearchWave3Service.getOverview(participantId, staff.auth_user_id);
   const researchWave4 = await adminResearchWave4Service.getOverview(participantId, staff.auth_user_id, randomUUID());
 
@@ -215,6 +217,8 @@ export default async function ParticipantDetailPage({
         <HfosMeasurementFoundationCard summary={measurementSummary} />
 
         <ResearchControlsFoundationCard status={researchControls} />
+
+        <ResearchParticipantRequestPanel participantId={participantId} requests={researchRequests} />
 
         <ResearchWave3GovernanceCard overview={researchWave3} />
 

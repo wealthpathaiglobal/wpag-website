@@ -10,11 +10,29 @@ export const withdrawalStates = [
 
 export const gateStates = ["OPEN", "BLOCKED", "UNRESOLVED"] as const;
 export const researchFamilies = ["FSH", "MGN", "RUNWAY", "STRESS"] as const;
+export const participantRequestTypes = ["ACCESS_REQUEST", "CORRECTION_REQUEST", "PRIVACY_QUESTION", "COMPLAINT_INCIDENT"] as const;
+export const participantRequestStatuses = ["RECEIVED", "ROUTED", "IN_REVIEW", "COMPLETED", "ESCALATED"] as const;
+export const participantRequestRoutes = ["PRIVACY_OPERATIONS", "EVIDENCE_CORRECTION", "WITHDRAWAL_OPERATIONS", "INCIDENT_OPERATIONS"] as const;
 
 export type ConsentState = (typeof consentStates)[number];
 export type WithdrawalState = (typeof withdrawalStates)[number];
 export type GateState = (typeof gateStates)[number];
 export type ResearchFamily = (typeof researchFamilies)[number];
+export type ParticipantRequestType = (typeof participantRequestTypes)[number];
+export type ParticipantRequestStatus = (typeof participantRequestStatuses)[number];
+export type ParticipantRequestRoute = (typeof participantRequestRoutes)[number];
+
+export type ParticipantResearchRequest = {
+  requestEventId: string;
+  requestType: ParticipantRequestType;
+  requestStatus: ParticipantRequestStatus;
+  submittedAt: string;
+};
+
+export type AdminResearchRequest = ParticipantResearchRequest & {
+  routingClass: ParticipantRequestRoute;
+  details: string;
+};
 
 export type ResearchControlsStatus = {
   researchIdentityId: string;

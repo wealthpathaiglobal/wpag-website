@@ -1,5 +1,6 @@
 import { adminResearchControlsRepository, ResearchControlsRepositoryError } from "@/lib/repositories/admin/admin-research-controls-repository";
 import type { CreateResearchFoundationInput, ResearchFamily } from "@/lib/types/research/research-controls";
+import { participantRequestRoutes, participantRequestStatuses, type ParticipantRequestRoute, type ParticipantRequestStatus } from "@/lib/types/research/research-controls";
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -31,6 +32,19 @@ export class AdminResearchControlsService {
   async getStatus(participantId: string, actorUserId: string, family: ResearchFamily = "FSH") {
     if (!uuid.test(participantId) || !uuid.test(actorUserId)) throw new ResearchControlsServiceError("invalid");
     try { return await adminResearchControlsRepository.getStatus(participantId, actorUserId, family); }
+    catch (error) { safe(error); }
+  }
+
+  async listRequests(participantId: string, actorUserId: string) {
+    if (!uuid.test(participantId) || !uuid.test(actorUserId)) throw new ResearchControlsServiceError("invalid");
+    try { return await adminResearchControlsRepository.listRequests(participantId, actorUserId); }
+    catch (error) { safe(error); }
+  }
+
+  async routeRequest(input: { requestEventId: string; actorUserId: string; targetStatus: ParticipantRequestStatus; routingClass: ParticipantRequestRoute; internalNote: string; correlationId: string }) {
+    const note = input.internalNote.trim();
+    if (![input.requestEventId, input.actorUserId, input.correlationId].every((value) => uuid.test(value)) || !participantRequestStatuses.includes(input.targetStatus) || input.targetStatus === "RECEIVED" || !participantRequestRoutes.includes(input.routingClass) || !/^[A-Z][A-Z0-9_]{2,79}$/.test(note)) throw new ResearchControlsServiceError("invalid");
+    try { return await adminResearchControlsRepository.routeRequest({ ...input, internalNote: note }); }
     catch (error) { safe(error); }
   }
 }

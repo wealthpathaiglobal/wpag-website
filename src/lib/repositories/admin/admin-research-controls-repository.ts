@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
-  consentStates, gateStates, researchFamilies, withdrawalStates,
-  type CreateResearchFoundationInput, type ResearchControlsStatus, type ResearchFamily,
+  consentStates, gateStates, participantRequestRoutes, participantRequestStatuses, participantRequestTypes, researchFamilies, withdrawalStates,
+  type AdminResearchRequest, type CreateResearchFoundationInput, type ParticipantRequestRoute, type ParticipantRequestStatus, type ParticipantRequestType, type ResearchControlsStatus, type ResearchFamily,
 } from "@/lib/types/research/research-controls";
 
 const authority = {
@@ -23,6 +23,7 @@ type EnrollmentRow = {
   enrollment_id: string; research_identity_id: string; research_id: string;
   lifecycle_status: string; activation_status: string; created_at: string;
 };
+type AdminRequestRow = { request_event_id: string; request_type: string; request_status: string; routing_class: string; details: string; submitted_at: string };
 
 export class ResearchControlsRepositoryError extends Error {
   constructor(readonly kind: "unauthorized" | "invalid" | "unexpected") {
@@ -103,6 +104,25 @@ export class AdminResearchControlsRepository {
     if (error) fail(error);
     const row = ((data ?? []) as StatusRow[])[0];
     return row ? mapResearchControlsStatus(row) : null;
+  }
+
+  async listRequests(participantId: string, actorUserId: string): Promise<AdminResearchRequest[]> {
+    const { data, error } = await supabaseAdmin.rpc("list_admin_research_requests", { p_participant_id: participantId, p_actor_user_id: actorUserId });
+    if (error) fail(error);
+    return ((data ?? []) as AdminRequestRow[]).map((row) => {
+      if (!participantRequestTypes.includes(row.request_type as never) || !participantRequestStatuses.includes(row.request_status as never) || !participantRequestRoutes.includes(row.routing_class as never)) throw new ResearchControlsRepositoryError("unexpected");
+      return { requestEventId: row.request_event_id, requestType: row.request_type as ParticipantRequestType, requestStatus: row.request_status as ParticipantRequestStatus, routingClass: row.routing_class as ParticipantRequestRoute, details: row.details, submittedAt: row.submitted_at };
+    });
+  }
+
+  async routeRequest(input: { requestEventId: string; actorUserId: string; targetStatus: ParticipantRequestStatus; routingClass: ParticipantRequestRoute; internalNote: string; correlationId: string }) {
+    const { data, error } = await supabaseAdmin.rpc("route_research_participant_request", {
+      p_request_event_id: input.requestEventId, p_actor_user_id: input.actorUserId, p_target_status: input.targetStatus, p_routing_class: input.routingClass, p_internal_note: input.internalNote, p_correlation_id: input.correlationId,
+    });
+    if (error) fail(error);
+    const row = ((data ?? []) as Array<{ routing_event_id: string; request_status: string }>)[0];
+    if (!row || row.request_status !== input.targetStatus) throw new ResearchControlsRepositoryError("unexpected");
+    return { routingEventId: row.routing_event_id, requestStatus: input.targetStatus };
   }
 }
 

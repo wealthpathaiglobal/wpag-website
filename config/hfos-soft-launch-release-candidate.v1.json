@@ -1,0 +1,43 @@
+{
+  "configurationVersion": "HFOS-SOFT-LAUNCH-RC-v1",
+  "classification": "CONTROLLED RELEASE-CANDIDATE CONFIGURATION / NON-EXECUTABLE",
+  "targetEnvironment": "UNRESOLVED",
+  "cohortPurpose": "OPERATIONAL_FEASIBILITY_EXPLORATORY_ONLY",
+  "cohortSizeAuthority": "NOT_AUTHORIZED",
+  "gateStatus": "BLOCKED",
+  "gateMayBeChangedByThisArtifact": false,
+  "requiredIndependentDecision": "INDEPENDENT_SOFT_LAUNCH_RELEASE_REVIEW",
+  "prerequisites": [
+    { "id": "SLR-01", "status": "PARTIALLY_CLOSED" },
+    { "id": "SLR-02", "status": "LEGAL_REVIEW_REQUIRED_BEFORE_PARTICIPANT" },
+    { "id": "SLR-03", "status": "LEGAL_REVIEW_REQUIRED_BEFORE_PARTICIPANT" },
+    { "id": "SLR-04", "status": "LEGAL_REVIEW_REQUIRED_BEFORE_PARTICIPANT" },
+    { "id": "SLR-05", "status": "PARTIALLY_CLOSED" },
+    { "id": "SLR-06", "status": "LEGAL_REVIEW_REQUIRED_BEFORE_PARTICIPANT" },
+    { "id": "SLR-07", "status": "LEGAL_REVIEW_REQUIRED_BEFORE_PARTICIPANT" },
+    { "id": "SLR-08", "status": "LEGAL_REVIEW_REQUIRED_BEFORE_PARTICIPANT" },
+    { "id": "SLR-09", "status": "CLOSED" },
+    { "id": "SLR-10", "status": "CLOSED" },
+    { "id": "SLR-11", "status": "PARTIALLY_CLOSED" },
+    { "id": "SLR-12", "status": "PARTIALLY_CLOSED" },
+    { "id": "SLR-13", "status": "CLOSED" },
+    { "id": "SLR-14", "status": "CLOSED_BY_CONTROLLED_MANUAL_SCOPE" },
+    { "id": "SLR-15", "status": "CLOSED" },
+    { "id": "SLR-16", "status": "CLOSED" },
+    { "id": "SLR-17", "status": "NOT_CLOSED" },
+    { "id": "SLR-18", "status": "CLOSED" },
+    { "id": "SLR-19", "status": "PARTIALLY_CLOSED" },
+    { "id": "SLR-20", "status": "PARTIALLY_CLOSED" },
+    { "id": "SLR-21", "status": "CLOSED" },
+    { "id": "SLR-22", "status": "CLOSED" },
+    { "id": "SLR-23", "status": "CLOSED" },
+    { "id": "SLR-24", "status": "PARTIALLY_CLOSED" }
+  ],
+  "requiredAuthorityStatements": {
+    "realParticipantEvidenceCollection": "NOT_AUTHORIZED",
+    "actualParticipantEnrollment": "NOT_AUTHORIZED",
+    "pilot": "NOT_AUTHORIZED",
+    "production": "NOT_AUTHORIZED",
+    "aiParticipantDataProcessing": "NOT_AUTHORIZED"
+  }
+}

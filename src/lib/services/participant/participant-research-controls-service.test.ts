@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getStatus: vi.fn(), requestWithdrawal: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getStatus: vi.fn(), requestWithdrawal: vi.fn(), listRequests: vi.fn(), submitRequest: vi.fn() }));
 vi.mock("@/lib/repositories/participant/participant-research-controls-repository", () => ({
   participantResearchControlsRepository: mocks,
 }));
@@ -36,5 +36,17 @@ describe("ParticipantResearchControlsService", () => {
   it("rejects invalid identifiers and oversized text", async () => {
     await expect(new ParticipantResearchControlsService().requestWithdrawal({ participantId: "bad", actorUserId, correlationId })).rejects.toBeInstanceOf(ParticipantResearchControlsServiceError);
     await expect(new ParticipantResearchControlsService().requestWithdrawal({ participantId, actorUserId, correlationId, reason: "x".repeat(2001) })).rejects.toMatchObject({ kind: "invalid" });
+  });
+
+  it("submits an owned governed participant request with normalized text", async () => {
+    mocks.submitRequest.mockResolvedValue({ requestStatus: "RECEIVED" });
+    await expect(new ParticipantResearchControlsService().submitRequest({ participantId, actorUserId, correlationId, requestType: "PRIVACY_QUESTION", details: "  explain handling  " })).resolves.toMatchObject({ requestStatus: "RECEIVED" });
+    expect(mocks.submitRequest).toHaveBeenCalledWith({ enrollmentId: status.enrollmentId, actorUserId, requestType: "PRIVACY_QUESTION", details: "explain handling", correlationId });
+  });
+
+  it("rejects empty or oversized governed request details", async () => {
+    await expect(new ParticipantResearchControlsService().submitRequest({ participantId, actorUserId, correlationId, requestType: "ACCESS_REQUEST", details: " " })).rejects.toMatchObject({ kind: "invalid" });
+    await expect(new ParticipantResearchControlsService().submitRequest({ participantId, actorUserId, correlationId, requestType: "ACCESS_REQUEST", details: "x".repeat(4001) })).rejects.toMatchObject({ kind: "invalid" });
+    expect(mocks.submitRequest).not.toHaveBeenCalled();
   });
 });
