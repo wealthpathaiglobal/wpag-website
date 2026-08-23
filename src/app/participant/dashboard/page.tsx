@@ -1,20 +1,12 @@
 import ParticipantDashboardClient from "./ParticipantDashboardClient";
+import { connection } from "next/server";
 
-import { requireParticipantAccess } from "@/lib/auth/participant-access";
-import { getCurrentUser } from "@/lib/auth/current-participant";
-import { participantEvidenceDashboardStatus, participantEvidenceFoundationService } from "@/lib/services/participant/participant-evidence-foundation-service";
-import { listParticipantPreliminaryReports } from "@/lib/services/participant/participant-preliminary-report-service";
-import { participantResearchJourneyService } from "@/lib/services/participant/participant-research-journey-service";
+import { participantEvidenceDashboardStatus } from "@/lib/services/participant/participant-evidence-foundation-service";
+import { loadParticipantDashboardData } from "@/lib/services/participant/participant-dashboard-loader";
 
 export default async function ParticipantDashboardPage() {
-  const participant = await requireParticipantAccess("/participant/dashboard");
-  const user = await getCurrentUser();
-  const [reports, evidence, journey] = await Promise.all([
-    listParticipantPreliminaryReports(),
-    participantEvidenceFoundationService.list(user.id),
-    participantResearchJourneyService.get(participant.participant_id, user.id),
-  ]);
-
+  await connection();
+  const { participant, reports, evidence, journey } = await loadParticipantDashboardData();
   return (
     <ParticipantDashboardClient
       participantCode={participant.participant_code}

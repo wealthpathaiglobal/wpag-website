@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/browser";
-import { getSafeInternalPath } from "@/lib/auth/safe-redirect";
+import { signInParticipantAndNavigate } from "@/lib/auth/participant-login-flow";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,11 +29,13 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    const { error: signInError } =
-      await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password,
-      });
+    const { error: signInError } = await signInParticipantAndNavigate({
+      supabase,
+      router,
+      email: normalizedEmail,
+      password,
+      requestedNext: new URLSearchParams(window.location.search).get("next"),
+    });
 
     if (signInError) {
       setError(
@@ -45,13 +47,6 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-
-    const next = getSafeInternalPath(
-      new URLSearchParams(window.location.search).get("next"),
-      "/participant/dashboard",
-    );
-    router.replace(next);
-    router.refresh();
   }
 
   return (

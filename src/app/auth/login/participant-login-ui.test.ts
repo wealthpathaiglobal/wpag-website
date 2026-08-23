@@ -16,4 +16,9 @@ describe("participant login orientation", () => {
     expect(source).toContain('role="status"');
     expect(source).toContain("Signing in…");
   });
+
+  it("delegates successful authentication to the single-navigation flow", () => {
+    expect(source).toContain("signInParticipantAndNavigate");
+    expect(source).not.toContain("router.refresh()");
+  });
 });
