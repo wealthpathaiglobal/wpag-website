@@ -53,9 +53,9 @@ describe("participant dashboard governed control policy", () => {
     ]);
     expect(policy.controls.filter((control) => !control.available).every((control) => control.href === null)).toBe(true);
     expect(policy.assessmentAvailable).toBe(false);
-    expect(policy.journey[0]).toEqual({ title: "Participant lifecycle", status: "Pending Enrollment", complete: false });
-    expect(policy.gateSummary).toContainEqual(["Privacy gate", "Unresolved"]);
-    expect(policy.gateSummary).toContainEqual(["Soft-launch release gate", "Blocked"]);
+    expect(policy.journey[0]).toEqual({ title: "Enrollment", status: "Enrollment pending", complete: false });
+    expect(policy.gateSummary).toContainEqual(["Privacy review", "Review pending", "UNRESOLVED"]);
+    expect(policy.gateSummary).toContainEqual(["Portal release", "Not available yet", "BLOCKED"]);
   });
 
   it("enables only implemented lifecycle-permitted modules for an active participant", () => {
@@ -68,7 +68,7 @@ describe("participant dashboard governed control policy", () => {
       ["reports", "/participant/reports"],
     ]);
     expect(policy.controls.filter((control) => ["tasks", "schedule", "messages", "documents"].includes(control.id)).every((control) => control.href === null)).toBe(true);
-    expect(policy.journey[0]).toEqual({ title: "Participant lifecycle", status: "Active", complete: true });
+    expect(policy.journey[0]).toEqual({ title: "Enrollment", status: "Active", complete: true });
   });
 
   it("renders pending controls without masked-404 links or stale enrollment actions", () => {
@@ -81,8 +81,10 @@ describe("participant dashboard governed control policy", () => {
     expect(markup).not.toMatch(/\/participant\/(tasks|follow-ups|messages|documents|enrollment-confirmation|progress)/);
     expect(markup).not.toContain("Return to Enrollment");
     expect(markup).toContain("Assessment Unavailable");
-    expect(markup).toContain("Enrollment is not complete");
+    expect(markup).toContain("Your enrollment is pending.");
     expect(markup).not.toContain("Enrollment — Completed");
+    expect(markup).toContain("What happens next");
+    expect(markup).toContain("Detailed status information");
   });
 
   it("renders active assessment and evidence links while retaining unavailable placeholders", () => {

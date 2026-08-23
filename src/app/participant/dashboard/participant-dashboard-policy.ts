@@ -45,6 +45,28 @@ function label(value: string) {
     .join(" ");
 }
 
+function participantState(value: string) {
+  const states: Record<string, string> = {
+    pending_enrollment: "Enrollment pending",
+    active: "Active",
+    paused: "Temporarily paused",
+    completed: "Complete",
+    withdrawn: "Withdrawn",
+    archived: "Archived",
+    not_enrolled: "Not enrolled in research",
+    enrolled: "Participating in research",
+    NOT_PRESENTED: "Information not yet presented",
+    PRESENTED: "Ready for your choice",
+    GRANTED: "Consent given",
+    DECLINED: "Consent declined",
+    UNRESOLVED: "Review pending",
+    OPEN: "Available",
+    BLOCKED: "Not available yet",
+    SUPPRESSED: "Results not available",
+  };
+  return states[value] ?? label(value);
+}
+
 export function getParticipantDashboardPolicy(
   input: ParticipantDashboardPolicyInput,
 ) {
@@ -59,28 +81,28 @@ export function getParticipantDashboardPolicy(
       number: "00",
       title: "Research participation",
       description:
-        "View factual research, consent, privacy, FSH-output, and release status.",
-      status: `Consent ${label(input.consentStatus)} · Privacy ${label(input.privacyGate)}`,
+        "See your research participation status, key rights, privacy position, and available choices.",
+      status: participantState(input.consentStatus),
       buttonLabel: "Open Research Status",
       href: "/participant/research-participation",
       available: true,
       mode: "contains_writes",
       notice: input.consentActionAvailable
-        ? "A governed consent decision is available on the destination page."
-        : "Consent and withdrawal actions are unavailable. The governed questions and complaints intake remains a write action.",
+        ? "Your research information is ready for review and a choice is available on the next page."
+        : "You can view your status and send a question. Consent and withdrawal choices are not currently available.",
     },
     {
       id: "profile",
       number: "01",
       title: "Participant profile",
-      description: "View the participant profile associated with this account.",
+      description: "Review your contact, household, and emergency-contact information.",
       status: input.profileCompleted ? "Profile complete" : "Profile incomplete",
       buttonLabel: profileAvailable ? "View Profile" : "Profile Unavailable",
       href: profileAvailable ? "/participant/profile" : null,
       available: profileAvailable,
       mode: profileAvailable ? "contains_writes" : "unavailable",
       notice: profileAvailable
-        ? "Viewing is available. Saving or completing the profile changes stored participant data."
+        ? "Viewing is available. Save Progress and Complete Profile update your profile only when you choose them."
         : "Profile access is unavailable for the current lifecycle.",
     },
     {
@@ -89,14 +111,14 @@ export function getParticipantDashboardPolicy(
       title: "HFOS assessment",
       description:
         "Access the governed, non-diagnostic participant assessment when lifecycle authority permits.",
-      status: active ? "Available for active lifecycle" : "Requires active lifecycle",
+      status: active ? "Available now" : "Available after enrollment",
       buttonLabel: active ? "Open Assessment" : "Assessment Unavailable",
       href: active ? "/participant/assessment" : null,
       available: active,
       mode: active ? "contains_writes" : "unavailable",
       notice: active
-        ? "Starting or editing an assessment writes participant-provided assessment data."
-        : "Assessment access remains blocked by the current participant lifecycle.",
+        ? "Starting or editing an assessment saves the information you provide."
+        : "You cannot start the assessment until your enrollment is active.",
     },
     {
       id: "evidence",
@@ -104,14 +126,14 @@ export function getParticipantDashboardPolicy(
       title: "Evidence submissions",
       description:
         "Access governed private evidence only when lifecycle and assessment context permit.",
-      status: active ? input.evidenceStatus : "Requires active lifecycle",
+      status: active ? input.evidenceStatus : "Available after enrollment",
       buttonLabel: active ? "Open Evidence" : "Evidence Unavailable",
       href: active ? "/participant/evidence" : null,
       available: active,
       mode: active ? "contains_writes" : "unavailable",
       notice: active
-        ? "Evidence upload creates governed evidence and immutable version records."
-        : "Evidence access remains blocked; no upload action is available.",
+        ? "Uploading a file creates a protected evidence record and keeps its version history."
+        : "You cannot view or upload evidence until your enrollment is active.",
     },
     {
       id: "tasks",
@@ -123,7 +145,7 @@ export function getParticipantDashboardPolicy(
       href: null,
       available: false,
       mode: "unavailable",
-      notice: "No governed participant-tasks route exists in this release.",
+      notice: "Tasks will appear here when this feature becomes available.",
     },
     {
       id: "schedule",
@@ -135,7 +157,7 @@ export function getParticipantDashboardPolicy(
       href: null,
       available: false,
       mode: "unavailable",
-      notice: "No governed participant-schedule route exists in this release.",
+      notice: "Follow-up dates will appear here when scheduling becomes available.",
     },
     {
       id: "messages",
@@ -147,7 +169,7 @@ export function getParticipantDashboardPolicy(
       href: null,
       available: false,
       mode: "unavailable",
-      notice: "No governed participant-messaging route exists in this release.",
+      notice: "Portal messaging is not available yet.",
     },
     {
       id: "documents",
@@ -159,26 +181,26 @@ export function getParticipantDashboardPolicy(
       href: null,
       available: false,
       mode: "unavailable",
-      notice: "No governed general participant-documents route exists in this release.",
+      notice: "A general documents area is not available yet.",
     },
     {
       id: "reports",
       number: "08",
-      title: "Progress and reports",
+      title: "Reports",
       description: "View reports released through the governed report lifecycle.",
       status: input.reportAvailable ? "Released report available" : "No released report available",
       buttonLabel: "View Reports",
       href: "/participant/reports",
       available: true,
       mode: "read_only",
-      notice: "Only formally released reports are visible. Viewing does not change participant data.",
+      notice: "Only reports made available to you are shown. Viewing does not change your information.",
     },
   ];
 
   const journey: ParticipantDashboardJourneyStage[] = [
     {
-      title: "Participant lifecycle",
-      status: label(input.lifecycleStatus),
+      title: "Enrollment",
+      status: participantState(input.lifecycleStatus),
       complete: ["active", "completed"].includes(input.lifecycleStatus),
     },
     {
@@ -188,27 +210,27 @@ export function getParticipantDashboardPolicy(
     },
     {
       title: "Research participation",
-      status: label(input.researchStatus),
+      status: participantState(input.researchStatus),
       complete: ["enrolled", "completed"].includes(input.researchStatus),
     },
     {
       title: "Research consent",
-      status: `${label(input.consentStatus)} · Gate ${label(input.consentGate)}`,
+      status: participantState(input.consentStatus),
       complete: input.consentStatus === "GRANTED" && input.consentGate === "OPEN",
     },
     {
-      title: "Privacy authority",
-      status: label(input.privacyGate),
+      title: "Privacy review",
+      status: participantState(input.privacyGate),
       complete: input.privacyGate === "OPEN",
     },
     {
-      title: "FSH participant output",
-      status: label(input.fshOutputStatus),
+      title: "Research results",
+      status: participantState(input.fshOutputStatus),
       complete: false,
     },
     {
-      title: "Soft-launch release",
-      status: label(input.softLaunchReleaseGate),
+      title: "Portal release",
+      status: participantState(input.softLaunchReleaseGate),
       complete: input.softLaunchReleaseGate === "OPEN",
     },
   ];
@@ -218,17 +240,20 @@ export function getParticipantDashboardPolicy(
     journey,
     assessmentAvailable: active,
     enrollmentNotice: active
-      ? "Participant lifecycle is active. Writable modules remain subject to their own governed server checks."
-      : `Participant lifecycle is ${label(input.lifecycleStatus)}. Enrollment, assessment, and evidence actions remain unavailable.`,
+      ? "Your enrollment is active. You can continue with the available items below."
+      : `${participantState(input.lifecycleStatus)}. Assessment and evidence are not available yet.`,
+    nextStep: active
+      ? "Continue your assessment when you are ready. Evidence options appear only within an eligible assessment."
+      : "Review your profile and research participation status. Assessment and evidence access begin only after enrollment is activated.",
     gateSummary: [
-      ["Participant lifecycle", label(input.lifecycleStatus)],
-      ["Research status", label(input.researchStatus)],
-      ["Consent", label(input.consentStatus)],
-      ["Consent gate", label(input.consentGate)],
-      ["Privacy gate", label(input.privacyGate)],
-      ["Enrollment and evidence gate", label(input.wave1Gate)],
-      ["FSH participant output", label(input.fshOutputStatus)],
-      ["Soft-launch release gate", label(input.softLaunchReleaseGate)],
+      ["Enrollment", participantState(input.lifecycleStatus), input.lifecycleStatus],
+      ["Research participation", participantState(input.researchStatus), input.researchStatus],
+      ["Consent", participantState(input.consentStatus), input.consentStatus],
+      ["Consent availability", participantState(input.consentGate), input.consentGate],
+      ["Privacy review", participantState(input.privacyGate), input.privacyGate],
+      ["Enrollment and evidence", participantState(input.wave1Gate), input.wave1Gate],
+      ["Research results", participantState(input.fshOutputStatus), input.fshOutputStatus],
+      ["Portal release", participantState(input.softLaunchReleaseGate), input.softLaunchReleaseGate],
     ] as const,
   };
 }
