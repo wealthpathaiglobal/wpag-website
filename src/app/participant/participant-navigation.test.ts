@@ -18,7 +18,7 @@ describe("participant journey navigation", () => {
 
   it("keeps Step 04 behind administrator review", () => {
     const submitted = source("src/app/participant/application-submitted/page.tsx");
-    expect(submitted).toContain("Administrator eligibility review pending");
+    expect(submitted).toContain("Application status is not verified on this page.");
     expect(submitted).toContain('href="/participant/information"');
     expect(submitted).not.toContain("/participant/verify-contact");
   });

@@ -414,11 +414,7 @@ export default function ParticipantApplicationPage() {
         return;
       }
 
-      router.push(
-        `/participant/application-submitted?code=${encodeURIComponent(
-          result.applicationCode,
-        )}`,
-      );
+      router.push("/participant/application-submitted");
     } catch (error) {
       console.error(
         "[WPAG Participant Application] Submission failed",

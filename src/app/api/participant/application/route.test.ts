@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/services/participant/application-service", () => ({
   submitApplication: vi.fn(),
@@ -28,6 +28,7 @@ function requestWithJson(value: unknown, headers?: HeadersInit): Request {
 }
 
 beforeEach(() => {
+  vi.stubEnv("SOFT_LAUNCH_RELEASE_GATE", "OPEN");
   submitApplicationMock.mockResolvedValue({
     success: false,
     type: "validation_error",
@@ -36,7 +37,37 @@ beforeEach(() => {
   });
 });
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 describe("participant application POST route", () => {
+  it.each(["BLOCKED", "UNRESOLVED", "open", ""])(
+    "fails closed before the service boundary when the release gate is %j",
+    async (releaseGate) => {
+      vi.stubEnv("SOFT_LAUNCH_RELEASE_GATE", releaseGate);
+
+      const response = await POST(requestWithJson(validBody) as never);
+
+      expect(response.status).toBe(503);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      await expect(response.json()).resolves.toEqual({
+        success: false,
+        message: "Participant applications are not currently open.",
+      });
+      expect(submitApplicationMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("fails closed when the release gate is missing", async () => {
+    vi.stubEnv("SOFT_LAUNCH_RELEASE_GATE", undefined);
+
+    const response = await POST(requestWithJson(validBody) as never);
+
+    expect(response.status).toBe(503);
+    expect(submitApplicationMock).not.toHaveBeenCalled();
+  });
+
   it("returns 400 for malformed JSON", async () => {
     const request = new Request(
       "http://localhost/api/participant/application",

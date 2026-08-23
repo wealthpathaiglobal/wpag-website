@@ -2,7 +2,10 @@ import { isIP } from "node:net";
 
 import { NextRequest, NextResponse } from "next/server";
 
+import { isPublicParticipationReleaseOpen } from "@/lib/governance/public-participation-release-gate";
 import { submitApplication } from "@/lib/services/participant/application-service";
+
+export const dynamic = "force-dynamic";
 
 function normalizeSourceIp(value: string | null): string | null {
   const candidate = value?.split(",")[0]?.trim() ?? "";
@@ -15,6 +18,21 @@ function normalizeUserAgent(value: string | null): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isPublicParticipationReleaseOpen()) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Participant applications are not currently open.",
+      },
+      {
+        status: 503,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
+    );
+  }
+
   let body: unknown;
 
   try {
