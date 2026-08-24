@@ -92,6 +92,35 @@ describe("admin streamed rendering policy", () => {
     ]);
   });
 
+  it("groups exactly three operational destinations before four static system summaries", async () => {
+    const {
+      AdminDashboardCardGroups,
+      ADMIN_DASHBOARD_OPERATIONAL_CARDS,
+      ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS,
+    } = await import("./dashboard/page");
+    const markup = renderToStaticMarkup(AdminDashboardCardGroups({
+      operationalQueues: <>{ADMIN_DASHBOARD_OPERATIONAL_CARDS.map((card) => <a key={card.href} data-dashboard-card="operational" href={card.href}>{card.label}</a>)}</>,
+      systemSummary: <>{ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS.map((label) => <article key={label} data-dashboard-card="summary">{label}</article>)}</>,
+    }));
+
+    expect(ADMIN_DASHBOARD_OPERATIONAL_CARDS).toEqual([
+      { label: "Assessment Reviews", href: "/admin/reviews/assessments" },
+      { label: "Preliminary Reports", href: "/admin/reports" },
+      { label: "Evidence Verification", href: "/admin/evidence" },
+    ]);
+    expect(ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS).toEqual([
+      "Pending Applications",
+      "Total Participants",
+      "Pending Enrollment",
+      "Active Participants",
+    ]);
+    expect(markup.match(/data-dashboard-card="operational"/g)).toHaveLength(3);
+    expect(markup.match(/data-dashboard-card="summary"/g)).toHaveLength(4);
+    expect(markup.indexOf("Operational Queues")).toBeLessThan(markup.indexOf("System Summary"));
+    expect(markup).toContain("Open a governed administrator workspace");
+    expect(markup).toContain("Current informational totals");
+  });
+
   it("gates projection actions until success and makes failure visible", async () => {
     const { GovernedProjection } = await import("./participants/[participantId]/page");
     const renderAction = vi.fn(() => "authorized action");

@@ -16,12 +16,32 @@ import { getParticipants } from "@/lib/services/admin/admin-participant-service"
 type Participants = Awaited<ReturnType<typeof getParticipants>>;
 type Applications = Awaited<ReturnType<typeof adminApplicationService.getPendingApplications>>;
 
+export const ADMIN_DASHBOARD_OPERATIONAL_CARDS = [
+  { label: "Assessment Reviews", href: "/admin/reviews/assessments" },
+  { label: "Preliminary Reports", href: "/admin/reports" },
+  { label: "Evidence Verification", href: "/admin/evidence" },
+] as const;
+
+export const ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS = [
+  "Pending Applications",
+  "Total Participants",
+  "Pending Enrollment",
+  "Active Participants",
+] as const;
+
 export function AdminAccountPanel({ displayName }: { displayName: string }) {
   return <div className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 lg:min-w-72"><p className="text-xs uppercase tracking-[0.2em] text-white/35">Signed in as</p><p className="mt-2 font-medium text-white">{displayName}</p><AuthenticatedSignOut workspace="Administration" tone="dark" /></div>;
 }
 
 export function AdminDashboardSections({ summary, applicationQueue, participantRegistry }: { summary: ReactNode; applicationQueue: ReactNode; participantRegistry: ReactNode }) {
   return <>{summary}{applicationQueue}{participantRegistry}</>;
+}
+
+export function AdminDashboardCardGroups({ operationalQueues, systemSummary }: { operationalQueues: ReactNode; systemSummary: ReactNode }) {
+  return <section className="mt-8" aria-label="Admin Dashboard overview">
+    <div><div className="mb-3 flex items-baseline justify-between gap-4"><h2 className="text-xs font-medium uppercase tracking-[0.22em] text-white/45">Operational Queues</h2><p className="hidden text-xs text-white/30 sm:block">Open a governed administrator workspace</p></div><div className="grid gap-4 md:grid-cols-3">{operationalQueues}</div></div>
+    <div className="mt-6"><div className="mb-3 flex items-baseline justify-between gap-4"><h2 className="text-xs font-medium uppercase tracking-[0.22em] text-white/45">System Summary</h2><p className="hidden text-xs text-white/30 sm:block">Current informational totals</p></div><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{systemSummary}</div></div>
+  </section>;
 }
 
 function formatDate(value: string | null) { return value ? new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value)) : "—"; }
@@ -104,14 +124,15 @@ export default async function AdminDashboardPage() {
   return <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8"><div className="mx-auto max-w-7xl">
     <AdminPerformanceTelemetry route="admin-dashboard" startedAtEpochMs={timing.startedAtEpochMs} expectedBoundaryCount={9} />
     <header className="border-b border-white/10 pb-8"><p className="text-xs font-medium uppercase tracking-[0.3em] text-white/40">Wealth Path AI Global</p><div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"><div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Admin Dashboard</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">Application review, participant operations, lifecycle management, and institutional oversight.</p></div><AdminAccountPanel displayName={staff.full_name ?? staff.email ?? "Administrator"} /></div></header>
-    <AdminDashboardSections summary={<section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-7">
-      <Suspense fallback={<DashboardStreamFallback compact label="Pending Applications" />}><Metric promise={applications} boundary="summary-pending-applications" label="Pending Applications" describe="Submitted applications awaiting eligibility review." count={(value) => (value as Applications).length} /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Assessment Reviews" />}><DestinationMetric promise={reviews} boundary="summary-assessment-reviews" href="/admin/reviews/assessments" label="Assessment Reviews" pendingLabel="Opening Assessment Reviews…" instrumentationName="admin-dashboard-assessment-reviews" describe="Open the human assessment review queue." count={(value) => (value as Awaited<typeof reviews>).filter((item) => !item.reviewStatus || item.reviewStatus === "pending").length} tone="sky" /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Preliminary Reports" />}><DestinationMetric promise={reports} boundary="summary-preliminary-reports" href="/admin/reports" label="Preliminary Reports" pendingLabel="Opening Preliminary Reports…" instrumentationName="admin-dashboard-preliminary-reports" describe="Open the governed preliminary report workspace." count={(value) => (value as Awaited<typeof reports>).filter((item) => item.reportStatus !== "released").length} tone="violet" /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Evidence Verification" />}><DestinationMetric promise={evidence} boundary="summary-evidence" href="/admin/evidence" label="Evidence Verification" pendingLabel="Opening Evidence Verification…" instrumentationName="admin-dashboard-evidence-verification" describe="Open the governed evidence review queue." count={(value) => (value as Awaited<typeof evidence>).filter((item) => item.verificationStatus === "pending" || item.verificationStatus === "in_progress").length} tone="amber" /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Total Participants" />}><Metric promise={participants} boundary="summary-total-participants" label="Total Participants" describe="All participant records currently registered in WPAG." count={(value) => (value as Participants).length} /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Pending Enrollment" />}><Metric promise={participants} boundary="summary-pending-enrollment" label="Pending Enrollment" describe="Participants awaiting formal enrollment activation." count={(value) => (value as Participants).filter((item) => item.lifecycle_status === "pending_enrollment").length} /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Active Participants" />}><Metric promise={participants} boundary="summary-active-participants" label="Active Participants" describe="Participants currently active in the WPAG system." count={(value) => (value as Participants).filter((item) => item.lifecycle_status === "active").length} /></Suspense>
-    </section>} applicationQueue={<Suspense fallback={<DashboardStreamFallback label="Application Review Queue" />}><ApplicationQueue promise={applications} /></Suspense>} participantRegistry={<Suspense fallback={<DashboardStreamFallback label="Participant Registry" />}><ParticipantRegistry promise={participants} /></Suspense>} />
+    <AdminDashboardSections summary={<AdminDashboardCardGroups operationalQueues={<>
+      <Suspense fallback={<DashboardStreamFallback compact label={ADMIN_DASHBOARD_OPERATIONAL_CARDS[0].label} />}><DestinationMetric promise={reviews} boundary="summary-assessment-reviews" href={ADMIN_DASHBOARD_OPERATIONAL_CARDS[0].href} label={ADMIN_DASHBOARD_OPERATIONAL_CARDS[0].label} pendingLabel="Opening Assessment Reviews…" instrumentationName="admin-dashboard-assessment-reviews" describe="Open the human assessment review queue." count={(value) => (value as Awaited<typeof reviews>).filter((item) => !item.reviewStatus || item.reviewStatus === "pending").length} tone="sky" /></Suspense>
+      <Suspense fallback={<DashboardStreamFallback compact label={ADMIN_DASHBOARD_OPERATIONAL_CARDS[1].label} />}><DestinationMetric promise={reports} boundary="summary-preliminary-reports" href={ADMIN_DASHBOARD_OPERATIONAL_CARDS[1].href} label={ADMIN_DASHBOARD_OPERATIONAL_CARDS[1].label} pendingLabel="Opening Preliminary Reports…" instrumentationName="admin-dashboard-preliminary-reports" describe="Open the governed preliminary report workspace." count={(value) => (value as Awaited<typeof reports>).filter((item) => item.reportStatus !== "released").length} tone="violet" /></Suspense>
+      <Suspense fallback={<DashboardStreamFallback compact label={ADMIN_DASHBOARD_OPERATIONAL_CARDS[2].label} />}><DestinationMetric promise={evidence} boundary="summary-evidence" href={ADMIN_DASHBOARD_OPERATIONAL_CARDS[2].href} label={ADMIN_DASHBOARD_OPERATIONAL_CARDS[2].label} pendingLabel="Opening Evidence Verification…" instrumentationName="admin-dashboard-evidence-verification" describe="Open the governed evidence review queue." count={(value) => (value as Awaited<typeof evidence>).filter((item) => item.verificationStatus === "pending" || item.verificationStatus === "in_progress").length} tone="amber" /></Suspense>
+    </>} systemSummary={<>
+      <Suspense fallback={<DashboardStreamFallback compact label={ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS[0]} />}><Metric promise={applications} boundary="summary-pending-applications" label={ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS[0]} describe="Submitted applications awaiting eligibility review." count={(value) => (value as Applications).length} /></Suspense>
+      <Suspense fallback={<DashboardStreamFallback compact label={ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS[1]} />}><Metric promise={participants} boundary="summary-total-participants" label={ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS[1]} describe="All participant records currently registered in WPAG." count={(value) => (value as Participants).length} /></Suspense>
+      <Suspense fallback={<DashboardStreamFallback compact label={ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS[2]} />}><Metric promise={participants} boundary="summary-pending-enrollment" label={ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS[2]} describe="Participants awaiting formal enrollment activation." count={(value) => (value as Participants).filter((item) => item.lifecycle_status === "pending_enrollment").length} /></Suspense>
+      <Suspense fallback={<DashboardStreamFallback compact label={ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS[3]} />}><Metric promise={participants} boundary="summary-active-participants" label={ADMIN_DASHBOARD_SYSTEM_SUMMARY_CARDS[3]} describe="Participants currently active in the WPAG system." count={(value) => (value as Participants).filter((item) => item.lifecycle_status === "active").length} /></Suspense>
+    </>} />} applicationQueue={<Suspense fallback={<DashboardStreamFallback label="Application Review Queue" />}><ApplicationQueue promise={applications} /></Suspense>} participantRegistry={<Suspense fallback={<DashboardStreamFallback label="Participant Registry" />}><ParticipantRegistry promise={participants} /></Suspense>} />
   </div></main>;
 }
