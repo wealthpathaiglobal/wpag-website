@@ -6,9 +6,8 @@ import { adminEvidenceFoundationService } from "@/lib/services/admin/admin-evide
 import { adminResearchControlsService } from "@/lib/services/admin/admin-research-controls-service";
 import { adminResearchWave3Service } from "@/lib/services/admin/admin-research-wave3-service";
 import { adminResearchWave4Service } from "@/lib/services/admin/admin-research-wave4-service";
-import { loadIndependentParticipantProjections } from "@/lib/services/admin/participant-projection-loader";
 
-export async function getParticipantDetail(participantId: string, actorUserId: string) {
+export async function getParticipantCore(participantId: string) {
   const {
     data: participantRecord,
     error: participantError,
@@ -38,26 +37,32 @@ export async function getParticipantDetail(participantId: string, actorUserId: s
   }
   const participant = participantRecord;
 
-  async function loadApplication() {
-    const { data, error } = await supabaseAdmin
-      .from("applications")
-      .select(`
-        id,
-        application_code,
-        full_name,
-        email,
-        phone_country_code,
-        phone_number,
-        country_code,
-        state_or_region,
-        city
-      `)
-      .eq("id", participant.application_id)
-      .maybeSingle();
-    if (error) throw new Error(`Failed to load participant application: ${error.message}`);
-    return data;
-  }
+  const { data: application, error: applicationError } = await supabaseAdmin
+    .from("applications")
+    .select(`
+      id,
+      application_code,
+      full_name,
+      email,
+      phone_country_code,
+      phone_number,
+      country_code,
+      state_or_region,
+      city
+    `)
+    .eq("id", participant.application_id)
+    .maybeSingle();
+  if (applicationError) throw new Error(`Failed to load participant application: ${applicationError.message}`);
 
+  return {
+    ...participant,
+    full_name: application?.full_name ?? null,
+    email: application?.email ?? null,
+    application,
+  };
+}
+
+export function startParticipantProjectionLoads(participantId: string, actorUserId: string) {
   async function loadLifecycleHistory() {
     const { data, error } = await supabaseAdmin
       .from("participant_lifecycle_history")
@@ -100,8 +105,23 @@ export async function getParticipantDetail(participantId: string, actorUserId: s
     return result.data;
   }
 
+  return {
+    lifecycleHistory: loadLifecycleHistory(),
+    invitation: loadInvitation(),
+    assessmentSummary: getAdminParticipantAssessmentSummary(participantId),
+    measurementSummary: loadMeasurementSummary(),
+    evidence: adminEvidenceFoundationService.list(actorUserId, { participantId }),
+    researchControls: adminResearchControlsService.getStatus(participantId, actorUserId),
+    researchRequests: adminResearchControlsService.listRequests(participantId, actorUserId),
+    researchWave3: adminResearchWave3Service.getOverview(participantId, actorUserId),
+    researchWave4: adminResearchWave4Service.getOverview(participantId, actorUserId, randomUUID()),
+  };
+}
+
+export async function getParticipantDetail(participantId: string, actorUserId: string) {
+  const participant = await getParticipantCore(participantId);
+  const loads = startParticipantProjectionLoads(participantId, actorUserId);
   const {
-    application,
     lifecycleHistory,
     invitation,
     assessmentSummary,
@@ -111,26 +131,14 @@ export async function getParticipantDetail(participantId: string, actorUserId: s
     researchRequests,
     researchWave3,
     researchWave4,
-  } = await loadIndependentParticipantProjections({
-    application: loadApplication,
-    lifecycleHistory: loadLifecycleHistory,
-    invitation: loadInvitation,
-    assessmentSummary: () => getAdminParticipantAssessmentSummary(participantId),
-    measurementSummary: loadMeasurementSummary,
-    evidence: () => adminEvidenceFoundationService.list(actorUserId, { participantId }),
-    researchControls: () => adminResearchControlsService.getStatus(participantId, actorUserId),
-    researchRequests: () => adminResearchControlsService.listRequests(participantId, actorUserId),
-    researchWave3: () => adminResearchWave3Service.getOverview(participantId, actorUserId),
-    researchWave4: () => adminResearchWave4Service.getOverview(participantId, actorUserId, randomUUID()),
-  });
+  } = await Promise.all(Object.values(loads)).then((values) => ({
+    lifecycleHistory: values[0], invitation: values[1], assessmentSummary: values[2],
+    measurementSummary: values[3], evidence: values[4], researchControls: values[5],
+    researchRequests: values[6], researchWave3: values[7], researchWave4: values[8],
+  })) as { [K in keyof typeof loads]: Awaited<(typeof loads)[K]> };
 
   return {
-    participant: {
-      ...participant,
-      full_name: application?.full_name ?? null,
-      email: application?.email ?? null,
-      application,
-    },
+    participant,
     lifecycleHistory,
     invitation,
     assessmentSummary,
