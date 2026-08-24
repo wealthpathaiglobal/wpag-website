@@ -1,12 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
-
 import { getCurrentUser } from "./current-staff";
+import { getRequestSupabaseClient } from "./request-context";
 
 async function callBooleanFunction(
   functionName: string,
   payload: Record<string, unknown>
 ): Promise<boolean> {
-  const supabase = await createClient();
+  const supabase = await getRequestSupabaseClient();
 
   const { data, error } = await supabase.rpc(functionName, payload);
 

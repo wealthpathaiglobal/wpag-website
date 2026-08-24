@@ -1,10 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
 import { cache } from "react";
 
 import { AuthenticationError } from "./errors";
+import { getRequestSupabaseClient } from "./request-context";
 
 export const getCurrentUser = cache(async () => {
-  const supabase = await createClient();
+  const supabase = await getRequestSupabaseClient();
 
   const {
     data: { user },
@@ -19,9 +19,10 @@ export const getCurrentUser = cache(async () => {
 });
 
 export async function getCurrentStaff() {
-  const supabase = await createClient();
-
-  const user = await getCurrentUser();
+  const [supabase, user] = await Promise.all([
+    getRequestSupabaseClient(),
+    getCurrentUser(),
+  ]);
 
   const { data, error } = await supabase
     .from("staff_members")
