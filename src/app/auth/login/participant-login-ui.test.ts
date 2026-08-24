@@ -5,10 +5,10 @@ import { describe, expect, it } from "vitest";
 const source = readFileSync(resolve(process.cwd(), "src/app/auth/login/page.tsx"), "utf8");
 
 describe("participant login orientation", () => {
-  it("identifies the protected WPAG Participant Portal", () => {
+  it("identifies the protected WPAG sign-in surface", () => {
     expect(source).toContain("Wealth Path AI Global");
-    expect(source).toContain("Participant Portal");
-    expect(source).toContain("Only authorized participant accounts can continue.");
+    expect(source).toContain("Continue with an authorized WPAG account.");
+    expect(source).toContain("getLoginPresentation");
   });
 
   it("provides perceivable sign-in feedback", () => {

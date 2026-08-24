@@ -159,6 +159,8 @@ describe("GET /auth/callback", () => {
     );
 
     expect(redirectPath(response)).toBe("/auth/update-password");
+    expect(mocks.exchangeCodeForSession).toHaveBeenCalledOnce();
+    expect(mocks.exchangeCodeForSession).toHaveBeenCalledWith("callback-code");
     expect(mocks.signOut).not.toHaveBeenCalled();
   });
 

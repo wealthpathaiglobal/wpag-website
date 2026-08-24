@@ -72,7 +72,7 @@ export default function UpdatePasswordPage() {
           </h1>
 
           <p className="mt-2 text-sm text-neutral-600">
-            Enter a new password for your WPAG participant account.
+            Enter a new password for your authorized WPAG account.
           </p>
         </div>
 
@@ -153,8 +153,7 @@ export default function UpdatePasswordPage() {
         </form>
 
         <p className="mt-8 text-center text-xs text-neutral-500">
-          Password reset links are intended only for approved WPAG participant
-          accounts.
+          Password reset links are intended only for authorized WPAG accounts.
         </p>
       </div>
     </main>

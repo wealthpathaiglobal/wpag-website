@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
     }
 
     setMessage(
-      "If this email belongs to an approved participant account, password reset instructions have been sent."
+      "If this email belongs to an authorized WPAG account, password reset instructions have been sent."
     );
 
     setLoading(false);
@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
           </h1>
 
           <p className="mt-2 text-sm text-neutral-600">
-            Enter the email address linked to your WPAG participant account.
+            Enter the email address linked to your authorized WPAG account.
           </p>
         </div>
 
@@ -119,12 +119,12 @@ export default function ForgotPasswordPage() {
             href="/auth/login"
             className="text-sm underline underline-offset-4"
           >
-            Return to participant login
+            Return to secure sign-in
           </Link>
         </div>
 
         <p className="mt-8 text-center text-xs text-neutral-500">
-          Access is available only to approved WPAG participants.
+          Access is available only to authorized WPAG participant or staff accounts.
         </p>
       </div>
     </main>

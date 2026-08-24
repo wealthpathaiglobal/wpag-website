@@ -1,15 +1,19 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/browser";
 import { signInParticipantAndNavigate } from "@/lib/auth/participant-login-flow";
+import { getLoginPresentation } from "@/lib/auth/login-presentation";
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
+  const requestedNext = searchParams.get("next");
+  const presentation = getLoginPresentation(requestedNext);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +38,7 @@ export default function LoginPage() {
       router,
       email: normalizedEmail,
       password,
-      requestedNext: new URLSearchParams(window.location.search).get("next"),
+      requestedNext,
     });
 
     if (signInError) {
@@ -58,15 +62,15 @@ export default function LoginPage() {
               Wealth Path AI Global
             </p>
             <p className="mt-4 text-sm uppercase tracking-[0.18em] text-white/70">
-              Participant Portal
+              {presentation.contextLabel}
             </p>
             <h1 id="portal-title" className="mt-10 max-w-md font-serif text-5xl leading-[0.98] tracking-[-0.04em] sm:text-6xl">
-              Your private participant workspace.
+              {presentation.heading}
             </h1>
           </div>
           <div className="mt-12 border-t border-white/25 pt-6">
             <p className="max-w-md text-sm leading-7 text-white/75">
-              Use this protected sign-in to view your participant information and the activities currently available to you.
+              {presentation.description}
             </p>
           </div>
         </section>
@@ -79,7 +83,7 @@ export default function LoginPage() {
           </h2>
 
           <p className="mt-4 text-sm leading-6 text-black/60">
-            You are signing in to the WPAG Participant Portal. Only authorized participant accounts can continue.
+            Continue with an authorized WPAG account. Your permitted workspace is verified after sign-in.
           </p>
         </div>
 
@@ -145,7 +149,7 @@ export default function LoginPage() {
             aria-busy={loading}
             className="min-h-12 w-full bg-black px-4 py-3 font-semibold text-white transition hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black disabled:cursor-wait disabled:opacity-60 active:translate-y-px"
           >
-            {loading ? "Signing in…" : "Sign in to Participant Portal"}
+            {loading ? "Signing in…" : presentation.buttonLabel}
           </button>
           <p className="sr-only" role="status" aria-live="polite">
             {loading ? "Sign-in in progress." : ""}
@@ -162,10 +166,18 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-8 text-center text-xs text-neutral-500">
-          Participant access is provided directly by WPAG. This page does not create a new account.
+          {presentation.accessNote}
         </p>
         </section>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen bg-[#f4f2ed]" />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
