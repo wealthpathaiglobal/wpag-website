@@ -73,6 +73,8 @@ describe("participant dashboard governed control policy", () => {
 
   it("renders pending controls without masked-404 links or stale enrollment actions", () => {
     const markup = renderToStaticMarkup(<ParticipantDashboardClient {...pending} />);
+    expect(markup).toContain("Signed-in participant workspace");
+    expect(markup).toContain('aria-label="Sign out of Participant Portal"');
     expect(controlMarkup(markup, "research")).toContain('href="/participant/research-participation"');
     expect(controlMarkup(markup, "profile")).toContain('href="/participant/profile"');
     expect(controlMarkup(markup, "reports")).toContain('href="/participant/reports"');
@@ -89,6 +91,7 @@ describe("participant dashboard governed control policy", () => {
 
   it("renders active assessment and evidence links while retaining unavailable placeholders", () => {
     const markup = renderToStaticMarkup(<ParticipantDashboardClient {...active} />);
+    expect(markup).toContain('aria-label="Sign out of Participant Portal"');
     expect(controlMarkup(markup, "assessment")).toContain('href="/participant/assessment"');
     expect(controlMarkup(markup, "evidence")).toContain('href="/participant/evidence"');
     for (const control of ["tasks", "schedule", "messages", "documents"]) {

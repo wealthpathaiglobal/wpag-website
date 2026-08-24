@@ -1,4 +1,5 @@
 import ParticipantPortalLink from "@/components/participant/ParticipantPortalLink";
+import AuthenticatedSignOut from "@/components/auth/AuthenticatedSignOut";
 import {
   getParticipantDashboardPolicy,
   type ParticipantDashboardPolicyInput,
@@ -79,9 +80,12 @@ export default function ParticipantDashboardClient(
                 Participant Portal · Dashboard
               </p>
             </div>
-            <p className="max-w-sm text-sm leading-6 text-black/55 sm:text-right">
-              Signed-in participant workspace
-            </p>
+            <div className="w-full max-w-xs sm:text-right">
+              <p className="text-sm leading-6 text-black/55">
+                Signed-in participant workspace
+              </p>
+              <AuthenticatedSignOut workspace="Participant Portal" tone="light" />
+            </div>
           </div>
         </header>
 

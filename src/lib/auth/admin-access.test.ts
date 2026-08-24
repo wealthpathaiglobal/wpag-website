@@ -68,6 +68,15 @@ describe("admin page access boundary", () => {
     );
   });
 
+  it("denies a direct dashboard request after the application session is signed out", async () => {
+    mocks.requireRole.mockRejectedValue(new AuthenticationError());
+
+    await expect(requireAdminAccess("/admin/dashboard")).rejects.toThrow(
+      "redirect:/auth/login?next=%2Fadmin%2Fdashboard",
+    );
+    expect(mocks.notFound).not.toHaveBeenCalled();
+  });
+
   it("does not convert an unexpected infrastructure error into an auth response", async () => {
     mocks.requireRole.mockRejectedValue(new Error("database unavailable"));
 

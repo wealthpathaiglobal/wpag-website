@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 const link = vi.hoisted(() => ({ props: null as Record<string, unknown> | null }));
 vi.mock("next/link", () => ({ default: (props: Record<string, unknown>) => { link.props = props; return null; } }));
@@ -13,6 +14,16 @@ vi.mock("@/lib/services/admin/admin-participant-service", () => ({ getParticipan
 vi.mock("@/lib/services/admin/admin-participant-detail-service", () => ({ getParticipantCore: vi.fn(), startParticipantProjectionLoads: vi.fn() }));
 
 describe("admin streamed rendering policy", () => {
+  it("keeps an accessible sign-out action in the administrator identity panel", async () => {
+    const { AdminAccountPanel } = await import("./dashboard/page");
+    const markup = renderToStaticMarkup(<AdminAccountPanel displayName="WPAG Founder" />);
+
+    expect(markup).toContain("Signed in as");
+    expect(markup).toContain("WPAG Founder");
+    expect(markup).toContain('aria-label="Sign out of Administration"');
+    expect(markup).toContain("Sign out");
+  });
+
   it("renders a busy shell while governed content remains unresolved", async () => {
     const { DashboardStreamFallback } = await import("./dashboard/page");
     const element = DashboardStreamFallback({ label: "Participant Registry" });

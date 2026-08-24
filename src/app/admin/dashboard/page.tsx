@@ -3,6 +3,7 @@ import { Suspense, type ReactNode } from "react";
 
 import ParticipantRegistryLink from "@/components/admin/ParticipantRegistryLink";
 import AdminPerformanceTelemetry, { StreamCompletionMarker } from "@/components/admin/AdminPerformanceTelemetry";
+import AuthenticatedSignOut from "@/components/auth/AuthenticatedSignOut";
 import { requireAdminAccess } from "@/lib/auth/admin-access";
 import { getAdminRequestPerformanceContext, recordAdminServerPerformance } from "@/lib/observability/admin-performance";
 import { adminApplicationService } from "@/lib/services/admin/admin-application-service";
@@ -13,6 +14,10 @@ import { getParticipants } from "@/lib/services/admin/admin-participant-service"
 
 type Participants = Awaited<ReturnType<typeof getParticipants>>;
 type Applications = Awaited<ReturnType<typeof adminApplicationService.getPendingApplications>>;
+
+export function AdminAccountPanel({ displayName }: { displayName: string }) {
+  return <div className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 lg:min-w-72"><p className="text-xs uppercase tracking-[0.2em] text-white/35">Signed in as</p><p className="mt-2 font-medium text-white">{displayName}</p><AuthenticatedSignOut workspace="Administration" tone="dark" /></div>;
+}
 
 export function AdminDashboardSections({ summary, applicationQueue, participantRegistry }: { summary: ReactNode; applicationQueue: ReactNode; participantRegistry: ReactNode }) {
   return <>{summary}{applicationQueue}{participantRegistry}</>;
@@ -89,7 +94,7 @@ export default async function AdminDashboardPage() {
 
   return <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8"><div className="mx-auto max-w-7xl">
     <AdminPerformanceTelemetry route="admin-dashboard" startedAtEpochMs={timing.startedAtEpochMs} expectedBoundaryCount={9} />
-    <header className="border-b border-white/10 pb-8"><p className="text-xs font-medium uppercase tracking-[0.3em] text-white/40">Wealth Path AI Global</p><div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"><div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Admin Dashboard</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">Application review, participant operations, lifecycle management, and institutional oversight.</p></div><div className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 lg:min-w-72"><p className="text-xs uppercase tracking-[0.2em] text-white/35">Signed in as</p><p className="mt-2 font-medium text-white">{staff.full_name ?? staff.email ?? "Administrator"}</p></div></div></header>
+    <header className="border-b border-white/10 pb-8"><p className="text-xs font-medium uppercase tracking-[0.3em] text-white/40">Wealth Path AI Global</p><div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"><div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Admin Dashboard</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">Application review, participant operations, lifecycle management, and institutional oversight.</p></div><AdminAccountPanel displayName={staff.full_name ?? staff.email ?? "Administrator"} /></div></header>
     <AdminDashboardSections summary={<section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-7">
       <Suspense fallback={<DashboardStreamFallback compact label="Pending Applications" />}><Metric promise={applications} boundary="summary-pending-applications" label="Pending Applications" describe="Submitted applications awaiting eligibility review." count={(value) => (value as Applications).length} /></Suspense>
       <Suspense fallback={<DashboardStreamFallback compact label="Assessment Reviews" />}><DestinationMetric promise={reviews} boundary="summary-assessment-reviews" href="/admin/reviews/assessments" label="Assessment Reviews" describe="Open the human assessment review queue." count={(value) => (value as Awaited<typeof reviews>).filter((item) => !item.reviewStatus || item.reviewStatus === "pending").length} tone="border-sky-400/20 bg-sky-400/[0.06] hover:bg-sky-400/10" /></Suspense>
