@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import type { ParticipantResearchJourney } from "@/lib/types/research/research-wave4";
+import type { FollowUpScopeDecisionInput } from "@/lib/types/research/research-wave4";
 
 type JourneyRow = {
   research_id: string; enrollment_id: string; lifecycle_status: string; consent_status: string;
@@ -40,11 +41,11 @@ export class ParticipantResearchJourneyRepository {
     const { data, error } = await supabaseAdmin.rpc("get_participant_research_journey", { p_participant_id: participantId, p_actor_user_id: actorUserId });
     if (error) fail(error); const row = ((data ?? []) as JourneyRow[])[0]; return row ? mapParticipantResearchJourney(row) : null;
   }
-  async decide(input: { enrollmentId: string; actorUserId: string; decision: "GRANTED" | "DECLINED"; directConsent: boolean; baselineConsent: boolean; followUpConsent: boolean; acknowledgements: Record<string, boolean>; presentationEventId: string; presentedArtifactVersion: string; presentedArtifactSha256: string; presentedAt: string; correlationId: string }) {
-    const { data, error } = await supabaseAdmin.rpc("decide_wave4_synthetic_research_consent", {
+  async decide(input: { enrollmentId: string; actorUserId: string; decision: "GRANTED" | "DECLINED"; directConsent: boolean; baselineConsent: boolean; followUpScopeDecision: FollowUpScopeDecisionInput; acknowledgements: Record<string, boolean>; presentationEventId: string; presentedArtifactVersion: string; presentedArtifactSha256: string; presentedAt: string; correlationId: string }) {
+    const { data, error } = await supabaseAdmin.rpc("decide_wave4_synthetic_research_consent_v2", {
       p_enrollment_id: input.enrollmentId, p_actor_user_id: input.actorUserId, p_decision: input.decision,
       p_direct_consent_attested: input.directConsent, p_baseline_scope_granted: input.baselineConsent,
-      p_follow_up_scope_granted: input.followUpConsent, p_acknowledgements: input.acknowledgements,
+      p_follow_up_scope_decision: input.followUpScopeDecision, p_acknowledgements: input.acknowledgements,
       p_presentation_event_id: input.presentationEventId, p_presented_artifact_version: input.presentedArtifactVersion,
       p_presented_artifact_sha256: input.presentedArtifactSha256, p_presented_at: input.presentedAt, p_correlation_id: input.correlationId,
     });

@@ -55,3 +55,13 @@ export const wave4ConsentAcknowledgements = [
   "privacy_data_use",
   "withdrawal_no_automatic_deletion",
 ] as const;
+
+export const explicitFollowUpScopeDecisions = [
+  "EXPLICITLY_GRANTED",
+  "EXPLICITLY_DECLINED",
+] as const;
+export type ExplicitFollowUpScopeDecision =
+  (typeof explicitFollowUpScopeDecisions)[number];
+export type FollowUpScopeDecisionInput =
+  | ExplicitFollowUpScopeDecision
+  | "NOT_APPLICABLE";
