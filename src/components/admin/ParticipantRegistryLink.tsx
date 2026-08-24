@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type ParticipantNavigationPhase = "idle" | "pressed" | "loading" | "error";
 export type ParticipantNavigationEvent = "press" | "activate" | "cancel" | "fail";
@@ -57,17 +56,36 @@ type ParticipantRegistryLinkProps = {
   participantCode: string;
 };
 
-const NAVIGATION_TIMEOUT_MS = 15_000;
+export const NAVIGATION_TIMEOUT_MS = 15_000;
+
+function recordNavigationStatus(status: "started" | "completed" | "timed_out") {
+  const markName = `wpag:admin-participant-navigation:${status}`;
+  performance.mark(markName);
+
+  if (status !== "started") {
+    try {
+      performance.measure(
+        `wpag:admin-participant-navigation:${status}:duration`,
+        "wpag:admin-participant-navigation:started",
+        markName,
+      );
+    } catch {
+      // A missing start mark must not interfere with governed navigation.
+    }
+  }
+
+  console.info("[admin-participant-navigation]", {
+    status,
+    monotonicMs: Math.round(performance.now()),
+  });
+}
 
 export default function ParticipantRegistryLink({
   participantId,
   participantCode,
 }: ParticipantRegistryLinkProps) {
-  const router = useRouter();
   const [phase, setPhase] = useState<ParticipantNavigationPhase>("idle");
-  const [transitionPending, startTransition] = useTransition();
   const phaseRef = useRef<ParticipantNavigationPhase>("idle");
-  const observedTransition = useRef(false);
   const presentation = getParticipantNavigationPresentation(participantCode, phase);
 
   function moveTo(next: ParticipantNavigationPhase) {
@@ -78,18 +96,18 @@ export default function ParticipantRegistryLink({
   useEffect(() => {
     if (phase !== "loading") return;
 
-    const timeout = window.setTimeout(() => moveTo("error"), NAVIGATION_TIMEOUT_MS);
+    const timeout = window.setTimeout(() => {
+      recordNavigationStatus("timed_out");
+      moveTo("error");
+    }, NAVIGATION_TIMEOUT_MS);
     return () => window.clearTimeout(timeout);
   }, [phase]);
 
   useEffect(() => {
-    if (transitionPending) {
-      observedTransition.current = true;
-      return;
-    }
-
-    if (phase === "loading" && observedTransition.current) moveTo("error");
-  }, [phase, transitionPending]);
+    return () => {
+      if (phaseRef.current === "loading") recordNavigationStatus("completed");
+    };
+  }, []);
 
   const selected = phase === "pressed" || phase === "loading";
   const destination = `/admin/participants/${participantId}`;
@@ -98,6 +116,7 @@ export default function ParticipantRegistryLink({
     <div className="min-w-56">
       <Link
         href={destination}
+        prefetch={false}
         data-participant-navigation={selected ? "selected" : undefined}
         aria-busy={presentation.ariaBusy}
         aria-disabled={presentation.ariaDisabled}
@@ -108,17 +127,13 @@ export default function ParticipantRegistryLink({
           if (phaseRef.current === "pressed") moveTo("idle");
         }}
         onClick={(event) => {
-          event.preventDefault();
-          if (!canBeginParticipantNavigation(phaseRef.current)) return;
+          if (!canBeginParticipantNavigation(phaseRef.current)) {
+            event.preventDefault();
+            return;
+          }
 
           moveTo("loading");
-          observedTransition.current = false;
-
-          try {
-            startTransition(() => router.push(destination));
-          } catch {
-            moveTo("error");
-          }
+          recordNavigationStatus("started");
         }}
         className={`inline-flex min-h-9 items-center gap-2 rounded-md border px-2.5 py-1 font-mono text-sm transition-[color,background-color,border-color,box-shadow] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 ${
           selected

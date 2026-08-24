@@ -1,12 +1,57 @@
-import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const linkCapture = vi.hoisted(() => ({ props: null as Record<string, unknown> | null }));
+
+vi.mock("next/link", async () => {
+  const React = await import("react");
+  return {
+    default: (props: Record<string, unknown>) => {
+      linkCapture.props = props;
+      return React.createElement("a", { href: props.href }, props.children as React.ReactNode);
+    },
+  };
+});
 
 import {
+  default as ParticipantRegistryLink,
   canBeginParticipantNavigation,
   getParticipantNavigationPresentation,
   reduceParticipantNavigationPhase,
 } from "./ParticipantRegistryLink";
 
 describe("participant registry navigation interaction", () => {
+  beforeEach(() => {
+    linkCapture.props = null;
+  });
+
+  it("uses a native Link destination with speculative prefetch disabled", () => {
+    const markup = renderToStaticMarkup(createElement(ParticipantRegistryLink, {
+      participantId: "00000000-0000-4000-8000-000000000002",
+      participantCode: "WPAG-000002",
+    }));
+
+    expect(markup).toContain('href="/admin/participants/00000000-0000-4000-8000-000000000002"');
+    expect(linkCapture.props?.prefetch).toBe(false);
+  });
+
+  it("allows the first native activation and prevents a duplicate while pending", () => {
+    renderToStaticMarkup(createElement(ParticipantRegistryLink, {
+      participantId: "00000000-0000-4000-8000-000000000002",
+      participantCode: "WPAG-000002",
+    }));
+    const onClick = linkCapture.props?.onClick as (event: { preventDefault: () => void }) => void;
+    const firstPrevent = vi.fn();
+    const duplicatePrevent = vi.fn();
+
+    onClick({ preventDefault: firstPrevent });
+    onClick({ preventDefault: duplicatePrevent });
+
+    expect(firstPrevent).not.toHaveBeenCalled();
+    expect(duplicatePrevent).toHaveBeenCalledOnce();
+  });
+
   it("moves pointer interaction through pressed and persistent loading states", () => {
     const pressed = reduceParticipantNavigationPhase("idle", "press");
     const loading = reduceParticipantNavigationPhase(pressed, "activate");

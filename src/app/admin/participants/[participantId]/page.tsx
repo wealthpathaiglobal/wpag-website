@@ -7,13 +7,8 @@ import ResearchControlsFoundationCard from "@/components/admin/ResearchControlsF
 import ResearchWave3GovernanceCard from "@/components/admin/ResearchWave3GovernanceCard";
 import ResearchWave4ReadinessCard from "@/components/admin/ResearchWave4ReadinessCard";
 import ResearchParticipantRequestPanel from "@/components/admin/ResearchParticipantRequestPanel";
-import { randomUUID } from "node:crypto";
-import { requireRole } from "@/lib/auth/authorization";
+import { requireAdminAccess } from "@/lib/auth/admin-access";
 import { getParticipantDetail } from "@/lib/services/admin/admin-participant-detail-service";
-import { adminEvidenceFoundationService } from "@/lib/services/admin/admin-evidence-foundation-service";
-import { adminResearchControlsService } from "@/lib/services/admin/admin-research-controls-service";
-import { adminResearchWave3Service } from "@/lib/services/admin/admin-research-wave3-service";
-import { adminResearchWave4Service } from "@/lib/services/admin/admin-research-wave4-service";
 
 interface ParticipantDetailPageProps {
   params: Promise<{
@@ -80,14 +75,14 @@ function getStatusClasses(status: string | null) {
 export default async function ParticipantDetailPage({
   params,
 }: ParticipantDetailPageProps) {
-  const staff = await requireRole("administrator");
+  const staff = await requireAdminAccess("/admin/dashboard");
 
   const { participantId } = await params;
 
   let participantDetail;
 
   try {
-  participantDetail = await getParticipantDetail(participantId);
+  participantDetail = await getParticipantDetail(participantId, staff.auth_user_id);
 } catch (error) {
   console.error("Participant Detail Error:", error);
   throw error;
@@ -99,18 +94,12 @@ export default async function ParticipantDetailPage({
   invitation,
   assessmentSummary,
   measurementSummary,
+  evidence,
+  researchControls,
+  researchRequests,
+  researchWave3,
+  researchWave4,
   } = participantDetail;
-  const evidence = await adminEvidenceFoundationService.list(
-    staff.auth_user_id,
-    { participantId },
-  );
-  const researchControls = await adminResearchControlsService.getStatus(
-    participantId,
-    staff.auth_user_id,
-  );
-  const researchRequests = await adminResearchControlsService.listRequests(participantId, staff.auth_user_id);
-  const researchWave3 = await adminResearchWave3Service.getOverview(participantId, staff.auth_user_id);
-  const researchWave4 = await adminResearchWave4Service.getOverview(participantId, staff.auth_user_id, randomUUID());
 
   return (
     <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8">
