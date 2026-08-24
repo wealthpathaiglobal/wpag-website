@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import ParticipantRegistryLink from "@/components/admin/ParticipantRegistryLink";
 import { requireRole } from "@/lib/auth/authorization";
 import { adminApplicationService } from "@/lib/services/admin/admin-application-service";
 import { adminAssessmentReviewService } from "@/lib/services/admin/admin-assessment-review-service";
@@ -414,15 +415,13 @@ export default async function AdminDashboardPage() {
                   {participants.map((participant) => (
                     <tr
                       key={participant.id}
-                      className="border-b border-white/5 transition-colors last:border-b-0 hover:bg-white/[0.025]"
+                      className="border-b border-white/5 transition-colors last:border-b-0 hover:bg-white/[0.025] has-[a[data-participant-navigation=selected]]:bg-sky-400/[0.08] has-[a[data-participant-navigation=selected]]:shadow-[inset_3px_0_0_rgba(125,211,252,0.75)]"
                     >
                       <td className="whitespace-nowrap px-6 py-5">
-                        <Link
-                          href={`/admin/participants/${participant.id}`}
-                          className="font-mono text-sm text-white/80 transition-colors hover:text-white hover:underline"
-                        >
-                          {participant.participant_code}
-                        </Link>
+                        <ParticipantRegistryLink
+                          participantId={participant.id}
+                          participantCode={participant.participant_code}
+                        />
                       </td>
 
                       <td className="whitespace-nowrap px-6 py-5">
