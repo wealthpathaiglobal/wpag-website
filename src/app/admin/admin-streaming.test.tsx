@@ -31,24 +31,40 @@ describe("admin streamed rendering policy", () => {
   });
 
   it.each([
-    ["Assessment Reviews", "/admin/reviews/assessments", "Opening Assessment Reviews…", "admin-dashboard-assessment-reviews"],
-    ["Preliminary Reports", "/admin/reports", "Opening Preliminary Reports…", "admin-dashboard-preliminary-reports"],
-    ["Evidence Verification", "/admin/evidence", "Opening Evidence Verification…", "admin-dashboard-evidence-verification"],
-  ])("uses governed navigation feedback for the %s card", async (label, href, pendingLabel, instrumentationName) => {
+    ["Assessment Reviews", "/admin/reviews/assessments", "Opening Assessment Reviews…", "admin-dashboard-assessment-reviews", "sky"],
+    ["Preliminary Reports", "/admin/reports", "Opening Preliminary Reports…", "admin-dashboard-preliminary-reports", "violet"],
+    ["Evidence Verification", "/admin/evidence", "Opening Evidence Verification…", "admin-dashboard-evidence-verification", "amber"],
+  ] as const)("uses governed navigation feedback for the %s card", async (label, href, pendingLabel, instrumentationName, tone) => {
     const { DestinationMetric } = await import("./dashboard/page");
-    const element = await DestinationMetric({ promise: Promise.resolve([]), href, label, pendingLabel, instrumentationName, describe: "Governed destination", count: () => 0, tone: "tone" });
+    const element = await DestinationMetric({ promise: Promise.resolve([]), href, label, pendingLabel, instrumentationName, describe: "Governed destination", count: () => 0, tone });
     const destination = element.props.children[0];
     expect(destination.props).toMatchObject({
       href,
       pendingLabel,
       instrumentationName,
       errorLabel: `${label} could not be opened. Try again.`,
+      visualVariant: "dashboard-card",
+      dashboardCardTone: tone,
     });
     expect(destination.type.name).toBe("InternalNavigationFeedbackLink");
-    expect(destination.props.className("idle")).toContain("hover:-translate-y-0.5");
-    expect(destination.props.className("pressed")).toContain("bg-sky-400/20");
-    expect(destination.props.className("loading")).toContain("cursor-wait");
-    expect(destination.props.className("idle")).toContain("focus-visible:outline-sky-300");
+  });
+
+  it("passes only serializable props across the dashboard Server-to-Client boundary", async () => {
+    const { DestinationMetric } = await import("./dashboard/page");
+    const element = await DestinationMetric({ promise: Promise.resolve([]), href: "/admin/evidence", label: "Evidence Verification", pendingLabel: "Opening Evidence Verification…", instrumentationName: "admin-dashboard-evidence-verification", describe: "Governed destination", count: () => 0, tone: "amber" });
+    const clientBoundaryProps = { ...element.props.children[0].props };
+    delete clientBoundaryProps.children;
+
+    const assertSerializable = (value: unknown, path = "props") => {
+      expect(typeof value, `${path} must not contain a function`).not.toBe("function");
+      expect(typeof value, `${path} must not contain a symbol`).not.toBe("symbol");
+      if (Array.isArray(value)) value.forEach((item, index) => assertSerializable(item, `${path}[${index}]`));
+      else if (value && typeof value === "object") Object.entries(value).forEach(([key, item]) => assertSerializable(item, `${path}.${key}`));
+    };
+
+    assertSerializable(clientBoundaryProps);
+    expect(clientBoundaryProps).not.toHaveProperty("className");
+    expect(clientBoundaryProps).toMatchObject({ visualVariant: "dashboard-card", dashboardCardTone: "amber" });
   });
 
   it.each(["Pending Applications", "Total Participants", "Pending Enrollment", "Active Participants"])("keeps the %s summary card non-interactive", async (label) => {

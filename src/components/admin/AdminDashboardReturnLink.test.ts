@@ -15,7 +15,7 @@ vi.mock("next/link", async () => {
 });
 
 import AdminDashboardReturnLink from "./AdminDashboardReturnLink";
-import { getInternalNavigationPresentation, reduceInternalNavigationPhase } from "../navigation/InternalNavigationFeedbackLink";
+import { getDashboardCardNavigationClassName, getInternalNavigationPresentation, reduceInternalNavigationPhase } from "../navigation/InternalNavigationFeedbackLink";
 
 describe("Admin Dashboard return navigation", () => {
   beforeEach(() => { linkCapture.props = null; });
@@ -67,5 +67,12 @@ describe("Admin Dashboard return navigation", () => {
       ariaDisabled: false,
       ariaBusy: false,
     });
+  });
+
+  it("resolves dashboard-card phase styling entirely inside the client boundary", () => {
+    expect(getDashboardCardNavigationClassName("idle", "violet")).toContain("hover:-translate-y-0.5");
+    expect(getDashboardCardNavigationClassName("pressed", "sky")).toContain("bg-sky-400/20");
+    expect(getDashboardCardNavigationClassName("loading", "amber")).toContain("cursor-wait");
+    expect(getDashboardCardNavigationClassName("idle", "amber")).toContain("focus-visible:outline-sky-300");
   });
 });

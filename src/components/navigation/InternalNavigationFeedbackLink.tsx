@@ -35,6 +35,8 @@ type InternalNavigationFeedbackLinkProps = {
   instrumentationName: string;
   containerClassName?: string;
   className?: string | ((phase: InternalNavigationPhase) => string);
+  visualVariant?: "default" | "dashboard-card";
+  dashboardCardTone?: "sky" | "violet" | "amber";
 };
 
 export function createInternalNavigationTimingEvent(instrumentationName: string, status: "started" | "completed" | "timed_out", monotonicMs: number) {
@@ -55,6 +57,23 @@ function recordNavigationStatus(instrumentationName: string, status: "started" |
   console.info("[internal-navigation]", createInternalNavigationTimingEvent(instrumentationName, status, performance.now()));
 }
 
+const dashboardCardToneClasses = {
+  sky: "border-sky-400/20 bg-sky-400/[0.06] hover:bg-sky-400/10",
+  violet: "border-violet-400/20 bg-violet-400/[0.06] hover:bg-violet-400/10",
+  amber: "border-amber-400/20 bg-amber-400/[0.06] hover:bg-amber-400/10",
+} as const;
+
+export function getDashboardCardNavigationClassName(phase: InternalNavigationPhase, tone: "sky" | "violet" | "amber") {
+  const selected = phase === "pressed" || phase === "loading";
+  return `flex h-full min-h-40 flex-col rounded-2xl border p-6 transition-[color,background-color,border-color,box-shadow,transform] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 ${dashboardCardToneClasses[tone]} ${
+    selected
+      ? "border-sky-300/60 bg-sky-400/20 text-white shadow-[0_0_0_1px_rgba(125,211,252,0.16)]"
+      : phase === "error"
+        ? "border-rose-300/40 bg-rose-400/10 hover:bg-rose-400/15"
+        : "hover:-translate-y-0.5 hover:border-white/25"
+  } ${phase === "loading" ? "cursor-wait" : "cursor-pointer"}`;
+}
+
 export default function InternalNavigationFeedbackLink({
   href,
   children,
@@ -63,6 +82,8 @@ export default function InternalNavigationFeedbackLink({
   instrumentationName,
   containerClassName,
   className,
+  visualVariant = "default",
+  dashboardCardTone = "sky",
 }: InternalNavigationFeedbackLinkProps) {
   const [phase, setPhase] = useState<InternalNavigationPhase>("idle");
   const phaseRef = useRef<InternalNavigationPhase>("idle");
@@ -87,7 +108,9 @@ export default function InternalNavigationFeedbackLink({
   }, [instrumentationName]);
 
   const selected = phase === "pressed" || phase === "loading";
-  const resolvedClassName = typeof className === "function" ? className(phase) : className;
+  const resolvedClassName = visualVariant === "dashboard-card"
+    ? getDashboardCardNavigationClassName(phase, dashboardCardTone)
+    : typeof className === "function" ? className(phase) : className;
 
   return (
     <div className={containerClassName}>
