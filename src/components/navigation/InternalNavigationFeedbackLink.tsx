@@ -37,6 +37,10 @@ type InternalNavigationFeedbackLinkProps = {
   className?: string | ((phase: InternalNavigationPhase) => string);
 };
 
+export function createInternalNavigationTimingEvent(instrumentationName: string, status: "started" | "completed" | "timed_out", monotonicMs: number) {
+  return { name: instrumentationName, status, monotonicMs: Math.round(monotonicMs) };
+}
+
 function recordNavigationStatus(instrumentationName: string, status: "started" | "completed" | "timed_out") {
   const startMark = `wpag:${instrumentationName}:started`;
   const markName = `wpag:${instrumentationName}:${status}`;
@@ -48,7 +52,7 @@ function recordNavigationStatus(instrumentationName: string, status: "started" |
       // Missing timing marks must not interfere with navigation.
     }
   }
-  console.info("[internal-navigation]", { name: instrumentationName, status, monotonicMs: Math.round(performance.now()) });
+  console.info("[internal-navigation]", createInternalNavigationTimingEvent(instrumentationName, status, performance.now()));
 }
 
 export default function InternalNavigationFeedbackLink({
