@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 
+import { getRecoveryCallbackUrl } from "@/lib/auth/recovery-callback";
 import { createClient } from "@/lib/supabase/browser";
 
 export default function ForgotPasswordPage() {
@@ -28,7 +29,7 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
 
-    const redirectTo = `${window.location.origin}/auth/callback?next=/auth/update-password`;
+    const redirectTo = getRecoveryCallbackUrl(window.location.origin);
 
     const { error: resetError } =
       await supabase.auth.resetPasswordForEmail(normalizedEmail, {
