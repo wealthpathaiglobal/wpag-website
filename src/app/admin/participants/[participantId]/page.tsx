@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import AdminDashboardReturnLink from "@/components/admin/AdminDashboardReturnLink";
 import LifecycleActionPanel from "@/components/admin/LifecycleActionPanel";
 import ParticipantInvitationPanel from "@/components/admin/ParticipantInvitationPanel";
 import HfosMeasurementFoundationCard from "@/components/admin/HfosMeasurementFoundationCard";
@@ -105,13 +106,7 @@ export default async function ParticipantDetailPage({
     <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <nav className="mb-8" aria-label="Participant workspace navigation">
-          <Link
-            href="/admin/dashboard"
-            className="inline-flex items-center text-sm text-white/50 transition-colors hover:text-white"
-          >
-            <span aria-hidden="true">←</span>
-            <span className="ml-2">Back to Admin Dashboard</span>
-          </Link>
+          <AdminDashboardReturnLink />
         </nav>
 
         <header className="border-b border-white/10 pb-8">

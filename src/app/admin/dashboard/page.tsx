@@ -415,7 +415,7 @@ export default async function AdminDashboardPage() {
                   {participants.map((participant) => (
                     <tr
                       key={participant.id}
-                      className="border-b border-white/5 transition-colors last:border-b-0 hover:bg-white/[0.025] has-[a[data-participant-navigation=selected]]:bg-sky-400/[0.08] has-[a[data-participant-navigation=selected]]:shadow-[inset_3px_0_0_rgba(125,211,252,0.75)]"
+                      className="border-b border-white/5 transition-colors last:border-b-0 hover:bg-white/[0.025] has-[a[data-internal-navigation-state=selected]]:bg-sky-400/[0.08] has-[a[data-internal-navigation-state=selected]]:shadow-[inset_3px_0_0_rgba(125,211,252,0.75)]"
                     >
                       <td className="whitespace-nowrap px-6 py-5">
                         <ParticipantRegistryLink
