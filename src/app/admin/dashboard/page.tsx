@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import ParticipantRegistryLink from "@/components/admin/ParticipantRegistryLink";
 import AdminPerformanceTelemetry, { StreamCompletionMarker } from "@/components/admin/AdminPerformanceTelemetry";
 import AuthenticatedSignOut from "@/components/auth/AuthenticatedSignOut";
+import InternalNavigationFeedbackLink, { type InternalNavigationPhase } from "@/components/navigation/InternalNavigationFeedbackLink";
 import { requireAdminAccess } from "@/lib/auth/admin-access";
 import { getAdminRequestPerformanceContext, recordAdminServerPerformance } from "@/lib/observability/admin-performance";
 import { adminApplicationService } from "@/lib/services/admin/admin-application-service";
@@ -50,16 +51,34 @@ async function settle<T>(promise: Promise<T>, label: string): Promise<{ ok: true
   catch (error) { console.error(`Admin dashboard ${label} failed`, error); return { ok: false }; }
 }
 
-async function Metric({ promise, boundary, label, describe, count }: { promise: Promise<unknown>; boundary: string; label: string; describe: string; count: (value: unknown) => number }) {
+export async function Metric({ promise, boundary, label, describe, count }: { promise: Promise<unknown>; boundary: string; label: string; describe: string; count: (value: unknown) => number }) {
   const result = await settle(promise, label);
   if (!result.ok) return <><StreamFailure label={label} /><StreamCompletionMarker route="admin-dashboard" boundary={boundary} /></>;
-  return <><article className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"><p className="text-sm text-white/50">{label}</p><p className="mt-3 text-3xl font-semibold">{count(result.value)}</p><p className="mt-2 text-sm leading-6 text-white/40">{describe}</p></article><StreamCompletionMarker route="admin-dashboard" boundary={boundary} /></>;
+  return <><article className="cursor-default select-none rounded-2xl border border-white/10 bg-white/[0.03] p-6"><p className="text-sm text-white/50">{label}</p><p className="mt-3 text-3xl font-semibold">{count(result.value)}</p><p className="mt-2 text-sm leading-6 text-white/40">{describe}</p></article><StreamCompletionMarker route="admin-dashboard" boundary={boundary} /></>;
 }
 
-export async function DestinationMetric({ promise, boundary = "destination-metric", href, label, describe, count, tone }: { promise: Promise<unknown>; boundary?: string; href: string; label: string; describe: string; count: (value: unknown) => number; tone: string }) {
+function destinationCardClassName(phase: InternalNavigationPhase, tone: string) {
+  const selected = phase === "pressed" || phase === "loading";
+  return `flex h-full min-h-40 flex-col rounded-2xl border p-6 transition-[color,background-color,border-color,box-shadow,transform] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300 ${tone} ${
+    selected
+      ? "border-sky-300/60 bg-sky-400/20 text-white shadow-[0_0_0_1px_rgba(125,211,252,0.16)]"
+      : phase === "error"
+        ? "border-rose-300/40 bg-rose-400/10 hover:bg-rose-400/15"
+        : "hover:-translate-y-0.5 hover:border-white/25"
+  } ${phase === "loading" ? "cursor-wait" : "cursor-pointer"}`;
+}
+
+export async function DestinationMetric({ promise, boundary = "destination-metric", href, label, describe, count, tone, pendingLabel, instrumentationName }: { promise: Promise<unknown>; boundary?: string; href: string; label: string; describe: string; count: (value: unknown) => number; tone: string; pendingLabel: string; instrumentationName: string }) {
   const result = await settle(promise, label);
   if (!result.ok) return <><StreamFailure label={label} /><StreamCompletionMarker route="admin-dashboard" boundary={boundary} /></>;
-  return <><Link prefetch={false} href={href} className={`rounded-2xl border p-6 transition-colors ${tone}`}><p className="text-sm text-white/65">{label}</p><p className="mt-3 text-3xl font-semibold text-white">{count(result.value)}</p><p className="mt-2 text-sm leading-6 text-white/40">{describe}</p></Link><StreamCompletionMarker route="admin-dashboard" boundary={boundary} /></>;
+  return <><InternalNavigationFeedbackLink
+    href={href}
+    pendingLabel={pendingLabel}
+    errorLabel={`${label} could not be opened. Try again.`}
+    instrumentationName={instrumentationName}
+    containerClassName="min-w-0"
+    className={(phase) => destinationCardClassName(phase, tone)}
+  ><p className="text-sm text-white/65">{label}</p><p className="mt-3 text-3xl font-semibold text-white">{count(result.value)}</p><p className="mt-2 text-sm leading-6 text-white/40">{describe}</p></InternalNavigationFeedbackLink><StreamCompletionMarker route="admin-dashboard" boundary={boundary} /></>;
 }
 
 async function ApplicationQueue({ promise }: { promise: Promise<Applications> }) {
@@ -97,9 +116,9 @@ export default async function AdminDashboardPage() {
     <header className="border-b border-white/10 pb-8"><p className="text-xs font-medium uppercase tracking-[0.3em] text-white/40">Wealth Path AI Global</p><div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"><div><h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Admin Dashboard</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">Application review, participant operations, lifecycle management, and institutional oversight.</p></div><AdminAccountPanel displayName={staff.full_name ?? staff.email ?? "Administrator"} /></div></header>
     <AdminDashboardSections summary={<section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-7">
       <Suspense fallback={<DashboardStreamFallback compact label="Pending Applications" />}><Metric promise={applications} boundary="summary-pending-applications" label="Pending Applications" describe="Submitted applications awaiting eligibility review." count={(value) => (value as Applications).length} /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Assessment Reviews" />}><DestinationMetric promise={reviews} boundary="summary-assessment-reviews" href="/admin/reviews/assessments" label="Assessment Reviews" describe="Open the human assessment review queue." count={(value) => (value as Awaited<typeof reviews>).filter((item) => !item.reviewStatus || item.reviewStatus === "pending").length} tone="border-sky-400/20 bg-sky-400/[0.06] hover:bg-sky-400/10" /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Preliminary Reports" />}><DestinationMetric promise={reports} boundary="summary-preliminary-reports" href="/admin/reports" label="Preliminary Reports" describe="Open the governed preliminary report workspace." count={(value) => (value as Awaited<typeof reports>).filter((item) => item.reportStatus !== "released").length} tone="border-violet-400/20 bg-violet-400/[0.06] hover:bg-violet-400/10" /></Suspense>
-      <Suspense fallback={<DashboardStreamFallback compact label="Evidence Verification" />}><DestinationMetric promise={evidence} boundary="summary-evidence" href="/admin/evidence" label="Evidence Verification" describe="Open the governed evidence review queue." count={(value) => (value as Awaited<typeof evidence>).filter((item) => item.verificationStatus === "pending" || item.verificationStatus === "in_progress").length} tone="border-amber-400/20 bg-amber-400/[0.06] hover:bg-amber-400/10" /></Suspense>
+      <Suspense fallback={<DashboardStreamFallback compact label="Assessment Reviews" />}><DestinationMetric promise={reviews} boundary="summary-assessment-reviews" href="/admin/reviews/assessments" label="Assessment Reviews" pendingLabel="Opening Assessment Reviews…" instrumentationName="admin-dashboard-assessment-reviews" describe="Open the human assessment review queue." count={(value) => (value as Awaited<typeof reviews>).filter((item) => !item.reviewStatus || item.reviewStatus === "pending").length} tone="border-sky-400/20 bg-sky-400/[0.06] hover:bg-sky-400/10" /></Suspense>
+      <Suspense fallback={<DashboardStreamFallback compact label="Preliminary Reports" />}><DestinationMetric promise={reports} boundary="summary-preliminary-reports" href="/admin/reports" label="Preliminary Reports" pendingLabel="Opening Preliminary Reports…" instrumentationName="admin-dashboard-preliminary-reports" describe="Open the governed preliminary report workspace." count={(value) => (value as Awaited<typeof reports>).filter((item) => item.reportStatus !== "released").length} tone="border-violet-400/20 bg-violet-400/[0.06] hover:bg-violet-400/10" /></Suspense>
+      <Suspense fallback={<DashboardStreamFallback compact label="Evidence Verification" />}><DestinationMetric promise={evidence} boundary="summary-evidence" href="/admin/evidence" label="Evidence Verification" pendingLabel="Opening Evidence Verification…" instrumentationName="admin-dashboard-evidence-verification" describe="Open the governed evidence review queue." count={(value) => (value as Awaited<typeof evidence>).filter((item) => item.verificationStatus === "pending" || item.verificationStatus === "in_progress").length} tone="border-amber-400/20 bg-amber-400/[0.06] hover:bg-amber-400/10" /></Suspense>
       <Suspense fallback={<DashboardStreamFallback compact label="Total Participants" />}><Metric promise={participants} boundary="summary-total-participants" label="Total Participants" describe="All participant records currently registered in WPAG." count={(value) => (value as Participants).length} /></Suspense>
       <Suspense fallback={<DashboardStreamFallback compact label="Pending Enrollment" />}><Metric promise={participants} boundary="summary-pending-enrollment" label="Pending Enrollment" describe="Participants awaiting formal enrollment activation." count={(value) => (value as Participants).filter((item) => item.lifecycle_status === "pending_enrollment").length} /></Suspense>
       <Suspense fallback={<DashboardStreamFallback compact label="Active Participants" />}><Metric promise={participants} boundary="summary-active-participants" label="Active Participants" describe="Participants currently active in the WPAG system." count={(value) => (value as Participants).filter((item) => item.lifecycle_status === "active").length} /></Suspense>

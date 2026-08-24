@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import AdminDashboardReturnLink from "@/components/admin/AdminDashboardReturnLink";
 import CreatePreliminaryReportButton from "@/components/admin/preliminary-reports/CreatePreliminaryReportButton";
 import { requireRole } from "@/lib/auth/authorization";
 import { adminPreliminaryReportService } from "@/lib/services/admin/admin-preliminary-report-service";
@@ -22,7 +23,7 @@ export default async function PreliminaryReportQueuePage() {
   return (
     <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <Link href="/admin/dashboard" className="text-sm text-white/50 hover:text-white">← Back to Admin Dashboard</Link>
+        <nav aria-label="Preliminary report navigation"><AdminDashboardReturnLink /></nav>
         <header className="mt-8 border-b border-white/10 pb-8">
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-white/40">Governed Research Reports</p>
           <h1 className="mt-4 text-3xl font-semibold sm:text-4xl">Preliminary Report Queue</h1>

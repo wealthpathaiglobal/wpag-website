@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import AdminDashboardReturnLink from "@/components/admin/AdminDashboardReturnLink";
 import { requireRole } from "@/lib/auth/authorization";
 import { adminAssessmentReviewService } from "@/lib/services/admin/admin-assessment-review-service";
 import type { AssessmentReviewStatus } from "@/lib/types/admin/admin-assessment-review";
@@ -60,12 +61,7 @@ export default async function AssessmentReviewQueuePage() {
     <main className="min-h-screen bg-black px-4 py-10 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <nav className="mb-8" aria-label="Assessment review navigation">
-          <Link
-            href="/admin/dashboard"
-            className="text-sm text-white/50 transition-colors hover:text-white"
-          >
-            ← Back to Admin Dashboard
-          </Link>
+          <AdminDashboardReturnLink />
         </nav>
 
         <header className="border-b border-white/10 pb-8">

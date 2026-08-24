@@ -2,8 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const link = vi.hoisted(() => ({ props: null as Record<string, unknown> | null }));
-vi.mock("next/link", () => ({ default: (props: Record<string, unknown>) => { link.props = props; return null; } }));
+vi.mock("next/link", () => ({ default: () => null }));
 
 vi.mock("@/lib/auth/admin-access", () => ({ requireAdminAccess: vi.fn() }));
 vi.mock("@/lib/services/admin/admin-application-service", () => ({ adminApplicationService: { getPendingApplications: vi.fn() } }));
@@ -31,12 +30,36 @@ describe("admin streamed rendering policy", () => {
     expect(element.props["aria-label"]).toBe("Participant Registry loading");
   });
 
-  it("disables speculative prefetch for expensive authenticated destinations", async () => {
+  it.each([
+    ["Assessment Reviews", "/admin/reviews/assessments", "Opening Assessment Reviews…", "admin-dashboard-assessment-reviews"],
+    ["Preliminary Reports", "/admin/reports", "Opening Preliminary Reports…", "admin-dashboard-preliminary-reports"],
+    ["Evidence Verification", "/admin/evidence", "Opening Evidence Verification…", "admin-dashboard-evidence-verification"],
+  ])("uses governed navigation feedback for the %s card", async (label, href, pendingLabel, instrumentationName) => {
     const { DestinationMetric } = await import("./dashboard/page");
-    const element = await DestinationMetric({ promise: Promise.resolve([]), href: "/admin/evidence", label: "Evidence", describe: "Governed evidence", count: () => 0, tone: "tone" });
+    const element = await DestinationMetric({ promise: Promise.resolve([]), href, label, pendingLabel, instrumentationName, describe: "Governed destination", count: () => 0, tone: "tone" });
     const destination = element.props.children[0];
-    destination.type(destination.props);
-    expect(link.props).toMatchObject({ href: "/admin/evidence", prefetch: false });
+    expect(destination.props).toMatchObject({
+      href,
+      pendingLabel,
+      instrumentationName,
+      errorLabel: `${label} could not be opened. Try again.`,
+    });
+    expect(destination.type.name).toBe("InternalNavigationFeedbackLink");
+    expect(destination.props.className("idle")).toContain("hover:-translate-y-0.5");
+    expect(destination.props.className("pressed")).toContain("bg-sky-400/20");
+    expect(destination.props.className("loading")).toContain("cursor-wait");
+    expect(destination.props.className("idle")).toContain("focus-visible:outline-sky-300");
+  });
+
+  it.each(["Pending Applications", "Total Participants", "Pending Enrollment", "Active Participants"])("keeps the %s summary card non-interactive", async (label) => {
+    const { Metric } = await import("./dashboard/page");
+    const element = await Metric({ promise: Promise.resolve([]), boundary: `summary-${label}`, label, describe: "Summary only", count: () => 0 });
+    const metric = element.props.children[0];
+    expect(metric.type).toBe("article");
+    expect(metric.props.className).toContain("cursor-default");
+    expect(metric.props).not.toHaveProperty("href");
+    expect(metric.props).not.toHaveProperty("tabIndex");
+    expect(metric.props.className).not.toContain("hover:");
   });
 
   it("preserves the approved summary, application queue, participant registry order", async () => {
