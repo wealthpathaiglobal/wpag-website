@@ -21,6 +21,11 @@ export type ParticipantResearchJourney = {
   participantOutputScope: "FACTUAL_STATUS_ONLY";
   fshOutputStatus: "SUPPRESSED";
   softLaunchReleaseGate: "BLOCKED";
+  consentReceiptAvailable: boolean;
+  consentBaselineScopeStatus: "GRANTED" | "NOT_GRANTED" | null;
+  consentFollowUpScopeStatus: "GRANTED" | "NOT_GRANTED" | "LEGACY_UNRESOLVED" | "NOT_APPLICABLE" | null;
+  consentDecidedAt: string | null;
+  consentInformationVersion: string | null;
 };
 
 export type AdminResearchWave4Overview = {

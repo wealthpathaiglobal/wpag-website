@@ -9,6 +9,9 @@ type JourneyRow = {
   consent_artifact_version: string | null; consent_artifact_sha256: string | null; consent_wording_review_status: "APPROVED_WITH_NON_BLOCKING_GOVERNANCE_NOTES" | null;
   consent_presentation_event_id: string | null; consent_presented_at: string | null; consent_authority_version: string | null; privacy_authority_version: string | null;
   consent_action_available: boolean; participant_output_scope: "FACTUAL_STATUS_ONLY"; fsh_output_status: "SUPPRESSED"; soft_launch_release_gate: "BLOCKED";
+  consent_receipt_available: boolean; consent_baseline_scope_status: "GRANTED" | "NOT_GRANTED" | null;
+  consent_follow_up_scope_status: "GRANTED" | "NOT_GRANTED" | "LEGACY_UNRESOLVED" | "NOT_APPLICABLE" | null;
+  consent_decided_at: string | null; consent_information_version: string | null;
 };
 
 export class ParticipantResearchJourneyRepositoryError extends Error {
@@ -34,6 +37,11 @@ export function mapParticipantResearchJourney(row: JourneyRow): ParticipantResea
     consentActionAvailable: row.consent_action_available,
     participantOutputScope: row.participant_output_scope, fshOutputStatus: row.fsh_output_status,
     softLaunchReleaseGate: row.soft_launch_release_gate,
+    consentReceiptAvailable: row.consent_receipt_available,
+    consentBaselineScopeStatus: row.consent_baseline_scope_status,
+    consentFollowUpScopeStatus: row.consent_follow_up_scope_status,
+    consentDecidedAt: row.consent_decided_at,
+    consentInformationVersion: row.consent_information_version,
   };
 }
 export class ParticipantResearchJourneyRepository {

@@ -68,6 +68,33 @@ select is((select follow_up_scope_decision from public.research_follow_up_scope_
 select is((select follow_up_scope_granted from public.research_consent_records c join f59 x on x.enrollment_id=c.enrollment_id where x.label='YES' order by c.recorded_at desc,c.id desc limit 1),true,'explicit Yes derives follow-up Boolean true');
 select is((select public.evaluate_research_consent_gate(enrollment_id,'FSH',true) from f59 where label='YES'),'OPEN','explicit Yes permits follow-up gate subject to existing controls');
 
+select is((select consent_baseline_scope_status from f59 x cross join lateral public.get_participant_research_journey(x.participant_id,x.actor_id) j where x.label='NO'),'GRANTED','receipt reports the completed baseline scope');
+select is((select consent_follow_up_scope_status from f59 x cross join lateral public.get_participant_research_journey(x.participant_id,x.actor_id) j where x.label='NO'),'NOT_GRANTED','receipt reports explicit No without inferring legacy intent');
+select is((select consent_follow_up_scope_status from f59 x cross join lateral public.get_participant_research_journey(x.participant_id,x.actor_id) j where x.label='YES'),'GRANTED','receipt reports explicit Yes');
+select ok((select consent_decided_at is not null from f59 x cross join lateral public.get_participant_research_journey(x.participant_id,x.actor_id) j where x.label='YES'),'receipt exposes the immutable decision-binding timestamp');
+select is(
+  (select j.consent_decided_at from f59 x cross join lateral public.get_participant_research_journey(x.participant_id,x.actor_id) j where x.label='YES'),
+  (select b.decided_at from f59 x join public.research_consent_records c on c.enrollment_id=x.enrollment_id join public.research_consent_decision_bindings b on b.decision_consent_id=c.id where x.label='YES' and c.consent_status='GRANTED'),
+  'receipt timestamp is sourced exactly from the immutable decision binding'
+);
+select is(
+  (select j.consent_information_version from f59 x cross join lateral public.get_participant_research_journey(x.participant_id,x.actor_id) j where x.label='YES'),
+  (select b.artifact_version from f59 x join public.research_consent_records c on c.enrollment_id=x.enrollment_id join public.research_consent_decision_bindings b on b.decision_consent_id=c.id where x.label='YES' and c.consent_status='GRANTED'),
+  'receipt exposes the controlled consent information version from the binding'
+);
+select throws_ok(
+  $q$select * from public.get_participant_research_journey('f3000000-0000-4000-8000-000000000012','f1000000-0000-4000-8000-000000000011')$q$,
+  'P1001','Actor is not authorized to access research controls.','participant cannot retrieve another participant receipt'
+);
+
+select is((select d.technical_result from f59 x join public.research_consent_presentation_events p on p.id=x.presentation_id cross join lateral public.decide_wave4_synthetic_research_consent(
+  x.enrollment_id,x.actor_id,'GRANTED',true,true,false,
+  '{"research_purpose":true,"voluntary_participation":true,"research_only_no_final_state":true,"privacy_data_use":true,"withdrawal_no_automatic_deletion":true}',
+  x.presentation_id,p.artifact_version,p.artifact_sha256,p.presented_at,gen_random_uuid()
+) d where x.label='UNANSWERED'),'CONSENT_GRANTED','legacy Boolean decision remains executable without reclassification');
+select is((select consent_follow_up_scope_status from f59 x cross join lateral public.get_participant_research_journey(x.participant_id,x.actor_id) j where x.label='UNANSWERED'),'LEGACY_UNRESOLVED','legacy false remains neutral because explicit choice provenance is absent');
+select is((select count(*) from public.research_follow_up_scope_decision_events e join f59 x on x.enrollment_id=e.enrollment_id where x.label='UNANSWERED'),0::bigint,'receipt projection does not backfill a legacy decision event');
+
 select throws_ok('update public.research_follow_up_scope_decision_events set follow_up_scope_decision=''EXPLICITLY_GRANTED''','P1001','Research control history is append-only.','explicit follow-up decision events are append-only');
 select throws_ok('delete from public.research_follow_up_scope_decision_events','P1001','Research control history is append-only.','explicit follow-up decision events cannot be deleted');
 select is((select gate_status from public.evaluate_wave3_release_gate('synthetic_test','f1000000-0000-4000-8000-000000000001',gen_random_uuid())),'BLOCKED','release gate remains blocked');
