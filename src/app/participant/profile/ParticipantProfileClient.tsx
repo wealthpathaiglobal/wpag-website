@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import type { CurrentParticipant } from "@/lib/types/participant/current-participant";
 import type {
@@ -18,6 +19,27 @@ const required: (keyof ParticipantProfileDraftInput)[] = [
   "emergencyContactName", "emergencyContactRelationship", "emergencyContactPhone",
 ];
 
+const today = new Date().toISOString().slice(0, 10);
+
+export function clientErrors(form: ParticipantProfileDraftInput, complete = false): ParticipantProfileFieldErrors {
+  const errors: ParticipantProfileFieldErrors = {};
+  if (!form.firstName.trim()) errors.firstName = "First name is required.";
+  if (!form.lastName.trim()) errors.lastName = "Last name is required.";
+  if (form.dateOfBirth && form.dateOfBirth > today) errors.dateOfBirth = "Date of birth cannot be in the future.";
+  if (form.phoneCountryCode && !/^\+[1-9]\d{0,3}$/.test(form.phoneCountryCode)) errors.phoneCountryCode = "Use an international code such as +91.";
+  if (form.phoneNumber && !/^\d[\d -]{5,19}$/.test(form.phoneNumber)) errors.phoneNumber = "Enter a valid phone number.";
+  if (form.countryCode && !/^[A-Za-z]{2}$/.test(form.countryCode)) errors.countryCode = "Use a two-letter country code.";
+  if (form.postalCode && !/^[A-Za-z0-9][A-Za-z0-9 -]{1,19}$/.test(form.postalCode)) errors.postalCode = "Enter a valid postal code.";
+  if (form.emergencyContactPhone && !/^\+[1-9][\d -]{6,23}$/.test(form.emergencyContactPhone)) errors.emergencyContactPhone = "Enter the emergency phone in international format.";
+  if (form.householdSize !== null && (form.householdSize < 1 || form.householdSize > 100)) errors.householdSize = "Household size must be between 1 and 100.";
+  if (form.dependents !== null && (form.dependents < 0 || form.dependents > 100 || (form.householdSize !== null && form.dependents > form.householdSize))) errors.dependents = "Dependants must be between 0 and the household size.";
+  if (complete) for (const field of required) {
+    const value = form[field];
+    if (value === null || (typeof value === "string" && !value.trim())) errors[field] ??= "This field is required to complete the profile.";
+  }
+  return errors;
+}
+
 function draftOf(profile: CurrentParticipantProfile): ParticipantProfileDraftInput {
   const { email: _email, profileCompleted: _complete,
     profileCompletedAt: _completeAt, updatedAt: _updatedAt, ...draft } = profile;
@@ -28,14 +50,14 @@ function draftOf(profile: CurrentParticipantProfile): ParticipantProfileDraftInp
   return draft;
 }
 
-function Field({ label, name, value, onChange, error, helper, type = "text", required: isRequired = false, readOnly = false }: {
+function Field({ label, name, value, onChange, error, helper, type = "text", required: isRequired = false, readOnly = false, disabled = false, max }: {
   label: string; name: string; value: string | number; onChange?: (value: string) => void;
-  error?: string; helper?: string; type?: string; required?: boolean; readOnly?: boolean;
+  error?: string; helper?: string; type?: string; required?: boolean; readOnly?: boolean; disabled?: boolean; max?: string;
 }) {
   const describedBy = [helper ? `${name}-helper` : null, error ? `${name}-error` : null].filter(Boolean).join(" ") || undefined;
   return <div>
     <label htmlFor={name} className="block text-sm font-medium text-black">{label}{isRequired ? " *" : ""}</label>
-    <input id={name} name={name} type={type} value={value} readOnly={readOnly}
+    <input id={name} name={name} type={type} value={value} readOnly={readOnly} disabled={disabled} max={max}
       onChange={(event) => onChange?.(event.target.value)}
       aria-invalid={Boolean(error)} aria-describedby={describedBy}
       className="mt-2 w-full border border-black/30 bg-white/50 px-4 py-3 outline-none focus-visible:border-black focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 read-only:bg-black/5" />
@@ -44,12 +66,12 @@ function Field({ label, name, value, onChange, error, helper, type = "text", req
   </div>;
 }
 
-function SelectField({ label, name, value, options, onChange, error, helper }: {
+function SelectField({ label, name, value, options, onChange, error, helper, disabled = false }: {
   label: string; name: string; value: string; options: readonly (readonly [string, string])[];
-  onChange: (value: string) => void; error?: string; helper?: string;
+  onChange: (value: string) => void; error?: string; helper?: string; disabled?: boolean;
 }) {
   return <div><label htmlFor={name} className="block text-sm font-medium">{label} *</label>
-    <select id={name} value={value} onChange={(event) => onChange(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={[helper ? `${name}-helper` : null, error ? `${name}-error` : null].filter(Boolean).join(" ") || undefined}
+    <select id={name} value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} aria-invalid={Boolean(error)} aria-describedby={[helper ? `${name}-helper` : null, error ? `${name}-error` : null].filter(Boolean).join(" ") || undefined}
       className="mt-2 w-full border border-black/30 bg-white/50 px-4 py-3 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2">
       <option value="">Select</option>{options.map(([key, text]) => <option key={key} value={key}>{text}</option>)}
     </select>{helper && <p id={`${name}-helper`} className="mt-2 text-xs leading-5 text-black/55">{helper}</p>}{error && <p id={`${name}-error`} role="alert" className="mt-2 text-sm text-red-700">{error}</p>}</div>;
@@ -62,11 +84,22 @@ export default function ParticipantProfileClient({ participant, initialProfile }
   const [message, setMessage] = useState("");
   const [submissionKind, setSubmissionKind] = useState<"save" | "complete" | null>(null);
   const submissionLock = useRef(false);
+  const feedbackRef = useRef<HTMLDivElement>(null);
 
   const completedCount = useMemo(() => required.filter((field) => {
     const value = form[field];
     return value !== null && (typeof value !== "string" || value.trim() !== "");
   }).length, [form]);
+  const dirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(draftOf(durableProfile)), [form, durableProfile]);
+  const draftErrors = useMemo(() => clientErrors(form), [form]);
+  const completionErrors = useMemo(() => clientErrors(form, true), [form]);
+  const draftValid = Object.keys(draftErrors).length === 0;
+  const completionValid = Object.keys(completionErrors).length === 0;
+  const actionableComplete = dirty || !durableProfile.profileCompleted;
+
+  function moveToFeedback() {
+    window.setTimeout(() => { feedbackRef.current?.focus(); feedbackRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }, 0);
+  }
 
   function update<K extends keyof ParticipantProfileDraftInput>(field: K, value: ParticipantProfileDraftInput[K]) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -76,22 +109,27 @@ export default function ParticipantProfileClient({ participant, initialProfile }
 
   async function submit(kind: "save" | "complete") {
     if (submissionLock.current) return;
+    const localErrors = kind === "save" ? draftErrors : completionErrors;
+    if (Object.keys(localErrors).length) { setFieldErrors(localErrors); setMessage(kind === "save" ? "Correct the highlighted fields before saving." : "Complete the required fields before completing the profile."); moveToFeedback(); return; }
+    const snapshot = structuredClone(form);
     submissionLock.current = true; setSubmissionKind(kind); setMessage("");
     try {
       const response = await fetch(kind === "save" ? "/api/participant/profile" : "/api/participant/profile/complete", {
         method: kind === "save" ? "PATCH" : "POST",
         headers: { "content-type": "application/json" },
-        body: kind === "save" ? JSON.stringify(form) : undefined,
+        body: JSON.stringify({ profile: snapshot, expectedUpdatedAt: durableProfile.updatedAt }),
       });
       const result = await response.json() as ParticipantProfileActionResult;
       if (!response.ok || !result.success || !result.profile) {
         setFieldErrors(result.fieldErrors ?? {});
         setMessage(result.formError ?? "The profile could not be updated. Please try again.");
+        moveToFeedback();
         return;
       }
       setDurableProfile(result.profile); setForm(draftOf(result.profile)); setFieldErrors({});
       setMessage(kind === "save" ? "Draft saved. You can safely return later." : "Profile completed successfully.");
-    } catch { setMessage("The profile could not be updated. Please try again."); }
+      moveToFeedback();
+    } catch { setMessage("The profile could not be updated. Please try again."); moveToFeedback(); }
     finally { submissionLock.current = false; setSubmissionKind(null); }
   }
 
@@ -107,10 +145,12 @@ export default function ParticipantProfileClient({ participant, initialProfile }
     ? new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(durableProfile.profileCompletedAt))
     : null;
   const progress = Math.round((completedCount / required.length) * 100);
+  const remaining = required.length - completedCount;
 
   return <main className="min-h-screen bg-[#f4f2ed] text-black">
     <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 lg:py-16">
       <header className="border-b border-black pb-8">
+        <Link href="/participant/dashboard" className="inline-flex min-h-11 items-center underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">← Back to dashboard</Link>
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-black/55">Wealth Path AI Global · Participant Portal</p>
         <h1 className="mt-5 font-serif text-5xl tracking-[-0.04em]">Participant profile</h1>
         <p className="mt-5 max-w-3xl leading-7 text-black/65">Add your details section by section. Save Progress keeps an incomplete draft. Complete Profile is a separate confirmation that all required profile information is present; it does not complete enrollment.</p>
@@ -133,12 +173,13 @@ export default function ParticipantProfileClient({ participant, initialProfile }
       </section>
 
       <form onSubmit={(event) => { event.preventDefault(); void submit("save"); }} className="space-y-12" noValidate aria-busy={submissionKind !== null}>
+        <fieldset disabled={submissionKind !== null} className="contents">
         <section aria-labelledby="identity-heading"><h2 id="identity-heading" className="font-serif text-3xl">1. Identity and personal details</h2><p className="mt-3 max-w-3xl text-sm leading-6 text-black/60">Tell us how to identify and address you. Fields marked with an asterisk are required to complete the profile.</p><div className="mt-6 grid gap-6 sm:grid-cols-2">
           <Field label="First name" name="firstName" value={form.firstName} onChange={input("firstName")} error={fieldErrors.firstName} required />
           <Field label="Middle name" name="middleName" value={form.middleName} onChange={input("middleName")} />
           <Field label="Last name" name="lastName" value={form.lastName} onChange={input("lastName")} error={fieldErrors.lastName} required />
           <Field label="Preferred name" name="preferredName" value={form.preferredName} onChange={input("preferredName")} />
-          <Field label="Date of birth" name="dateOfBirth" type="date" value={form.dateOfBirth} onChange={input("dateOfBirth")} error={fieldErrors.dateOfBirth} helper="Used to maintain an accurate participant identity record." required />
+          <Field label="Date of birth" name="dateOfBirth" type="date" max={today} value={form.dateOfBirth} onChange={input("dateOfBirth")} error={fieldErrors.dateOfBirth} helper="Used to maintain an accurate participant identity record." required />
           <SelectField label="Gender" name="gender" value={form.gender} options={genderOptions} onChange={input("gender")} error={fieldErrors.gender} helper="Choose the option that best reflects how you want this recorded." />
           <SelectField label="Marital status" name="maritalStatus" value={form.maritalStatus} options={maritalOptions} onChange={input("maritalStatus")} error={fieldErrors.maritalStatus} helper="Used as part of your household context." />
           <Field label="Email (managed through your account)" name="email" type="email" value={durableProfile.email ?? ""} readOnly />
@@ -168,12 +209,13 @@ export default function ParticipantProfileClient({ participant, initialProfile }
           <Field label="Phone in international format" name="emergencyContactPhone" type="tel" value={form.emergencyContactPhone} onChange={input("emergencyContactPhone")} error={fieldErrors.emergencyContactPhone} required />
         </div></section>
 
-        {message && <p role="status" aria-live="polite" className="border border-black p-4">{message}</p>}
-        {Object.keys(fieldErrors).length > 0 && <p className="text-sm text-red-700">Review the highlighted fields before continuing.</p>}
-        <div className="grid gap-4 border-t border-black pt-8 sm:grid-cols-2">
-          <div className="border border-black/20 p-5"><h2 className="font-serif text-2xl">Not finished yet?</h2><p className="mt-2 text-sm leading-6 text-black/60">Save the information entered so far and return later.</p><button type="submit" disabled={submissionKind !== null} aria-busy={submissionKind === "save"} className="mt-5 min-h-12 w-full border border-black px-6 py-3 font-semibold transition hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black disabled:cursor-wait disabled:opacity-50 active:translate-y-px">{submissionKind === "save" ? "Saving progress…" : "Save Progress"}</button></div>
-          <div className="border border-black bg-black p-5 text-white"><h2 className="font-serif text-2xl">All required details ready?</h2><p className="mt-2 text-sm leading-6 text-white/70">Confirm profile completion. This does not complete participant enrollment.</p><button type="button" disabled={submissionKind !== null} aria-busy={submissionKind === "complete"} onClick={() => void submit("complete")} className="mt-5 min-h-12 w-full bg-white px-6 py-3 font-semibold text-black transition hover:bg-white/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-wait disabled:opacity-50 active:translate-y-px">{submissionKind === "complete" ? "Completing profile…" : "Complete Profile"}</button></div>
-        </div>
+        </fieldset>
+        {(message || Object.keys(fieldErrors).length > 0) && <div ref={feedbackRef} tabIndex={-1} role={Object.keys(fieldErrors).length ? "alert" : "status"} aria-live="polite" className="border border-black p-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"><p>{message}</p>{Object.keys(fieldErrors).length > 0 && <p className="mt-2 text-sm text-red-700">Review the highlighted fields before continuing.</p>}</div>}
+        {durableProfile.profileCompleted && !dirty && <div ref={message ? feedbackRef : undefined} tabIndex={-1} role="status" aria-live="polite" className="border-2 border-black bg-white p-5"><h2 className="font-serif text-2xl">Profile completed</h2><p className="mt-2">Your saved profile is complete. Edit any field to make a new update.</p></div>}
+        {actionableComplete && <div className="grid gap-4 border-t border-black pt-8 sm:grid-cols-2">
+          {dirty && <div className="border border-black/20 p-5"><h2 className="font-serif text-2xl">Save your changes</h2><p className="mt-2 text-sm leading-6 text-black/60">Incomplete drafts are allowed; first and last name and all entered values must be valid.</p><button type="submit" disabled={submissionKind !== null || !draftValid} aria-describedby={!draftValid ? "save-disabled-reason" : undefined} aria-busy={submissionKind === "save"} className="mt-5 min-h-12 w-full border border-black px-6 py-3 font-semibold disabled:opacity-50">{submissionKind === "save" ? "Saving progress…" : "Save Progress"}</button>{!draftValid && <p id="save-disabled-reason" className="mt-2 text-sm text-red-700">Correct the highlighted or invalid draft fields before saving.</p>}<button type="button" disabled={submissionKind !== null} onClick={() => { setForm(draftOf(durableProfile)); setFieldErrors({}); setMessage(""); }} className="mt-3 min-h-11 w-full underline underline-offset-4">Cancel and revert changes</button></div>}
+          {actionableComplete && <div className="border border-black bg-black p-5 text-white"><h2 className="font-serif text-2xl">Complete this profile</h2><p className="mt-2 text-sm leading-6 text-white/70">The exact visible details will be saved and completed together.</p><button type="button" disabled={submissionKind !== null || !completionValid} aria-describedby={!completionValid ? "complete-disabled-reason" : undefined} aria-busy={submissionKind === "complete"} onClick={() => void submit("complete")} className="mt-5 min-h-12 w-full bg-white px-6 py-3 font-semibold text-black disabled:opacity-50">{submissionKind === "complete" ? "Completing profile…" : "Complete Profile"}</button>{!completionValid && <p id="complete-disabled-reason" className="mt-2 text-sm text-white/80">{remaining} required {remaining === 1 ? "field remains" : "fields remain"}; correct any invalid values.</p>}</div>}
+        </div>}
         <p className="sr-only" role="status" aria-live="polite">{submissionKind === "save" ? "Profile save in progress." : submissionKind === "complete" ? "Profile completion in progress." : ""}</p>
         <p className="text-sm text-black/55">Participant {participant.participant_code} · {participant.lifecycle_status.replaceAll("_", " ")}</p>
       </form>

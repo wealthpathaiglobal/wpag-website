@@ -14,5 +14,6 @@ describe("participant profile API",()=>{
  it("authorizes before parsing",async()=>{const json=vi.fn();mocks.participant.mockRejectedValue(new AuthenticationError());await PATCH({json} as never);expect(json).not.toHaveBeenCalled();});
  it("rejects malformed JSON",async()=>{expect((await PATCH(request("{"))).status).toBe(400);});
  it("returns structured validation errors",async()=>{mocks.save.mockResolvedValue({success:false,fieldErrors:{firstName:"Required"}});expect((await PATCH(request({firstName:""}))).status).toBe(400);});
+ it("returns a consistent 409 conflict contract",async()=>{mocks.save.mockResolvedValue({success:false,errorCode:"conflict",formError:"Refresh."});const response=await PATCH(request({profile:{},expectedUpdatedAt:"2026-01-01T00:00:00Z"}));expect(response.status).toBe(409);expect(await response.json()).toEqual({success:false,errorCode:"conflict",formError:"Refresh."});});
  it("returns saved profile",async()=>{const response=await PATCH(request({preferredName:"Ash"}));expect(response.status).toBe(200);expect(await response.json()).toMatchObject({success:true});});
 });

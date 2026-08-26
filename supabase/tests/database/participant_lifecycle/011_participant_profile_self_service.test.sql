@@ -2,7 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions, pg_catalog;
 
-select plan(56);
+select plan(64);
 
 select ok(to_regprocedure('public.get_current_participant_profile()') is not null, 'profile read RPC exists');
 select ok(to_regprocedure('public.save_current_participant_profile(text,text,text,text,date,text,text,text,text,text,text,text,text,text,text,text,text,integer,integer,text,text,text)') is not null, 'profile save RPC exists');
@@ -90,6 +90,20 @@ select ok(not has_table_privilege('authenticated','public.participant_profiles',
 select ok(not has_table_privilege('authenticated','public.participant_profiles','DELETE'), 'authenticated direct profile delete denied');
 select ok(not has_table_privilege('anon','public.participant_profiles','SELECT'), 'anon direct profile select denied');
 select ok(not has_table_privilege('public','public.participant_profiles','SELECT'), 'PUBLIC direct profile select denied');
+
+select ok(to_regprocedure('public.write_current_participant_profile(text,text,text,text,date,text,text,text,text,text,text,text,text,text,text,text,text,integer,integer,text,text,text,timestamp with time zone,boolean)') is not null, 'atomic versioned write RPC exists');
+select ok((select prosecdef from pg_proc where oid=to_regprocedure('public.write_current_participant_profile(text,text,text,text,date,text,text,text,text,text,text,text,text,text,text,text,text,integer,integer,text,text,text,timestamp with time zone,boolean)')), 'atomic RPC is security definer');
+select ok(has_function_privilege('authenticated','public.write_current_participant_profile(text,text,text,text,date,text,text,text,text,text,text,text,text,text,text,text,text,integer,integer,text,text,text,timestamp with time zone,boolean)','EXECUTE') and not has_function_privilege('anon','public.write_current_participant_profile(text,text,text,text,date,text,text,text,text,text,text,text,text,text,text,text,text,integer,integer,text,text,text,timestamp with time zone,boolean)','EXECUTE'), 'atomic RPC is authenticated-only');
+set local role authenticated;
+select set_config('request.jwt.claim.sub','b1000000-0000-4000-8000-000000000001',true);
+create temporary table expected_profile_version(value timestamptz) on commit drop;
+insert into expected_profile_version select updated_at from public.get_current_participant_profile();
+select lives_ok($$select * from public.write_current_participant_profile('Owner','','Updated','Visible snapshot','1990-01-01','female','single','+91','9876543210','IN','Karnataka','','Bengaluru','560001','','Engineer','employed',3,1,'Emergency Person','Sibling','+91 9876543211',(select value from expected_profile_version),true)$$, 'visible snapshot saves and completes atomically');
+select is((select preferred_name from public.get_current_participant_profile()), 'Visible snapshot', 'completion persisted the exact submitted snapshot');
+select ok((select profile_completed from public.get_current_participant_profile()), 'atomic submitted snapshot is completed');
+select throws_ok($$select * from public.write_current_participant_profile('Owner','','Stale','','1990-01-01','female','single','+91','9876543210','IN','Karnataka','','Bengaluru','560001','','Engineer','employed',3,1,'Emergency Person','Sibling','+91 9876543211',(select value - interval '1 microsecond' from expected_profile_version),false)$$, 'P1006', 'Participant profile version conflict.', 'stale draft write rejected');
+select throws_ok($$select * from public.write_current_participant_profile('Owner','','Stale','','1990-01-01','female','single','+91','9876543210','IN','Karnataka','','Bengaluru','560001','','Engineer','employed',3,1,'Emergency Person','Sibling','+91 9876543211',(select value - interval '1 microsecond' from expected_profile_version),true)$$, 'P1006', 'Participant profile version conflict.', 'stale completion rejected');
+reset role;
 
 select * from finish();
 rollback;

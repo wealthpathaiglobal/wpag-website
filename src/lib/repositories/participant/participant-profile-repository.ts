@@ -23,7 +23,7 @@ type ProfileRow = {
 
 export type ParticipantProfileRepositoryErrorKind =
   | "authentication_required" | "profile_unavailable" | "lifecycle_blocked"
-  | "invalid_profile" | "incomplete_profile" | "persistence_failed";
+  | "invalid_profile" | "incomplete_profile" | "conflict" | "persistence_failed";
 
 export class ParticipantProfileRepositoryError extends Error {
   constructor(readonly kind: ParticipantProfileRepositoryErrorKind) {
@@ -36,7 +36,7 @@ function mapError(error: { code?: string }): ParticipantProfileRepositoryError {
   const kinds: Record<string, ParticipantProfileRepositoryErrorKind> = {
     P1001: "authentication_required", P1002: "profile_unavailable",
     P1003: "lifecycle_blocked", P1004: "invalid_profile",
-    P1005: "incomplete_profile",
+    P1005: "incomplete_profile", P1006: "conflict",
   };
   return new ParticipantProfileRepositoryError(kinds[error.code ?? ""] ?? "persistence_failed");
 }
@@ -72,7 +72,7 @@ export async function getCurrentParticipantProfile(): Promise<CurrentParticipant
   return row ? mapRow(row) : null;
 }
 
-function rpcPayload(input: ParticipantProfileDraftInput) {
+function rpcPayload(input: ParticipantProfileDraftInput, expectedUpdatedAt: string, complete: boolean) {
   return {
     p_first_name: input.firstName, p_middle_name: input.middleName,
     p_last_name: input.lastName, p_preferred_name: input.preferredName,
@@ -87,21 +87,23 @@ function rpcPayload(input: ParticipantProfileDraftInput) {
     p_emergency_contact_name: input.emergencyContactName,
     p_emergency_contact_relationship: input.emergencyContactRelationship,
     p_emergency_contact_phone: input.emergencyContactPhone,
+    p_expected_updated_at: expectedUpdatedAt,
+    p_complete: complete,
   };
 }
 
-export async function saveCurrentParticipantProfile(input: ParticipantProfileDraftInput) {
+export async function saveCurrentParticipantProfile(input: ParticipantProfileDraftInput, expectedUpdatedAt: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("save_current_participant_profile", rpcPayload(input));
+  const { data, error } = await supabase.rpc("write_current_participant_profile", rpcPayload(input, expectedUpdatedAt, false));
   if (error) throw mapError(error);
   const row = firstRow(data);
   if (!row) throw new ParticipantProfileRepositoryError("profile_unavailable");
   return mapRow(row);
 }
 
-export async function completeCurrentParticipantProfile() {
+export async function completeCurrentParticipantProfile(input: ParticipantProfileDraftInput, expectedUpdatedAt: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("complete_current_participant_profile");
+  const { data, error } = await supabase.rpc("write_current_participant_profile", rpcPayload(input, expectedUpdatedAt, true));
   if (error) throw mapError(error);
   const row = firstRow(data);
   if (!row) throw new ParticipantProfileRepositoryError("profile_unavailable");

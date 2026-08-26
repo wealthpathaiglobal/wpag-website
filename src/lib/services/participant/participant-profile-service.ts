@@ -11,6 +11,7 @@ import {
   type ParticipantProfileDraftField,
   type ParticipantProfileDraftInput,
   type ParticipantProfileFieldErrors,
+  type ParticipantProfileWriteInput,
 } from "@/lib/types/participant/participant-profile";
 
 const genders = new Set(["", "male", "female", "other", "prefer_not_to_say"]);
@@ -108,13 +109,21 @@ export function validateParticipantProfileDraft(
 
 function safeFailure(error: unknown): ParticipantProfileActionResult {
   if (error instanceof ParticipantProfileRepositoryError) {
-    if (error.kind === "lifecycle_blocked") return { success: false, formError: "Profile changes are not available for the current participant status." };
-    if (error.kind === "profile_unavailable") return { success: false, formError: "Participant profile is unavailable." };
-    if (error.kind === "authentication_required") return { success: false, formError: "Authentication is required." };
-    if (error.kind === "incomplete_profile" || error.kind === "invalid_profile") return { success: false, formError: "Please correct the profile details and try again." };
+    if (error.kind === "lifecycle_blocked") return { success: false, errorCode: "lifecycle_blocked", formError: "Profile changes are not available for the current participant status." };
+    if (error.kind === "profile_unavailable") return { success: false, errorCode: "profile_unavailable", formError: "Participant profile is unavailable." };
+    if (error.kind === "authentication_required") return { success: false, errorCode: "authentication_required", formError: "Authentication is required." };
+    if (error.kind === "conflict") return { success: false, errorCode: "conflict", formError: "This profile was updated in another session. Refresh the page before trying again." };
+    if (error.kind === "incomplete_profile" || error.kind === "invalid_profile") return { success: false, errorCode: "validation", formError: "Please correct the profile details and try again." };
   }
   console.error("[WPAG Participant Profile] Profile operation failed.");
-  return { success: false, formError: "The profile could not be updated. Please try again." };
+  return { success: false, errorCode: "persistence_failed", formError: "The profile could not be updated. Please try again." };
+}
+
+function parseWrite(value: unknown): ParticipantProfileWriteInput | null {
+  if (!isRecord(value) || !isRecord(value.profile) || typeof value.expectedUpdatedAt !== "string") return null;
+  if (Object.keys(value).some((key) => key !== "profile" && key !== "expectedUpdatedAt")) return null;
+  if (!/^\d{4}-\d{2}-\d{2}T/.test(value.expectedUpdatedAt) || Number.isNaN(Date.parse(value.expectedUpdatedAt))) return null;
+  return value as unknown as ParticipantProfileWriteInput;
 }
 
 export async function loadParticipantProfile() {
@@ -123,20 +132,20 @@ export async function loadParticipantProfile() {
 
 export async function saveParticipantProfile(value: unknown): Promise<ParticipantProfileActionResult> {
   try {
-    const existing = await getCurrentParticipantProfile();
-    if (!existing) return { success: false, formError: "Participant profile is unavailable." };
-    const validation = validateParticipantProfileDraft(value, existing);
+    const write = parseWrite(value);
+    if (!write) return { success: false, errorCode: "validation", formError: "Invalid profile request." };
+    const validation = validateParticipantProfileDraft(write.profile);
     if (!validation.input || validation.formError || Object.keys(validation.fieldErrors).length) return { success: false, fieldErrors: validation.fieldErrors, formError: validation.formError };
-    return { success: true, profile: await saveCurrentParticipantProfile(validation.input) };
+    return { success: true, profile: await saveCurrentParticipantProfile(validation.input, write.expectedUpdatedAt) };
   } catch (error) { return safeFailure(error); }
 }
 
-export async function completeParticipantProfile(): Promise<ParticipantProfileActionResult> {
+export async function completeParticipantProfile(value: unknown): Promise<ParticipantProfileActionResult> {
   try {
-    const existing = await getCurrentParticipantProfile();
-    if (!existing) return { success: false, formError: "Participant profile is unavailable." };
-    const validation = validateParticipantProfileDraft({}, existing, true);
-    if (Object.keys(validation.fieldErrors).length) return { success: false, fieldErrors: validation.fieldErrors, formError: "Complete the required fields before completing the profile." };
-    return { success: true, profile: await completeCurrentParticipantProfile() };
+    const write = parseWrite(value);
+    if (!write) return { success: false, errorCode: "validation", formError: "Invalid profile request." };
+    const validation = validateParticipantProfileDraft(write.profile, undefined, true);
+    if (!validation.input || validation.formError || Object.keys(validation.fieldErrors).length) return { success: false, errorCode: "validation", fieldErrors: validation.fieldErrors, formError: validation.formError ?? "Complete the required fields before completing the profile." };
+    return { success: true, profile: await completeCurrentParticipantProfile(validation.input!, write.expectedUpdatedAt) };
   } catch (error) { return safeFailure(error); }
 }

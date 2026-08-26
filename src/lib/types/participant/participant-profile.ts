@@ -62,4 +62,10 @@ export interface ParticipantProfileActionResult {
   profile?: CurrentParticipantProfile;
   fieldErrors?: ParticipantProfileFieldErrors;
   formError?: string;
+  errorCode?: "conflict" | "authentication_required" | "profile_unavailable" | "lifecycle_blocked" | "validation" | "persistence_failed";
+}
+
+export interface ParticipantProfileWriteInput {
+  profile: ParticipantProfileDraftInput;
+  expectedUpdatedAt: string;
 }
