@@ -25,19 +25,26 @@ describe("participant access boundary", () => {
   });
 
   it.each(["pending_enrollment", "active"])("allows %s during onboarding", async (lifecycle_status) => {
-    const participant = { lifecycle_status };
+    const participant = { lifecycle_status, deleted_at: null };
     mocks.getCurrentParticipant.mockResolvedValue(participant);
     await expect(requireParticipantAccess("/participant/consent", ["pending_enrollment", "active"])).resolves.toBe(participant);
   });
 
   it("blocks pending enrollment from assessment", async () => {
-    mocks.getCurrentParticipant.mockResolvedValue({ lifecycle_status: "pending_enrollment" });
+    mocks.getCurrentParticipant.mockResolvedValue({ lifecycle_status: "pending_enrollment", deleted_at: null });
     await expect(requireParticipantAccess("/participant/assessment", ["active"])).rejects.toThrow("not-found");
   });
 
   it("allows active participants into assessment", async () => {
-    const participant = { lifecycle_status: "active" };
+    const participant = { lifecycle_status: "active", deleted_at: null };
     mocks.getCurrentParticipant.mockResolvedValue(participant);
     await expect(requireParticipantAccess("/participant/assessment", ["active"])).resolves.toBe(participant);
+  });
+
+  it("denies a soft-deleted disposable participant even when an Auth token still resolves", async () => {
+    // get_current_participant excludes participants/profile rows with deleted_at set,
+    // so an otherwise valid token resolves as an authorization failure.
+    mocks.getCurrentParticipant.mockRejectedValue(new AuthorizationError("Participant access is unavailable."));
+    await expect(requireParticipantAccess("/participant/profile", ["pending_enrollment", "active"])).rejects.toThrow("not-found");
   });
 });

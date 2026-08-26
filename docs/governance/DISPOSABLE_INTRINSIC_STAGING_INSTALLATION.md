@@ -1,0 +1,15 @@
+# Disposable fixture intrinsic staging configuration
+
+The core migrations intentionally leave `hfos_intrinsic_environment_configuration` empty. All disposable-fixture RPCs therefore fail closed in every project, including Production.
+
+Installation is a separately reviewed staging operation. The founder connects directly as `postgres`/database owner to the exact project and independently compares the Dashboard project reference, the hostname in the direct database connection details, and the expected literal `dllefpzhmelflbmopdas`. Before running the installer, the founder establishes the database-owned attestation with `alter database postgres set app.settings.project_ref = 'dllefpzhmelflbmopdas';`, reconnects (the setting is read at session start), and independently verifies it with `select current_database(), current_user, current_setting('app.settings.project_ref', true);`. The result must be exactly `postgres`, a database-owner identity, and `dllefpzhmelflbmopdas`; otherwise stop.
+
+Only after that independent check does the founder run `supabase/staging-only/install_disposable_intrinsic_configuration.sql` with the separately reviewed administrator UUID and expected project reference. The attestation is a database setting owned and changed only through the database-owner connection. It is never accepted from an application parameter, request/session header, JWT, or `service_role` RPC argument. The application, `anon`, `authenticated`, and `service_role` have no table privileges and cannot insert, update, or delete the intrinsic row.
+
+Do not place this artifact in the normal migration path. Do not expose its database-owner connection to application runtime.
+
+## Erroneous-row recovery
+
+If the database attestation is wrong, do not run the installer. With the release gate held BLOCKED and the application feature disabled, the founder/database owner records the incorrect value, runs `alter database postgres set app.settings.project_ref = 'dllefpzhmelflbmopdas';`, reconnects, and repeats the independent verification above. If an intrinsic singleton was already installed under an incorrect attestation, the immutability trigger deliberately blocks ordinary correction: in a directly audited database-owner maintenance transaction, capture the old row, disable only `hfos_intrinsic_environment_immutable`, delete the erroneous singleton, re-enable the trigger, and commit. Reconnect, verify the corrected database-owned attestation, then rerun the reviewed staging-only installer. Record operator, timestamp, connected project reference evidence, old attestation/row, reason, and corrected attestation/row. Never grant a normal or `service_role` mutation function for this procedure.
+
+Ban duration is defense in depth, not proof of immediate access-token invalidation. Cleanup authorization is enforced by soft-deleting both the linked participant and profile; participant resolution and portal authorization must reject those rows even if a previously issued token remains technically valid.
