@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { requireRole } from "@/lib/auth/authorization";
+import { requireAdminAccess } from "@/lib/auth/admin-access";
 import { adminApplicationService } from "@/lib/services/admin/admin-application-service";
 import { adminAssessmentReviewService } from "@/lib/services/admin/admin-assessment-review-service";
 import { adminEvidenceVerificationService } from "@/lib/services/admin/admin-evidence-verification-service";
@@ -71,7 +71,7 @@ function getApplicationStatusClasses(status: string) {
 }
 
 export default async function AdminDashboardPage() {
-  const staff = await requireRole("administrator");
+  const staff = await requireAdminAccess("/admin/dashboard");
 
   const [participants, pendingApplications, assessmentReviews, preliminaryReports, evidenceQueue] = await Promise.all([
     getParticipants(),
