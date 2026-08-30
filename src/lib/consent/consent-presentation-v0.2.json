@@ -1,0 +1,29 @@
+{
+  "title": "HFOS Research Consent Presentation",
+  "version": "v0.2",
+  "activation": "SYNTHETIC_ONLY",
+  "sections": [
+    { "heading": "Research purpose", "paragraphs": ["Wealth Path AI Global is studying how submitted financial facts and later observations may support development and evaluation of the Human Financial Operating System research framework. This is research activity only. It is not a final System State, diagnosis, financial advice, treatment, transition instruction, or execution instruction."] },
+    { "heading": "Voluntary participation", "paragraphs": ["Taking part is voluntary. You may decline before research participation begins. You may ask questions or request clarification before making a decision. Declining or withdrawing must not be represented as a negative research outcome."] },
+    { "heading": "Direct-consent-only scope", "paragraphs": ["This controlled research flow supports only a participant deciding directly for themselves. Consent by a representative, consent for a minor, and other representative-consent cases are not supported by this version and require separate authority."] },
+    { "heading": "Baseline family and evidence scope", "paragraphs": ["The current research family is FSH. If you grant baseline consent, the authorized synthetic scope is limited to the governed FSH baseline research plan and the evidence categories expressly bound to that plan.", "Consent does not authorize unrelated research families, unrestricted evidence, public case studies, external sharing, or future use merely because it may be useful."] },
+    { "heading": "Follow-up scope is separate", "paragraphs": ["Baseline consent does not imply follow-up consent. Follow-up research may proceed only if you separately grant the follow-up scope, the current consent and privacy gates remain open, no withdrawal or restriction controls apply, and an authorized administrator initiates the governed manual follow-up. No automatic cadence is promised or authorized."] },
+    { "heading": "Privacy and data use", "paragraphs": ["Research information is restricted to approved research purposes, governed roles, and controlled environments. The categories of personal data collected from you for the FSH baseline research plan are limited to the self-reported financial figures and related structured responses you submit through the participant research page. No document uploads (including bank statements, salary slips, or identity documents) will be collected as part of this cohort. External sharing, public case studies, advertising, unrelated profiling, and sending your research data to any third-party AI system or unapproved analytics provider are prohibited. Nothing in this notice limits or replaces any right available to you by law."] },
+    { "heading": "Withdrawal and disposition", "paragraphs": ["You may submit an explicit research withdrawal request through the participant research page. Protection begins immediately: new research collection and any follow-up research are blocked from that point. Your active research data will be reviewed for deletion or de-identification within 30 days of your withdrawal request. A minimum audit record of your consent and withdrawal will be retained for 3 years from the date of withdrawal, to support accountability and dispute resolution, and for no purpose beyond that. This does not affect any right you separately have by law."] },
+    { "heading": "Results and limitations", "paragraphs": ["This research flow does not provide Stable, Under Pressure, or Fragile classifications; candidate thresholds; STRESS predicate conclusions; internal hypotheses; Incident details; or FSH values or interpretations to participants. It makes no Pilot, Production, validation, representativeness, causal, or guaranteed-outcome claim."] },
+    { "heading": "Contact and requests", "paragraphs": ["Questions, clarification requests, consent decisions, withdrawal requests, and complaints should be directed to Srinivas Goud, Founder and Privacy/Grievance Contact, Wealth Path AI Global, at contact@wealthpathaiglobal.com. We aim to acknowledge your request within 3 business days and respond substantively within 30 days. Nothing in this notice limits or replaces any statutory right available to you."] },
+    { "heading": "Activation boundary", "paragraphs": ["This creation-side artifact may be exercised only with synthetic/test identities for deterministic verification until an independent governance review approves the exact wording and a later release review closes every remaining dependency. Real participant consent presentation, real participant evidence collection, and actual participant enrolment remain not authorized pending that review."] }
+  ],
+  "acknowledgements": [
+    "direct-consent-only eligibility",
+    "research-purpose understanding",
+    "voluntary-participation understanding",
+    "research-only and no-final-State limitation",
+    "privacy/data-use boundary understanding",
+    "withdrawal-without-automatic-deletion understanding"
+  ],
+  "ageAndDirectDecisionConfirmation": "I confirm that I am 18 years of age or older, and that I am deciding for myself and not on behalf of another person.",
+  "capacityConfirmation": "I confirm I am able to understand this research and make this decision for myself",
+  "baselineDecision": "baseline FSH scope decision",
+  "followUpDecision": "a separate follow-up scope decision"
+}

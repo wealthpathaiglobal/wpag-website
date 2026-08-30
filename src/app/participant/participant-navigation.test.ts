@@ -24,9 +24,12 @@ describe("participant journey navigation", () => {
   });
 
   it("protects all onboarding steps and the assessment subtree with server layouts", () => {
-    for (const route of ["verify-contact", "identity-verification", "consent", "enrollment-confirmation", "assessment"]) {
+    for (const route of ["verify-contact", "identity-verification", "enrollment-confirmation", "assessment"]) {
       expect(source(`src/app/participant/${route}/layout.tsx`)).toContain("requireParticipantAccess");
     }
+    expect(source("src/app/participant/consent/layout.tsx")).toContain(
+      "requireSyntheticConsentAccess",
+    );
   });
 
   it("preserves exact protected routes in unauthenticated middleware redirects", () => {

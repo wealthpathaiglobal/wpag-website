@@ -1,6 +1,6 @@
-import { requireParticipantAccess } from "@/lib/auth/participant-access";
+import { requireSyntheticConsentAccess } from "@/lib/consent/consent-access";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  await requireParticipantAccess("/participant/consent", ["pending_enrollment", "active"]);
+  await requireSyntheticConsentAccess();
   return children;
 }
