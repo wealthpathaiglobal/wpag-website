@@ -35,7 +35,13 @@ describe('Reader v3 release contracts', () => {
  it('keeps catalogue Explore on the hero and provides same-page contents', () => {
   expect(renderToStaticMarkup(<BookSummary catalogue/>)).toContain('href="/books/hfos-phase-1-stability">Explore the book');
   const html=renderToStaticMarkup(<Product/>);
-  expect(html).toContain('href="#book-contents"');expect(html).toContain('id="book-contents"');
+  expect(html).not.toContain('View contents');expect(html).toContain('id="book-contents"');
+  expect(html).not.toContain('Sales are not open.');
+  expect(html).not.toContain('Explore the opening');
+  expect(html.indexOf('One personal account')).toBeGreaterThan(html.indexOf('10. Phase Transition'));
+  expect(html).toContain('Access details');
+  expect(html.match(/This book does not provide personal financial advice, assessment, or research enrolment/g)).toHaveLength(1);
+  expect(renderToStaticMarkup(<BookSummary/>)).not.toContain('One personal account');
   expect(html).toContain('10. Phase Transition');
   expect(html).toContain('disabled="">Coming soon — payments not yet enabled');
  });

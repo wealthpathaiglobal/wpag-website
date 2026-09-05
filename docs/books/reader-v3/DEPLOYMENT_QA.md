@@ -78,3 +78,11 @@ Screenshots: [complete desktop page and navigation](live-desktop-complete-page.p
 Deliberately deferred: two-page spreads, swipe navigation, dedicated feedback backend, new analytics events, Telugu edition, and all payments/private Full Edition activation. No follow-on feature pass is planned.
 
 **PASS — READER UX v3 LIVE AND PUBLIC BOOK UX FROZEN**
+
+## Owner-authorized post-freeze copy exception — 5 September 2026
+
+The owner explicitly authorized a bounded catalogue/product-page simplification after Reader v3 freeze. No new reader feature or content revision is authorized. Catalogue Explore uses document navigation to the hash-free product URL: browser QA caught the framework link preserving a nonzero scroll position, and the correction restores scrollY 0 on desktop/mobile.
+
+Removed View contents and the redundant sales-closed sentence/prose; all ten chapter titles stay open in the product page. Moved operational terms into Access details after Contents. Kept title, cover, description, planned price/access, educational-only boundary, disabled purchase, and existing Share. No duplicate preview CTA was added. No CSS, reader, feedback/share implementation, manuscript, payment, private-reader, KYC, KDP, research, counsel or governance changes.
+
+Local checks: build passed (inert local build environment values; production settings unchanged), lint and all 588 tests passed. Desktop 1440 and mobile 390 CSS px verified catalogue → product at scrollY 0, empty hash, visible chapter titles, access after Contents, disabled purchase, and no horizontal overflow. Production deployment and live re-freeze verification pending below.

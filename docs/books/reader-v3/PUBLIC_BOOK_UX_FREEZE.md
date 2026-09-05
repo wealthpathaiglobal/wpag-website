@@ -7,3 +7,7 @@ The Books catalogue, Phase 1 product and free-preview reader are frozen for traf
 Payments and private paid reader remain disabled. This freeze does not alter manuscript, cover, KDP, research, counsel or governance state and does not authorize their activation or amendment.
 
 See DEPLOYMENT_QA.md for tests, live URLs, screenshots, feedback handling, deferred work and rollback.
+
+## Narrow owner-authorized exception — 5 September 2026
+
+Owner requested only catalogue/product-page copy and information-order cleanup. This exception removes redundant sales/Contents prose, moves operational terms below the always-open ten-chapter Contents, and ensures catalogue Explore opens the product at the top. All Reader v3 and protected-state boundaries remain frozen. Re-freeze takes effect after production verification recorded in DEPLOYMENT_QA.md; no further cosmetic/feature work is authorized.
