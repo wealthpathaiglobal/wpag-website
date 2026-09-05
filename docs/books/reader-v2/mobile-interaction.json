@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "Shift Tab contained",
+    "Tab wraps to Close",
+    "Escape closes and returns focus",
+    "Section jump focuses heading and closes",
+    "Previous reaches 2.3",
+    "Next reaches 2.4",
+    "Preview end reachable",
+    "Telugu unavailable; English selected",
+    "D0202 boundary",
+    "No horizontal overflow"
+  ],
+  "result": "PASS"
+}

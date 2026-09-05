@@ -1,7 +1,17 @@
 # HFOS Phase 1 — Reader UX v2
 
 Date: 5 September 2026. Baseline: c97d2b93bb80dbfda2bf78f96cbd5dadd43d9ef8.
-Pre-deployment: PASS. Live deployment verification pending.
+**PASS — READER UX v2 LIVE, CONTROLLED TRANSLATION ARCHITECTURE READY**
+
+Source commit: c9e64934b840a536297d50bd1a5d1e5232598c79. Production commit: a8adb2300319495581df94f7580d4daecd467b2e.
+PR #34: https://github.com/wealthpathaiglobal/wpag-website/pull/34 (merged).
+Vercel preview: 7QxT9Cbmqs94SA34AkoGNBR2F7pa — SUCCESS.
+Vercel production: CMsD5QR8Ez556Yt6txyV3Qayg4ED — SUCCESS. GitHub production deployment: 6281871120.
+
+Live URLs:
+- https://www.wealthpathaiglobal.com/books
+- https://www.wealthpathaiglobal.com/books/hfos-phase-1-stability
+- https://www.wealthpathaiglobal.com/books/hfos-phase-1-stability/preview
 
 ## Before / after
 The previous warm-neutral document presentation had a top-only Contents list and policy dead ends. Reader v2 uses Georgia editorial type, warm paper, bounded reading measure, chapter labels and openers, a compact sticky toolbar, accessible modal Contents, and persistent adjacent-section controls. A deliberate end state returns to the book without promoting an available purchase. Catalogue/product titles share the editorial treatment; the approved cover is untouched.
@@ -39,3 +49,20 @@ Browser testing caught native focus escaping and a cramped 320px toolbar; both c
 Payments, private reader, KYC, KDP, research, counsel, governance, canonical book JSON, cover assets and database configuration remain unchanged. Draft access/refund policies remain blocked. Public canonicals and sitemap configuration are unchanged. No Chapter 3+ reader payload, endpoint, or link is introduced.
 
 Rollback: revert this release PR or restore production c97d2b9 / Vercel AyaExNRCxHBLywowaVZpLs5i8kqC. No database rollback.
+
+## Final production verification
+- Home → mobile menu Books → Explore the book → Read the free preview → Contents → sections → End → Back to the book → all three policies → Back to Phase 1 completed. Initial pre-hydration menu click was repeated successfully after inspecting loaded state.
+- Reusable live interaction suite passes all ten assertions (see live-interaction.json). Explicit focus wrapping works in both directions; Escape returns to the opener; destination headings receive focus.
+- All 11 live Contents destinations pass focus, closure and toolbar clearance assertions (live-contents.json). Browser Back returned to §2.3 and Forward to §2.4.
+- All nine live public-page layouts at 320/390/1440 pass overflow and heading checks. Covers verified after load completion: 238×357 mobile, 358×537 desktop, with descriptive alt text. Initial immediate navigation observations preceded image completion; final live-responsive.json and live-covers.json record loaded results.
+- Preview ending, disabled purchase, exact canonical prose, cover hash, no protected paragraphs in served HTML/client/RSC payloads, 13 protected routes, and disabled-order response all pass on production. See live-boundary.txt, live-checks.json and live-rsc-and-methods.json.
+- Existing 12-route regression passes; policy body text unchanged after excluding only the explicit added return labels.
+- Public sitemap lists all three Books routes, excludes reader/library, and robots.txt allows public indexing. Canonical URLs remain self-referencing; protected routes remain noindex.
+- Browser warning/error log was empty during the final checks. Zoom is not disabled (viewport width=device-width, initial-scale=1); narrow reflow verified. No native 200%/400% or physical-device certification is claimed. No new animation; reduced-motion rule retained for reader styling.
+- The reader uses high-contrast dark ink on warm paper, light text on its dark toolbar, and explicit focus outlines. Footer secondary text changed from zinc-600 to zinc-400. This is targeted accessibility QA, not a full-site WCAG audit.
+
+Screenshots: [Desktop reader](live-desktop-chapter.png), [Mobile end state](live-mobile-end.png), [Mobile Contents](mobile-contents.png), [Narrow end state](mobile-end.png).
+
+The prepared translation resolver and locale manifest are source architecture for future integration; no unavailable locale is enabled, no full Telugu translation is included, and no browser translation is presented as official. Existing analytics is unchanged; no reader progress storage, tracking events or account collection added.
+
+**PASS — READER UX v2 LIVE, CONTROLLED TRANSLATION ARCHITECTURE READY**

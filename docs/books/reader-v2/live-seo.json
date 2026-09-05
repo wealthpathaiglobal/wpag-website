@@ -1,0 +1,5 @@
+{
+  "sitemap_public_books": true,
+  "protected_reader_absent": true,
+  "robots": "User-Agent: *\nAllow: /\n\nHost: https://www.wealthpathaiglobal.com\nSitemap: https://www.wealthpathaiglobal.com/sitemap.xml\n"
+}

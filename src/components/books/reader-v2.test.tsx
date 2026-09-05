@@ -8,9 +8,9 @@ describe('Reader v2 public contracts', () => {
  it('provides a named native modal, adjacent navigation and truthful language options', () => {
   const html=renderToStaticMarkup(<Preview/>);
   expect(html).toContain('<dialog');expect(html).toContain('aria-labelledby="reader-contents-title"');
-  expect(html).toContain('aria-label="Read adjacent sections"');
+  expect(html).toContain('aria-label="Read adjacent pages"');
   expect(html).toContain('<option value="te" disabled="">తెలుగు — Coming later</option>');
-  expect(html).toContain('English · Canonical');expect(html).toContain('lang="en"');
+  expect(html).toContain('>English</option>');expect(html).toContain('lang="en"');
   expect(html).toContain('id="reader-end"');expect(html).not.toContain('src_D0205');
  });
  it('provides footer Books and policy recovery without activating draft policies', () => {

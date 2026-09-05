@@ -1,0 +1,74 @@
+[
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books",
+    "width": 320
+  },
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books/hfos-phase-1-stability",
+    "width": 320
+  },
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books/hfos-phase-1-stability/preview",
+    "width": 320
+  },
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books",
+    "width": 390
+  },
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books/hfos-phase-1-stability",
+    "width": 390
+  },
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books/hfos-phase-1-stability/preview",
+    "width": 390
+  },
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books",
+    "width": 1440
+  },
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books/hfos-phase-1-stability",
+    "width": 1440
+  },
+  {
+    "cover": true,
+    "h1": 1,
+    "overflow": false,
+    "toolbarOverflow": false,
+    "url": "/books/hfos-phase-1-stability/preview",
+    "width": 1440
+  }
+]

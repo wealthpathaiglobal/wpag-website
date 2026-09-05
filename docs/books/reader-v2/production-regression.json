@@ -1,0 +1,18 @@
+{
+  "result": "PASS",
+  "routes": [
+    "/",
+    "/about",
+    "/hfos",
+    "/research",
+    "/insights",
+    "/founder",
+    "/contact",
+    "/privacy-policy",
+    "/terms-of-use",
+    "/cookie-policy",
+    "/participant",
+    "/auth/login"
+  ],
+  "status_url_main_content": "identical canonical page content; policy return navigation excluded explicitly"
+}
