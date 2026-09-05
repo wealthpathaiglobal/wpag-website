@@ -1,0 +1,23 @@
+[
+  {
+    "controlsOverlap": false,
+    "overflow": false,
+    "pages": 19,
+    "unclipped": true,
+    "width": 320
+  },
+  {
+    "controlsOverlap": false,
+    "overflow": false,
+    "pages": 19,
+    "unclipped": true,
+    "width": 767
+  },
+  {
+    "controlsOverlap": false,
+    "overflow": false,
+    "pages": 19,
+    "unclipped": true,
+    "width": 1440
+  }
+]

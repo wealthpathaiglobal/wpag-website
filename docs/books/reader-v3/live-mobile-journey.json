@@ -1,0 +1,20 @@
+{
+  "result": "PASS",
+  "product": {
+    "cover": true,
+    "disabled": true,
+    "hash": "",
+    "overflow": false,
+    "url": "https://www.wealthpathaiglobal.com/books/hfos-phase-1-stability",
+    "width": 390
+  },
+  "reader": {
+    "heading": 274.46514892578125,
+    "language": "en",
+    "teluguDisabled": true,
+    "toolbar": 250.31851196289065,
+    "width": 390
+  },
+  "shareCopy": "https://www.wealthpathaiglobal.com/books/hfos-phase-1-stability/preview",
+  "journey": "Home mobile menu → Books → Product hero → View contents → Preview → Next/Previous → Contents → English → Feedback → Share/Copy → End → Product"
+}
