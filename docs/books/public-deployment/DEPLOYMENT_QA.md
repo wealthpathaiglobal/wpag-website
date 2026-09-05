@@ -19,3 +19,5 @@ Browser QA: all three pages at 390×844 and 1440×1000, one h1 each, no horizont
 Safety: payments and private customer reader remain disabled. Full content and synthetic reader are outside this checkout. No Razorpay/KYC, real order, money, customer activation, KDP or research/counsel/governance change.
 
 Rollback: restore production deployment `DC3jJQs2MrjYEFGdgoadGVg1XfTh` using the existing Vercel project, or revert this isolated source commit. No database rollback is required. Post-deployment checks must compare the 12 recorded existing public route main-content/status baselines and rerun exact preview/private boundary checks.
+
+Hosting correction: first preview deployment `5wFp5RzRrwzyYYENi51gSmvr3fPe` failed because an unanchored packaging exclusion also removed existing `src/lib/supabase` website files. All directory exclusions are now explicitly root-anchored. No production release occurred on that failed build.

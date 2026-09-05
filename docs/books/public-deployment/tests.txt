@@ -11,6 +11,11 @@ Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
 
  Test Files  57 passed (57)
       Tests  572 passed (572)
-   Start at  18:23:35
-   Duration  1.15s (transform 1.71s, setup 0ms, import 3.46s, tests 602ms, environment 4ms)
+   Start at  18:27:10
+   Duration  1.12s (transform 1.68s, setup 0ms, import 3.46s, tests 615ms, environment 4ms)
 
+npm notice
+npm notice New major version of npm available! 11.16.0 -> 12.0.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+npm notice To update run: npm install -g npm@12.0.2
+npm notice
