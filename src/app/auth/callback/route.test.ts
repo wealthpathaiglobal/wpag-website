@@ -87,6 +87,31 @@ beforeEach(() => {
 });
 
 describe("GET /auth/callback", () => {
+  it.each([
+    "/\\attacker.example", "//attacker.example", "https://attacker.example",
+    "/%5cattacker.example", "/%2fattacker.example", "/%252f%255cattacker.example",
+    "/participant/%0aprofile", "/participant/\nprofile", "/%E0%A4%A",
+    "/api/admin/participants/invite", "/participant/../books",
+  ])("keeps the actual Location internal for malicious next=%s", async next => {
+    const query = new URLSearchParams({ code: "callback-code", next });
+    const response = await GET(callbackRequest(`?${query}`));
+    expect(response.headers.get("location")).toBe("https://wpag.example/participant/dashboard");
+    expect(mocks.rpc).toHaveBeenCalledWith("accept_participant_invitation", {
+      p_invitation_id: invitationId,
+      p_auth_user_id: authUserId,
+    });
+  });
+
+  it.each([
+    "/auth/update-password", "/participant/profile", "/participant/assessment?module=1#review",
+    "/admin/participants/record-id",
+  ])("preserves a valid invitation/recovery/institutional return: %s", async next => {
+    const query = new URLSearchParams({ code: "callback-code", next });
+    const response = await GET(callbackRequest(`?${query}`));
+    expect(response.headers.get("location")).toBe(`https://wpag.example${next}`);
+    expect(mocks.signOut).not.toHaveBeenCalled();
+  });
+
   it("redirects safely when the callback code is missing", async () => {
     const response = await GET(callbackRequest(""));
 
