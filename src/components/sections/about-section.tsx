@@ -22,6 +22,21 @@ export function AboutSection() {
   WPAG does not provide banking, lending, brokerage, investment-advisory, or
   other regulated financial services.
 </p>
+        <div className="mt-10 max-w-3xl">
+          <h3 className="text-lg font-medium leading-7 text-zinc-200">
+            Begin with HFOS Phase 1 — Stability
+          </h3>
+          <p className={`mt-3 ${typography.body}`}>
+            A structured introduction to understanding financial stability before
+            financial growth. A free preview is available to read now.
+          </p>
+          <a
+            href="/books"
+            className="mt-3 inline-block py-2 text-base leading-7 text-zinc-200 underline underline-offset-4 transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            Explore the book →
+          </a>
+        </div>
       </Container>
     </section>
   );
