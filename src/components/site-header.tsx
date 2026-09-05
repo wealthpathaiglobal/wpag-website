@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { Container } from "@/components/layout/container";
@@ -16,6 +17,7 @@ const navigation = [
 ];
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   function closeMenu() {
@@ -53,6 +55,7 @@ export function SiteHeader() {
               <Link
                 key={item.name}
                 href={item.href}
+                aria-current={pathname === item.href ? "page" : pathname.startsWith(item.href + "/") ? "location" : undefined}
                 className="text-sm text-zinc-400 transition hover:text-white"
               >
                 {item.name}
@@ -75,7 +78,7 @@ export function SiteHeader() {
               aria-expanded={isMenuOpen}
               aria-controls="mobile-navigation"
               onClick={() => setIsMenuOpen((current) => !current)}
-              className="inline-flex h-10 w-10 items-center justify-center border border-white/20 text-white transition hover:border-white/50 md:hidden"
+              className="inline-flex h-11 w-11 items-center justify-center border border-white/20 text-white transition hover:border-white/50 md:hidden"
             >
               <span className="sr-only">
                 {isMenuOpen ? "Close menu" : "Open menu"}
@@ -101,6 +104,7 @@ export function SiteHeader() {
                 <Link
                   key={item.name}
                   href={item.href}
+                aria-current={pathname === item.href ? "page" : pathname.startsWith(item.href + "/") ? "location" : undefined}
                   onClick={closeMenu}
                   className="border-b border-white/10 py-4 text-base text-zinc-300 transition last:border-b-0 hover:text-white"
                 >

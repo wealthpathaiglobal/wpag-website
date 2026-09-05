@@ -1,3 +1,4 @@
+import { PolicyReturn } from "@/components/books/policy-return";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-24">
+      <PolicyReturn />
       <h1 className="mb-10 text-5xl font-bold tracking-tight">
         Privacy Policy
       </h1>
@@ -114,6 +116,7 @@ export default function PrivacyPolicyPage() {
           Last Updated: July 2026
         </p>
       </div>
+      <PolicyReturn />
     </main>
   );
 }

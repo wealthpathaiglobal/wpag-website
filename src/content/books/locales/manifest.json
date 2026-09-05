@@ -1,0 +1,29 @@
+{
+  "canonicalLocale": "en",
+  "availableLocales": [
+    "en"
+  ],
+  "plannedLocales": {
+    "te": "unavailable"
+  },
+  "chapters": [
+    {
+      "locale": "en",
+      "chapterId": "front-matter",
+      "sourceFile": "../front-matter.json",
+      "sourceFileSha256": "794a1f1fe88cc77d55f423dbe35bd15271bcdf864ced7bfc33cc19804d6599c9"
+    },
+    {
+      "locale": "en",
+      "chapterId": "ch01",
+      "sourceFile": "../ch01.json",
+      "sourceFileSha256": "77f4967d97cf0bff49e19eb35c1921732778a5074fb95eecd8bb81dab3fd929f"
+    },
+    {
+      "locale": "en",
+      "chapterId": "ch02",
+      "sourceFile": "../ch02.json",
+      "sourceFileSha256": "b623116b05d31f459922b4b7f116d9f2bbe87339ee76ac910aeef47e8dd074b3"
+    }
+  ]
+}

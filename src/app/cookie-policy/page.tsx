@@ -1,6 +1,8 @@
+import { PolicyReturn } from "@/components/books/policy-return";
 export default function CookiePolicyPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-24">
+      <PolicyReturn />
       <h1 className="mb-8 text-5xl font-bold">Cookie Policy</h1>
 
       <div className="space-y-8 text-lg leading-8 text-neutral-700">
@@ -47,6 +49,7 @@ export default function CookiePolicyPage() {
           Last Updated: July 2026
         </p>
       </div>
+      <PolicyReturn />
     </main>
   );
 }

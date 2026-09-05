@@ -5,6 +5,7 @@ import { Container } from "@/components/layout/container";
 const footerNavigation = [
   { name: "About", href: "/about" },
   { name: "HFOS", href: "/hfos" },
+  { name: "Books", href: "/books" },
   { name: "Research", href: "/research" },
   { name: "Insights", href: "/insights" },
   { name: "Founder", href: "/founder" },
@@ -29,7 +30,7 @@ export function SiteFooter() {
               Wealth Path AI Global
             </Link>
 
-            <p className="mt-5 max-w-md text-base leading-7 text-zinc-500">
+            <p className="mt-5 max-w-md text-base leading-7 text-zinc-400">
               Building structured systems for financial stability, research,
               education, and long-term institutional knowledge.
             </p>
@@ -43,7 +44,7 @@ export function SiteFooter() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-sm text-zinc-400 transition hover:text-white"
+                className="inline-flex min-h-11 items-center text-sm text-zinc-400 transition hover:text-white"
               >
                 {item.name}
               </Link>
@@ -51,10 +52,10 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <div className="mt-16 flex flex-col gap-4 border-t border-zinc-900 pt-6 text-sm text-zinc-600 sm:flex-row sm:items-start sm:justify-between">
+        <div className="mt-16 flex flex-col gap-4 border-t border-zinc-900 pt-6 text-sm text-zinc-400 sm:flex-row sm:items-start sm:justify-between">
           <p>© 2026 Wealth Path AI Global. All rights reserved.</p>
 
-          <div className="space-y-2 text-sm text-zinc-600">
+          <div className="space-y-2 text-sm text-zinc-400">
             <p>Structure precedes speed.</p>
             <p>Evidence precedes scale.</p>
             <p>Stability precedes growth.</p>
