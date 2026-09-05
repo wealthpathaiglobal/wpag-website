@@ -1,0 +1,326 @@
+{
+  "id": "ch01",
+  "paragraphs": [
+    {
+      "id": "src_D0068",
+      "anchors": [
+        "src_D0068"
+      ],
+      "style": "ChapterLabel",
+      "text": "Chapter 1",
+      "links": []
+    },
+    {
+      "id": "src_D0070",
+      "anchors": [
+        "ch01",
+        "src_D0070"
+      ],
+      "style": "Heading1",
+      "text": "Structural Financial Instability",
+      "links": []
+    },
+    {
+      "id": "src_D0073",
+      "anchors": [
+        "ch01_sec01_nature_of_instability",
+        "src_D0073"
+      ],
+      "style": "Heading2",
+      "text": "1.1 Nature of Instability",
+      "links": []
+    },
+    {
+      "id": "src_D0075",
+      "anchors": [
+        "src_D0075"
+      ],
+      "style": "Normal",
+      "text": "In HFOS, structural instability describes an ongoing condition within a system, rather than only an isolated event.",
+      "links": []
+    },
+    {
+      "id": "src_D0077",
+      "anchors": [
+        "src_D0077"
+      ],
+      "style": "Normal",
+      "text": "In HFOS, a continuing structural condition and an observed disruption are distinct concepts. A disruption alone does not establish that an earlier condition existed. Payment events remain relevant observations; this distinction supplies no method for detecting a hidden condition.",
+      "links": []
+    },
+    {
+      "id": "src_D0079",
+      "anchors": [
+        "src_D0079"
+      ],
+      "style": "Normal",
+      "text": "Within HFOS, meeting current obligations is distinct from sustained alignment of Load, Flow, and Capacity. Current payment performance is relevant information, but continuity alone does not establish either sustained alignment or instability. Neither payment nor nonpayment alone assigns an individual system to an HFOS state.",
+      "links": []
+    },
+    {
+      "id": "src_D0081",
+      "anchors": [
+        "src_D0081"
+      ],
+      "style": "Normal",
+      "text": "Instability can exist before disruption when a system operates under conditions it cannot sustain. The absence of breakdown alone does not establish stability.",
+      "links": []
+    },
+    {
+      "id": "src_D0083",
+      "anchors": [
+        "src_D0083"
+      ],
+      "style": "Normal",
+      "text": "Within HFOS, instability describes a conceptual condition in which a system cannot sustain its underlying relationships over time. This model condition is distinct from an observed disruption.",
+      "links": []
+    },
+    {
+      "id": "src_D0085",
+      "anchors": [
+        "src_D0085"
+      ],
+      "style": "Normal",
+      "text": "Understanding instability as a condition shifts attention toward underlying relationships. This can complement recognition through visible events.",
+      "links": []
+    },
+    {
+      "id": "src_D0087",
+      "anchors": [
+        "ch01_sec02_instability_as_a_system_condi",
+        "src_D0087"
+      ],
+      "style": "Heading2",
+      "text": "1.2 Instability as a System Condition",
+      "links": []
+    },
+    {
+      "id": "src_D0089",
+      "anchors": [
+        "src_D0089"
+      ],
+      "style": "Normal",
+      "text": "Instability is not confined to individual elements. It exists at the level of the system. When instability is present, it reflects a condition that affects the entire structure rather than a single component.",
+      "links": []
+    },
+    {
+      "id": "src_D0091",
+      "anchors": [
+        "src_D0091"
+      ],
+      "style": "Normal",
+      "text": "Correcting separate parts may not resolve a wider imbalance. HFOS therefore examines how the parts interact, alongside the contribution of individual obligations and events.",
+      "links": []
+    },
+    {
+      "id": "src_D0093",
+      "anchors": [
+        "src_D0093"
+      ],
+      "style": "Normal",
+      "text": "A system may contain functioning components and still remain unstable. Each part may operate as expected, yet the system as a whole may not sustain its condition over time. This reflects a structural imbalance.",
+      "links": []
+    },
+    {
+      "id": "src_D0095",
+      "anchors": [
+        "src_D0095"
+      ],
+      "style": "Normal",
+      "text": "Viewing instability as a system condition directs attention to how components interact as well as how they perform individually. HFOS offers one organizing perspective for examining these relationships; other methods can also consider component relationships.",
+      "links": []
+    },
+    {
+      "id": "src_D0097",
+      "anchors": [
+        "src_D0097"
+      ],
+      "style": "Normal",
+      "text": "Isolated adjustments may be insufficient when the imbalance concerns the wider structure. Examining that structure can help clarify the condition without ruling out useful individual corrections.",
+      "links": []
+    },
+    {
+      "id": "src_D0099",
+      "anchors": [
+        "ch01_sec03_pressure_and_structural_imbal",
+        "src_D0099"
+      ],
+      "style": "Heading2",
+      "text": "1.3 Pressure and Structural Imbalance",
+      "links": []
+    },
+    {
+      "id": "src_D0101",
+      "anchors": [
+        "src_D0101"
+      ],
+      "style": "Normal",
+      "text": "Instability develops under pressure. A system operates with ongoing demands that must be sustained over time. These demands create continuous pressure within the structure.",
+      "links": []
+    },
+    {
+      "id": "src_D0103",
+      "anchors": [
+        "src_D0103"
+      ],
+      "style": "Normal",
+      "text": "Pressure is inherent to operation. Obligations persist, and the system must continually meet them to maintain continuity. This requirement defines the presence of structural pressure.",
+      "links": []
+    },
+    {
+      "id": "src_D0105",
+      "anchors": [
+        "src_D0105"
+      ],
+      "style": "Normal",
+      "text": "Instability emerges when pressure is not supported by the system’s structure. When demands exceed what can be sustained, imbalance develops. This imbalance may not be visible, but it exists within the system.",
+      "links": []
+    },
+    {
+      "id": "src_D0107",
+      "anchors": [
+        "src_D0107"
+      ],
+      "style": "Normal",
+      "text": "Structural imbalance can form when pressure persists beyond what a system can sustain. A single event can also change those conditions; prolonged pressure is not the only possible pathway.",
+      "links": []
+    },
+    {
+      "id": "src_D0109",
+      "anchors": [
+        "src_D0109"
+      ],
+      "style": "Normal",
+      "text": "Within the HFOS model, stipulated imbalance and current continuity may coexist when immediate demands are met. Current payment performance remains relevant information, but it is insufficient on its own to assign an HFOS state.",
+      "links": []
+    },
+    {
+      "id": "src_D0111",
+      "anchors": [
+        "src_D0111"
+      ],
+      "style": "Normal",
+      "text": "HFOS focuses on persistent pressure relative to support and limits. This focus does not exclude instability triggered or intensified by an isolated event.",
+      "links": []
+    },
+    {
+      "id": "src_D0113",
+      "anchors": [
+        "ch01_sec04_functioning_without_stability",
+        "src_D0113"
+      ],
+      "style": "Heading2",
+      "text": "1.4 Functioning Without Stability",
+      "links": []
+    },
+    {
+      "id": "src_D0115",
+      "anchors": [
+        "src_D0115"
+      ],
+      "style": "Normal",
+      "text": "A system may function without being stable. Continuity of operation does not confirm structural soundness. Functioning reflects present capability, not underlying condition.",
+      "links": []
+    },
+    {
+      "id": "src_D0118",
+      "anchors": [
+        "src_D0118"
+      ],
+      "style": "Normal",
+      "text": "A system can meet immediate demands while operating under imbalance. As long as pressure is temporarily managed, continuity is preserved. This does not by itself establish sustained stability.",
+      "links": []
+    },
+    {
+      "id": "src_D0120",
+      "anchors": [
+        "src_D0120"
+      ],
+      "style": "Normal",
+      "text": "Functioning without stability can occur when operation depends on support that remains insufficient or insecure. Temporary support or adjustments may help sustain continuity, but they do not necessarily resolve an underlying imbalance if that support cannot be sustained.",
+      "links": []
+    },
+    {
+      "id": "src_D0122",
+      "anchors": [
+        "src_D0122"
+      ],
+      "style": "Normal",
+      "text": "Distinguishing functioning from stability changes evaluation. It requires examining whether the system can sustain its condition over time, rather than whether it is operating at a given moment.",
+      "links": []
+    },
+    {
+      "id": "src_D0124",
+      "anchors": [
+        "ch01_sec05_instability_without_breakdown",
+        "src_D0124"
+      ],
+      "style": "Heading2",
+      "text": "1.5 Instability Without Breakdown",
+      "links": []
+    },
+    {
+      "id": "src_D0126",
+      "anchors": [
+        "src_D0126"
+      ],
+      "style": "Normal",
+      "text": "Instability can exist without visible breakdown. A system does not need to fail for instability to be present. The absence of failure does not confirm stability.",
+      "links": []
+    },
+    {
+      "id": "src_D0128",
+      "anchors": [
+        "src_D0128"
+      ],
+      "style": "Normal",
+      "text": "Breakdown may be the point at which instability becomes visible. It need not be the point at which structural strain began.",
+      "links": []
+    },
+    {
+      "id": "src_D0130",
+      "anchors": [
+        "src_D0130"
+      ],
+      "style": "Normal",
+      "text": "For this hypothetical HFOS scenario, assume that pressure exceeds what the system can sustain over time, the underlying conditions remain unchanged, and current obligations are nevertheless being met. Continuing operation and the assumed constraint on alignment coexist within the example. These assumptions do not establish a real household condition or predict eventual breakdown.",
+      "links": []
+    },
+    {
+      "id": "src_D0132",
+      "anchors": [
+        "src_D0132"
+      ],
+      "style": "Normal",
+      "text": "In the same hypothetical scenario, obligations are met and continuity is maintained while the specified constraint remains assumed. Here, maintained payments describe continuity, not the named HFOS state Stable. The example assigns no real-world state and establishes no mandatory sequence of states.",
+      "links": []
+    },
+    {
+      "id": "src_D0134",
+      "anchors": [
+        "src_D0134"
+      ],
+      "style": "Normal",
+      "text": "In this scenario, assume that pressure continues to exceed what the system can sustain over time and that the underlying conditions remain unchanged. The absence of failure does not by itself show that this assumed imbalance has been resolved.",
+      "links": []
+    },
+    {
+      "id": "src_D0137",
+      "anchors": [
+        "src_D0137"
+      ],
+      "style": "Normal",
+      "text": "In the same hypothetical HFOS scenario, continuing operation coexists with the assumed constraint on alignment. This illustrates the conceptual distinction between a structural condition and a breakdown event; maintained continuity is not the named state Stable.",
+      "links": []
+    },
+    {
+      "id": "src_D0139",
+      "anchors": [
+        "src_D0139"
+      ],
+      "style": "Normal",
+      "text": "Present functioning does not by itself establish stability. Continuity without structural alignment may leave a system exposed to later breakdown; breakdown is not inevitable.",
+      "links": []
+    }
+  ]
+}

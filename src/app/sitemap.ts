@@ -1,9 +1,12 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://wealthpathaiglobal.com";
+  const baseUrl = "https://www.wealthpathaiglobal.com";
 
   return [
+    ...['/books', '/books/hfos-phase-1-stability', '/books/hfos-phase-1-stability/preview'].map(path => ({
+      url: `${baseUrl}${path}`, changeFrequency: 'monthly' as const, priority: 0.8,
+    })),
     {
       url: baseUrl,
       lastModified: new Date(),

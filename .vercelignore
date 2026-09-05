@@ -1,0 +1,7 @@
+/docs/
+/audits/
+/supabase/
+/config/
+/scripts/
+**/*.test.ts
+**/*.test.tsx

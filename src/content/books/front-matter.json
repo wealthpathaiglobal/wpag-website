@@ -1,0 +1,460 @@
+{
+  "id": "front-matter",
+  "paragraphs": [
+    {
+      "id": "src_D0010",
+      "anchors": [
+        "src_D0010"
+      ],
+      "style": "Identity",
+      "text": "WEALTH PATH AI GLOBAL",
+      "links": []
+    },
+    {
+      "id": "src_D0012",
+      "anchors": [
+        "src_D0012"
+      ],
+      "style": "Title",
+      "text": "HFOS — Phase 1: Stability",
+      "links": []
+    },
+    {
+      "id": "src_D0014",
+      "anchors": [
+        "src_D0014"
+      ],
+      "style": "Subtitle",
+      "text": "A Structural System for Financial Stability",
+      "links": []
+    },
+    {
+      "id": "prod_p0003",
+      "anchors": [],
+      "style": "Identity",
+      "text": "Free Preview / Sample",
+      "links": []
+    },
+    {
+      "id": "src_D0016",
+      "anchors": [
+        "src_D0016"
+      ],
+      "style": "Identity",
+      "text": "Srinivas Goud",
+      "links": []
+    },
+    {
+      "id": "src_D0017",
+      "anchors": [
+        "src_D0017"
+      ],
+      "style": "Normal",
+      "text": "Founder, Wealth Path AI Global",
+      "links": []
+    },
+    {
+      "id": "src_D0019",
+      "anchors": [
+        "src_D0019"
+      ],
+      "style": "MatterHeading",
+      "text": "EDITION NOTICE",
+      "links": []
+    },
+    {
+      "id": "prod_p0007",
+      "anchors": [],
+      "style": "NoticeField",
+      "text": "Free preview of the full educational edition",
+      "links": []
+    },
+    {
+      "id": "prod_p0008",
+      "anchors": [],
+      "style": "NoticeField",
+      "text": "Production master v1.0",
+      "links": []
+    },
+    {
+      "id": "prod_p0009",
+      "anchors": [],
+      "style": "NoticeField",
+      "text": "5 September 2026",
+      "links": []
+    },
+    {
+      "id": "prod_p0010",
+      "anchors": [],
+      "style": "NoticeField",
+      "text": "NON-PUBLIC — RELEASE REVIEW REQUIRED",
+      "links": []
+    },
+    {
+      "id": "src_D0022",
+      "anchors": [
+        "src_D0022"
+      ],
+      "style": "Normal",
+      "text": "This book explains the owner’s conceptual HFOS framework for general educational learning. It does not assess or diagnose a reader’s finances or provide financial advice, professional recommendations, or individualized instructions.",
+      "links": []
+    },
+    {
+      "id": "src_D0026",
+      "anchors": [
+        "src_D0026"
+      ],
+      "style": "MatterHeading",
+      "text": "DISCLAIMER",
+      "links": []
+    },
+    {
+      "id": "src_D0028",
+      "anchors": [
+        "src_D0028"
+      ],
+      "style": "Normal",
+      "text": "HFOS provides a conceptual vocabulary for discussing relationships among Load, Flow, and Capacity.",
+      "links": []
+    },
+    {
+      "id": "prod_p0014",
+      "anchors": [
+        "contents"
+      ],
+      "style": "MatterHeading",
+      "text": "Contents",
+      "links": []
+    },
+    {
+      "id": "prod_p0015",
+      "anchors": [],
+      "style": "TOCChapter",
+      "text": "\tChapter 1 — Structural Financial Instability\t1",
+      "links": [
+        {
+          "target": "src_D0070",
+          "text": "Chapter 1 — Structural Financial Instability"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0016",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t1.1 Nature of Instability\t1",
+      "links": [
+        {
+          "target": "src_D0073",
+          "text": "1.1 Nature of Instability"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0017",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t1.2 Instability as a System Condition\t2",
+      "links": [
+        {
+          "target": "src_D0087",
+          "text": "1.2 Instability as a System Condition"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0018",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t1.3 Pressure and Structural Imbalance\t2",
+      "links": [
+        {
+          "target": "src_D0099",
+          "text": "1.3 Pressure and Structural Imbalance"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0019",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t1.4 Functioning Without Stability\t3",
+      "links": [
+        {
+          "target": "src_D0113",
+          "text": "1.4 Functioning Without Stability"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0020",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t1.5 Instability Without Breakdown\t4",
+      "links": [
+        {
+          "target": "src_D0124",
+          "text": "1.5 Instability Without Breakdown"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0021",
+      "anchors": [],
+      "style": "TOCChapter",
+      "text": "\tChapter 2 — Fragility Formation\t6",
+      "links": [
+        {
+          "target": "src_D0142",
+          "text": "Chapter 2 — Fragility Formation"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0022",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t2.1 Fragility as a Structural Outcome\t6",
+      "links": [
+        {
+          "target": "src_D0145",
+          "text": "2.1 Fragility as a Structural Outcome"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0023",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t2.2 Accumulation of Pressure\t7",
+      "links": [
+        {
+          "target": "src_D0159",
+          "text": "2.2 Accumulation of Pressure"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0024",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t2.3 Reduced Shock Absorption\t8",
+      "links": [
+        {
+          "target": "src_D0173",
+          "text": "2.3 Reduced Shock Absorption"
+        }
+      ]
+    },
+    {
+      "id": "prod_p0025",
+      "anchors": [],
+      "style": "TOCSection",
+      "text": "\t2.4 Delayed Breakdown\t8",
+      "links": [
+        {
+          "target": "src_D0189",
+          "text": "2.4 Delayed Breakdown"
+        }
+      ]
+    },
+    {
+      "id": "src_D0032",
+      "anchors": [
+        "src_D0032"
+      ],
+      "style": "MatterHeading",
+      "text": "ABOUT WEALTH PATH AI GLOBAL",
+      "links": []
+    },
+    {
+      "id": "src_D0034",
+      "anchors": [
+        "src_D0034"
+      ],
+      "style": "Normal",
+      "text": "Wealth Path AI Global (WPAG) is the institutional platform for research, documentation, governance, and further development of HFOS. Its remit is educational and research-focused.",
+      "links": []
+    },
+    {
+      "id": "src_D0036",
+      "anchors": [
+        "src_D0036"
+      ],
+      "style": "Normal",
+      "text": "Its core objective is to contribute to understanding financial stability, growth, and risk through system-based thinking.",
+      "links": []
+    },
+    {
+      "id": "src_D0038",
+      "anchors": [
+        "src_D0038"
+      ],
+      "style": "Normal",
+      "text": "HFOS — the Human Financial Operating System — is a conceptual educational framework. Srinivas Goud is its conceptual developer and creator; WPAG is its institutional platform. It supports discussion of financial structures, without validated assessment or individualized guidance.",
+      "links": []
+    },
+    {
+      "id": "src_D0040",
+      "anchors": [
+        "src_D0040"
+      ],
+      "style": "MatterHeading",
+      "text": "ABOUT HFOS",
+      "links": []
+    },
+    {
+      "id": "src_D0042",
+      "anchors": [
+        "src_D0042"
+      ],
+      "style": "Normal",
+      "text": "The Human Financial Operating System (HFOS) is a conceptual framework for considering financial stability through three primary variables: Load, Flow, and Capacity.",
+      "links": []
+    },
+    {
+      "id": "src_D0044",
+      "anchors": [
+        "src_D0044"
+      ],
+      "style": "Normal",
+      "text": "Its focus is the relationship between these variables over time. Budgeting, tracking, and other financial information can inform that discussion; the framework does not establish that such information is unimportant.",
+      "links": []
+    },
+    {
+      "id": "src_D0046",
+      "anchors": [
+        "src_D0046"
+      ],
+      "style": "Normal",
+      "text": "HFOS is presented here as a Structural Financial Operating System: an educational framework for describing and organizing financial conditions through system-based principles. This manuscript does not supply a validated assessment method.",
+      "links": []
+    },
+    {
+      "id": "src_D0048",
+      "anchors": [
+        "src_D0048"
+      ],
+      "style": "Normal",
+      "text": "HFOS is organized into seven phases:",
+      "links": []
+    },
+    {
+      "id": "src_D0050",
+      "anchors": [
+        "src_D0050"
+      ],
+      "style": "Normal",
+      "text": "Phase 1 — Stability",
+      "links": []
+    },
+    {
+      "id": "src_D0051",
+      "anchors": [
+        "src_D0051"
+      ],
+      "style": "Normal",
+      "text": "Phase 2 — Margin Construction",
+      "links": []
+    },
+    {
+      "id": "src_D0052",
+      "anchors": [
+        "src_D0052"
+      ],
+      "style": "Normal",
+      "text": "Phase 3 — Controlled Growth",
+      "links": []
+    },
+    {
+      "id": "src_D0053",
+      "anchors": [
+        "src_D0053"
+      ],
+      "style": "Normal",
+      "text": "Phase 4 — Risk Containment",
+      "links": []
+    },
+    {
+      "id": "src_D0054",
+      "anchors": [
+        "src_D0054"
+      ],
+      "style": "Normal",
+      "text": "Phase 5 — Asset Architecture",
+      "links": []
+    },
+    {
+      "id": "src_D0055",
+      "anchors": [
+        "src_D0055"
+      ],
+      "style": "Normal",
+      "text": "Phase 6 — Protection Systems",
+      "links": []
+    },
+    {
+      "id": "src_D0056",
+      "anchors": [
+        "src_D0056"
+      ],
+      "style": "Normal",
+      "text": "Phase 7 — Legacy Structure",
+      "links": []
+    },
+    {
+      "id": "src_D0058",
+      "anchors": [
+        "src_D0058"
+      ],
+      "style": "Normal",
+      "text": "This document represents Phase 1 — Stability.",
+      "links": []
+    },
+    {
+      "id": "src_D0059",
+      "anchors": [
+        "src_D0059"
+      ],
+      "style": "MatterHeading",
+      "text": "HOW TO READ THIS DOCUMENT",
+      "links": []
+    },
+    {
+      "id": "src_D0061",
+      "anchors": [
+        "src_D0061"
+      ],
+      "style": "Normal",
+      "text": "This document is structured as a system, not as a traditional book.",
+      "links": []
+    },
+    {
+      "id": "src_D0063",
+      "anchors": [
+        "src_D0063"
+      ],
+      "style": "Normal",
+      "text": "Each chapter builds upon the previous one. The sequence must be followed to fully understand the system.",
+      "links": []
+    },
+    {
+      "id": "src_D0065",
+      "anchors": [
+        "src_D0065"
+      ],
+      "style": "Normal",
+      "text": "The objective is not to provide immediate answers, but to establish a structural understanding of stability.",
+      "links": []
+    },
+    {
+      "id": "src_D0067",
+      "anchors": [
+        "src_D0067"
+      ],
+      "style": "Normal",
+      "text": "Readers are encouraged to focus on the relationships between concepts rather than isolated statements.",
+      "links": []
+    }
+  ]
+}

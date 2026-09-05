@@ -1,0 +1,289 @@
+{
+  "id": "ch02",
+  "paragraphs": [
+    {
+      "id": "src_D0140",
+      "anchors": [
+        "src_D0140"
+      ],
+      "style": "ChapterLabel",
+      "text": "Chapter 2",
+      "links": []
+    },
+    {
+      "id": "src_D0142",
+      "anchors": [
+        "ch02",
+        "src_D0142"
+      ],
+      "style": "Heading1",
+      "text": "Fragility Formation",
+      "links": []
+    },
+    {
+      "id": "src_D0145",
+      "anchors": [
+        "ch02_sec01_fragility_as_a_structural_out",
+        "src_D0145"
+      ],
+      "style": "Heading2",
+      "text": "2.1 Fragility as a Structural Outcome",
+      "links": []
+    },
+    {
+      "id": "src_D0147",
+      "anchors": [
+        "src_D0147"
+      ],
+      "style": "Normal",
+      "text": "HFOS uses fragility to describe structural weakness that can develop under sustained instability. This chapter examines that pathway rather than every possible origin of fragility.",
+      "links": []
+    },
+    {
+      "id": "src_D0149",
+      "anchors": [
+        "src_D0149"
+      ],
+      "style": "Normal",
+      "text": "Within the HFOS conceptual pathway considered here, repeated imbalance may contribute to fragility formation under conditions assumed to be unsustainable. This is a conditional model relationship, not evidence that actual weakening has occurred or a necessary progression.",
+      "links": []
+    },
+    {
+      "id": "src_D0151",
+      "anchors": [
+        "src_D0151"
+      ],
+      "style": "Normal",
+      "text": "Within HFOS, the conceptual Fragile state describes continued functioning with limited qualitative room for variation. This description is not a measured reduction in shock absorption, an automatic decrease in Capacity, or a forecast of continuity failure.",
+      "links": []
+    },
+    {
+      "id": "src_D0153",
+      "anchors": [
+        "src_D0153"
+      ],
+      "style": "Normal",
+      "text": "Within HFOS, Fragile is a conceptual description distinct from actual loss of continuity. Any room for variation discussed here is qualitative and model-bound, not a validated resilience measure. Normal payments or a payment interruption alone do not assign a state, demonstrate a change in Capacity, or predict imminent failure.",
+      "links": []
+    },
+    {
+      "id": "src_D0155",
+      "anchors": [
+        "src_D0155"
+      ],
+      "style": "Normal",
+      "text": "In the pathway considered here, fragility develops under prolonged imbalance where pressure remains unsupported.",
+      "links": []
+    },
+    {
+      "id": "src_D0157",
+      "anchors": [
+        "src_D0157"
+      ],
+      "style": "Normal",
+      "text": "The author’s intended focus here is on structural relationships within the HFOS conceptual pathway of fragility formation.",
+      "links": []
+    },
+    {
+      "id": "src_D0159",
+      "anchors": [
+        "ch02_sec02_accumulation_of_pressure",
+        "src_D0159"
+      ],
+      "style": "Heading2",
+      "text": "2.2 Accumulation of Pressure",
+      "links": []
+    },
+    {
+      "id": "src_D0161",
+      "anchors": [
+        "src_D0161"
+      ],
+      "style": "Normal",
+      "text": "Pressure can accumulate when unresolved demands carry forward over time. Continued instability does not imply that every demand necessarily accumulates.",
+      "links": []
+    },
+    {
+      "id": "src_D0163",
+      "anchors": [
+        "src_D0163"
+      ],
+      "style": "Normal",
+      "text": "When obligations remain unmet or are carried forward, residual pressure may increase structural Load. The extent and timing depend on the obligations involved.",
+      "links": []
+    },
+    {
+      "id": "src_D0165",
+      "anchors": [
+        "src_D0165"
+      ],
+      "style": "Normal",
+      "text": "For this conceptual example, assume that specified demands remain unresolved while other obligations have been paid and discharged. Only the demands assumed to remain unresolved continue to be considered in Load; discharged obligations are not counted again. Their amount, status, and timing can change through resolution or adjustment. This distinction assumes neither automatic accumulation nor a conserved stock of pressure or a reduction in Capacity; it is not a calculation or repayment order.",
+      "links": []
+    },
+    {
+      "id": "src_D0167",
+      "anchors": [
+        "src_D0167"
+      ],
+      "style": "Normal",
+      "text": "Accumulating unresolved demands may bring a system closer to its limits and reduce its ability to absorb further change.",
+      "links": []
+    },
+    {
+      "id": "src_D0169",
+      "anchors": [
+        "src_D0169"
+      ],
+      "style": "Normal",
+      "text": "Unresolved accumulated demands may intensify strain, depending on resources, timing, and available adjustments. Where continuity relies on support remaining unchanged, a change in that support may expose the unresolved demands.",
+      "links": []
+    },
+    {
+      "id": "src_D0171",
+      "anchors": [
+        "src_D0171"
+      ],
+      "style": "Normal",
+      "text": "Where unresolved demand exceeds available sustainable support, accumulated pressure may indicate a continuing imbalance and contribute to structural weakness. That weakening is conditional on the gap remaining unresolved.",
+      "links": []
+    },
+    {
+      "id": "src_D0173",
+      "anchors": [
+        "ch02_sec03_reduced_shock_absorption",
+        "src_D0173"
+      ],
+      "style": "Heading2",
+      "text": "2.3 Reduced Shock Absorption",
+      "links": []
+    },
+    {
+      "id": "src_D0175",
+      "anchors": [
+        "src_D0175"
+      ],
+      "style": "Normal",
+      "text": "Sustained imbalance can reduce a system’s ability to absorb variation. HFOS describes this loss of resilience as one aspect of fragility.",
+      "links": []
+    },
+    {
+      "id": "src_D0177",
+      "anchors": [
+        "src_D0177"
+      ],
+      "style": "Normal",
+      "text": "Shock absorption is the system’s ability to withstand change without losing continuity. When this ability is intact, variations in pressure or support do not immediately affect operation. Continuity is preserved under normal fluctuation.",
+      "links": []
+    },
+    {
+      "id": "src_D0179",
+      "anchors": [
+        "src_D0179"
+      ],
+      "style": "Normal",
+      "text": "Prolonged instability may weaken shock absorption and make previously manageable changes harder to sustain.",
+      "links": []
+    },
+    {
+      "id": "src_D0181",
+      "anchors": [
+        "src_D0181"
+      ],
+      "style": "Normal",
+      "text": "Within this qualitative model, reduced structural Margin describes less room to accommodate variation within existing limits. Whether a change disrupts continuity depends on the nature of that change and the support that remains available.",
+      "links": []
+    },
+    {
+      "id": "src_D0183",
+      "anchors": [
+        "src_D0183"
+      ],
+      "style": "Normal",
+      "text": "Reduced shock absorption does not eliminate functioning. The system may continue to operate, but under constrained conditions. Its ability to respond to variation is limited.",
+      "links": []
+    },
+    {
+      "id": "src_D0185",
+      "anchors": [
+        "src_D0185"
+      ],
+      "style": "Normal",
+      "text": "Reduced shock absorption can increase exposure to disruption. Even small changes may affect continuity where remaining flexibility is limited.",
+      "links": []
+    },
+    {
+      "id": "src_D0187",
+      "anchors": [
+        "src_D0187"
+      ],
+      "style": "Normal",
+      "text": "Reduced shock absorption therefore reflects structural weakening. It indicates that the system’s ability to manage pressure has declined, increasing vulnerability to instability.",
+      "links": []
+    },
+    {
+      "id": "src_D0189",
+      "anchors": [
+        "ch02_sec04_delayed_breakdown",
+        "src_D0189"
+      ],
+      "style": "Heading2",
+      "text": "2.4 Delayed Breakdown",
+      "links": []
+    },
+    {
+      "id": "src_D0191",
+      "anchors": [
+        "src_D0191"
+      ],
+      "style": "Normal",
+      "text": "Breakdown may occur after a period of instability. A system can continue to function under imbalance before failure becomes visible, but neither delay nor eventual failure is universal.",
+      "links": []
+    },
+    {
+      "id": "src_D0193",
+      "anchors": [
+        "src_D0193"
+      ],
+      "style": "Normal",
+      "text": "Within this HFOS model, the absence of disruption alone does not establish sustained alignment under future conditions. Uncertainty about that alignment is not evidence that instability or breakdown will occur. The delayed pathway considered here is one possibility, not an inevitable progression.",
+      "links": []
+    },
+    {
+      "id": "src_D0195",
+      "anchors": [
+        "src_D0195"
+      ],
+      "style": "Normal",
+      "text": "Where the imbalance remains unresolved, pressure may accumulate and shock absorption may decline during continued operation.",
+      "links": []
+    },
+    {
+      "id": "src_D0198",
+      "anchors": [
+        "src_D0198"
+      ],
+      "style": "Normal",
+      "text": "A delay in breakdown does not establish protection. Unresolved strain may persist or deepen during continued operation, although risk can change and corrective action can alter the outcome.",
+      "links": []
+    },
+    {
+      "id": "src_D0200",
+      "anchors": [
+        "src_D0200"
+      ],
+      "style": "Normal",
+      "text": "Within HFOS, the absence of failure alone does not establish sustained alignment. This is a conceptual limit on inference: uncertainty about future alignment is not evidence of instability or movement toward breakdown.",
+      "links": []
+    },
+    {
+      "id": "src_D0202",
+      "anchors": [
+        "src_D0202"
+      ],
+      "style": "Normal",
+      "text": "Delayed breakdown therefore describes one possible progression of instability. It can follow a condition developing while the system continued to function; it is not an inevitable final stage.",
+      "links": []
+    }
+  ]
+}

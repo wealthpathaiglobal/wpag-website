@@ -1,0 +1,17 @@
+{
+  "base": "http://127.0.0.1:4320",
+  "preview_paragraphs": 114,
+  "last_id": "src_D0202",
+  "protected_paragraphs_scanned": 306,
+  "build_files_scanned": 935,
+  "served_chunks_scanned": 11,
+  "private_routes_404_noindex": 13,
+  "orders": "503 PAYMENTS_DISABLED",
+  "public_routes": [
+    "/books",
+    "/books/hfos-phase-1-stability",
+    "/books/hfos-phase-1-stability/preview"
+  ],
+  "cover_sha256": "8f2dd355706028eccf9534c93be476d56d7c4601e290e547b6ec49964d99ca8e",
+  "result": "PASS"
+}
