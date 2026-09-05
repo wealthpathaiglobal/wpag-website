@@ -1,0 +1,54 @@
+{
+  "checks": [
+    {
+      "route": "/books",
+      "status": 200,
+      "type": "RSC",
+      "protected_content": "absent"
+    },
+    {
+      "route": "/books/hfos-phase-1-stability",
+      "status": 200,
+      "type": "RSC",
+      "protected_content": "absent"
+    },
+    {
+      "route": "/books/hfos-phase-1-stability/preview",
+      "status": 200,
+      "type": "RSC",
+      "protected_content": "absent"
+    },
+    {
+      "route": "/library",
+      "method": "POST",
+      "status": 404
+    },
+    {
+      "route": "/account",
+      "method": "POST",
+      "status": 404
+    },
+    {
+      "route": "/reader",
+      "method": "POST",
+      "status": 404
+    },
+    {
+      "route": "/api/reader/ch03",
+      "method": "POST",
+      "status": 404
+    },
+    {
+      "route": "/api/entitlements",
+      "method": "POST",
+      "status": 404
+    },
+    {
+      "route": "/api/books/entitlements",
+      "method": "POST",
+      "status": 404
+    }
+  ],
+  "non_www_redirect": "www verified",
+  "result": "PASS"
+}
