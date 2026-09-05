@@ -57,8 +57,8 @@ export default function Home() {
               </h1>
 
               <p className={`mt-8 max-w-2xl ${typography.bodyLarge}`}>
-                A structured framework for understanding financial stability,
-                diagnosing pressure, and building long-term financial resilience.
+                A framework for understanding whether a financial system can meet its
+                obligations, absorb pressure, and remain stable over time.
               </p>
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">

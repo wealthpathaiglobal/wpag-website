@@ -41,18 +41,29 @@ export default function AboutPage() {
           <Container>
             <div className="max-w-5xl">
               <p className="text-sm font-medium uppercase tracking-[0.32em] text-zinc-400">
-                About Wealth Path AI Global
+                About
               </p>
 
               <h1 className="mt-8 max-w-5xl text-5xl font-semibold leading-[1.04] tracking-[-0.04em] sm:text-6xl lg:text-7xl">
-                An independent research organization advancing financial
-                stability.
+                About Wealth Path AI Global
               </h1>
 
               <p className="mt-10 max-w-3xl text-lg leading-8 text-zinc-400 sm:text-xl">
-                Wealth Path AI Global develops structured financial frameworks
-                designed to improve how stability, pressure, fragility,
-                capacity, and long-term continuity are understood.
+                Wealth Path AI Global is an independent financial research and
+                education organization developing structured ways to understand
+                financial stability.
+              </p>
+
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-400 sm:text-xl">
+                WPAG studies a fundamental question: why do some financial systems
+                remain stable under pressure while others become fragile?
+              </p>
+
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-zinc-400 sm:text-xl">
+                Its work examines obligations, income flow, available capacity,
+                financial pressure, and continuity over time. These ideas are
+                being developed through the Human Financial Operating System
+                (HFOS) and related research.
               </p>
             </div>
           </Container>

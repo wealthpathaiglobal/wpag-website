@@ -143,6 +143,34 @@ export default function HFOSPage() {
 
         <section className="border-t border-zinc-900 py-24">
           <Container>
+            <div className="max-w-3xl">
+              <h2 className="text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+                What HFOS is designed to understand
+              </h2>
+
+              <div className="mt-8 space-y-6 text-lg leading-8 text-zinc-400">
+                <p>
+                  A person or household may appear financially stable while income
+                  is coming in and regular payments are being made. But high
+                  obligations, unstable income, limited reserves, or a disruption
+                  can expose underlying financial pressure.
+                </p>
+                <p>
+                  HFOS is being developed to examine that underlying condition —
+                  how obligations, financial flow, available capacity, and
+                  resilience interact over time.
+                </p>
+                <p>
+                  It provides a structured way to study financial stability before
+                  moving toward growth.
+                </p>
+              </div>
+            </div>
+          </Container>
+        </section>
+
+        <section className="border-t border-zinc-900 py-24">
+          <Container>
             <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
               <div>
                 <p className="text-sm font-medium uppercase tracking-[0.28em] text-zinc-400">
