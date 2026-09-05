@@ -2,16 +2,20 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { BookSummary } from './book-summary';
+import Product from '@/app/books/hfos-phase-1-stability/page';
 import { POST } from '@/app/api/books/orders/route';
 import sitemap from '@/app/sitemap';
 vi.mock('next/image', () => ({ default: ({ alt }: { alt: string }) => <span role="img" aria-label={alt} /> }));
 describe('Public Books release boundary', () => {
- it('renders an inert purchase button and no draft policy links', () => {
+ it('presents unavailable purchasing as information and no draft policy links', () => {
   const html = renderToStaticMarkup(<BookSummary />);
-  expect(html).toMatch(/<button type="button" disabled="">Coming soon — payments not yet enabled<\/button>/);
+  expect(html).toContain('Purchasing is not yet available.');
+  expect(html).not.toMatch(/<button[^>]*>[^<]*(?:purchase|payments|Buy|Checkout)/i);
   expect(html).not.toContain('/books/policies');
   expect(html).toContain('₹199');
-  expect(html).toContain('Planned 24-month access');
+  const product = renderToStaticMarkup(<Product />);
+  expect(product).toContain('Planned full-edition access');
+  expect(product).toContain('Planned access duration: 24 months.');
  });
  it('rejects orders even if an enable flag is supplied', async () => {
   vi.stubEnv('READER_PURCHASES_ENABLED', 'true');
