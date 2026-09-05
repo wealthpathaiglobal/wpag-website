@@ -1,0 +1,8 @@
+docs
+audits
+supabase
+config
+scripts
+**/*.test.ts
+**/*.test.tsx
+src/content/books/policies.json
