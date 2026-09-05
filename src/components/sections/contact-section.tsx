@@ -19,10 +19,10 @@ export function ContactSection() {
   partnerships, or general enquiries, please get in touch.
 </p>
         <a
-          href="mailto:srinivasthallapalli98@gmail.com"
+          href="mailto:contact@wealthpathaiglobal.com"
           className="mt-10 inline-flex border border-white/20 px-6 py-3 text-sm font-medium text-white transition hover:border-white/50"
         >
-          Send an Email
+          contact@wealthpathaiglobal.com
         </a>
       </Container>
     </section>

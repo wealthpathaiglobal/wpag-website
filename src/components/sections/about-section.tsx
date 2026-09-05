@@ -14,10 +14,13 @@ export function AboutSection() {
 </h2>
 
 <p className={`mt-12 max-w-3xl ${typography.bodyLarge}`}>
-  Wealth Path AI Global (WPAG) is an independent research and development
-  organization focused on designing structured financial frameworks that help
-  individuals, professionals, and institutions understand, diagnose, measure,
-  and preserve financial stability.
+  Wealth Path AI Global is an independent financial research and education
+  organization founded by Srinivas Goud. It develops frameworks for understanding
+  financial stability, pressure, capacity, and continuity.
+</p>
+<p className="mt-6 max-w-3xl text-sm leading-7 text-zinc-400">
+  WPAG does not provide banking, lending, brokerage, investment-advisory, or
+  other regulated financial services.
 </p>
       </Container>
     </section>
