@@ -2,19 +2,12 @@ import { NextResponse } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-
-function getSafeRedirectPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/participant/dashboard";
-  }
-
-  return value;
-}
+import { getSafeAuthReturnPath } from "@/lib/auth/safe-redirect";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = getSafeRedirectPath(requestUrl.searchParams.get("next"));
+  const next = getSafeAuthReturnPath(requestUrl.searchParams.get("next"), "callback");
 
   if (!code) {
     return NextResponse.redirect(
