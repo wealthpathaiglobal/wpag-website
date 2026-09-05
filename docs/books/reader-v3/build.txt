@@ -1,0 +1,113 @@
+
+> wpag-website-v1@0.1.0 build
+> next build
+
+▲ Next.js 16.2.10 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.2s
+  Running TypeScript ...
+  Finished TypeScript in 2.7s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/71) ...
+  Generating static pages using 9 workers (17/71) 
+  Generating static pages using 9 workers (35/71) 
+  Generating static pages using 9 workers (53/71) 
+✓ Generating static pages using 9 workers (71/71) in 239ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ƒ /admin/applications/[applicationId]
+├ ƒ /admin/dashboard
+├ ƒ /admin/evidence
+├ ƒ /admin/evidence/[documentId]
+├ ƒ /admin/participants/[participantId]
+├ ƒ /admin/reports
+├ ƒ /admin/reports/[reportId]
+├ ƒ /admin/reviews/assessments
+├ ƒ /admin/reviews/assessments/[assessmentId]
+├ ƒ /api/admin/applications/review
+├ ƒ /api/admin/assessment-reviews/transition
+├ ƒ /api/admin/evidence/[documentId]/download
+├ ƒ /api/admin/evidence/transition
+├ ƒ /api/admin/participants/[participantId]/measurements
+├ ƒ /api/admin/participants/archive
+├ ƒ /api/admin/participants/complete
+├ ƒ /api/admin/participants/enroll
+├ ƒ /api/admin/participants/invite
+├ ƒ /api/admin/participants/pause
+├ ƒ /api/admin/participants/resume
+├ ƒ /api/admin/participants/withdraw
+├ ƒ /api/admin/preliminary-reports/[reportId]/artifact
+├ ƒ /api/admin/preliminary-reports/artifacts/generate
+├ ƒ /api/admin/preliminary-reports/transition
+├ ƒ /api/books/orders
+├ ƒ /api/participant/application
+├ ƒ /api/participant/assessment
+├ ƒ /api/participant/assessment/modules/[moduleKey]
+├ ƒ /api/participant/assessment/start
+├ ƒ /api/participant/assessment/submit
+├ ƒ /api/participant/evidence/[documentId]/download
+├ ƒ /api/participant/evidence/[documentId]/resubmit
+├ ƒ /api/participant/evidence/upload
+├ ƒ /api/participant/preliminary-reports/[reportId]/download
+├ ƒ /api/participant/profile
+├ ƒ /api/participant/profile/complete
+├ ƒ /auth/callback
+├ ○ /auth/forgot-password
+├ ○ /auth/login
+├ ○ /auth/update-password
+├ ƒ /book-access-unavailable
+├ ○ /books
+├ ○ /books/hfos-phase-1-stability
+├ ○ /books/hfos-phase-1-stability/preview
+├ ƒ /books/policies/[policy]
+├ ○ /contact
+├ ○ /cookie-policy
+├ ○ /founder
+├ ○ /hfos
+├ ○ /insights
+├ ○ /manifest.webmanifest
+├ ○ /opengraph-image
+├ ○ /participant
+├ ○ /participant/application
+├ ƒ /participant/application-submitted
+├ ƒ /participant/assessment
+├ ƒ /participant/assessment/cash-flow
+├ ƒ /participant/assessment/debt-obligations
+├ ƒ /participant/assessment/financial-profile
+├ ƒ /participant/assessment/goals-planning
+├ ƒ /participant/assessment/protection-risk
+├ ƒ /participant/assessment/review-submit
+├ ƒ /participant/assessment/stability-margin
+├ ƒ /participant/consent
+├ ƒ /participant/dashboard
+├ ○ /participant/eligibility
+├ ƒ /participant/enrollment-confirmation
+├ ƒ /participant/evidence
+├ ƒ /participant/evidence/[documentId]
+├ ƒ /participant/identity-verification
+├ ○ /participant/information
+├ ƒ /participant/profile
+├ ƒ /participant/reports
+├ ƒ /participant/reports/[reportId]
+├ ƒ /participant/verify-contact
+├ ○ /privacy-policy
+├ ○ /research
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ○ /terms-of-use
+└ ○ /twitter-image
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+npm notice
+npm notice New major version of npm available! 11.16.0 -> 12.0.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+npm notice To update run: npm install -g npm@12.0.2
+npm notice
