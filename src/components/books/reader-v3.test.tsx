@@ -39,11 +39,17 @@ describe('Reader v3 release contracts', () => {
   expect(html).not.toContain('Sales are not open.');
   expect(html).not.toContain('Explore the opening');
   expect(html.indexOf('One personal account')).toBeGreaterThan(html.indexOf('10. Phase Transition'));
-  expect(html).toContain('Access details');
+  expect(html).toContain('Planned full-edition access');
+  expect(html).toContain('Planned access duration: 24 months.');
   expect(html.match(/This book does not provide personal financial advice, assessment, or research enrolment/g)).toHaveLength(1);
   expect(renderToStaticMarkup(<BookSummary/>)).not.toContain('One personal account');
   expect(html).toContain('10. Phase Transition');
-  expect(html).toContain('disabled="">Coming soon — payments not yet enabled');
+  expect(html).toContain('Purchasing is not yet available.');
+  expect(html).toContain('₹199 planned');
+  expect(html).toContain('Free preview — available now');
+  expect(html).not.toContain('Coming soon — payments not yet enabled');
+  expect(html).not.toMatch(/>Buy|>Purchase|>Checkout/);
+  expect(html).toContain('The free preview includes the opening material and Chapters 1–2.');
  });
  it('removes public control terminology and retains public language names', () => {
   const html = renderToStaticMarkup(<Preview/>)+renderToStaticMarkup(<Product/>)+metadata.description;

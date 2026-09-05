@@ -44,3 +44,21 @@ html:has(#book-contents){scroll-behavior:smooth}
 body:has(.reader-dialog[open]){overflow:hidden}
 @media(max-width:600px){.reader-toolbar{justify-content:flex-start;padding:.65rem;gap:.5rem}.reader-language{flex-basis:100%;order:2;flex-wrap:nowrap;min-width:0}.reader-language select{flex:1;min-width:0;max-width:none}.reader-modes{order:3;margin-left:0}.digital-page{min-height:620px;font-size:1.125rem;line-height:1.8}.reader-dialog{padding:1rem}.reader-dialog-top{top:-1rem}.reader-page-nav button{padding:.6rem .4rem}}
 @media(prefers-reduced-motion:reduce){html:has(.book-surface),.book-surface *{scroll-behavior:auto;transition:none}}
+
+/* Books Public Comprehension V1: listing/product only; reader rules unchanged. */
+.book-grid .book-availability{font-size:.9375rem;color:#b5c6d7;margin-bottom:.5rem}
+.book-grid .book-availability+.book-actions{margin-top:.5rem}
+.book-grid .book-edition-status{font-size:1rem;color:#b5c6d7}
+.book-learning{margin-top:2rem;max-width:780px}
+.book-learning ul{list-style:disc;padding-left:1.5rem}
+@media(max-width:700px){
+  .book-surface:has(>.book-grid){padding-top:6rem}
+  .book-surface:has(>.book-grid)>h1{margin-top:.5rem;margin-bottom:1rem}
+  .book-grid{gap:1rem}
+  .book-grid .book-cover-stage{width:158px;padding:12px}
+  .book-grid .book-cover{max-width:132px}
+  .book-grid p{margin:.65rem 0}
+  .book-grid h1{margin:.5rem 0 .75rem}
+  .book-grid h2{margin:.5rem 0}
+  .book-grid .book-actions{margin:.5rem 0 1.25rem}
+}
